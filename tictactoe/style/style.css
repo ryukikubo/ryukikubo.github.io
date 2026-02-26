@@ -1,0 +1,328 @@
+body{
+  background-color: black;
+}
+
+.content-box{
+  width: 100%;
+  height: 100%;
+}
+
+.title-box{
+  font-size: 9vh;
+  color: #FFF;
+  text-align: center;
+  font-family: "Cinzel Decorative", serif;
+}
+
+
+.anim-fadeIn_1{
+  opacity: 0;
+  animation: fadeIn 1s linear forwards;
+  animation-delay: 0.5s;
+}
+
+.anim-fadeIn_2{
+  opacity: 0;
+  animation: fadeIn 1s linear forwards;
+  animation-delay: 1.5s;
+}
+
+.anim-fadeIn_3{
+  opacity: 0;
+  animation: fadeIn 1s linear forwards;
+  animation-delay: 2.5s;
+}
+
+.button-box{
+  height: 50vh;
+  width: 100%;
+  margin-top: 20vh;
+  position: relative;
+}
+
+.play-button{
+  height: 10vh;
+  width: 25vh;
+  font-size: 4vh;
+  border: #FFF solid 2px;
+  background-color: black;
+  color: #FFF;
+  border-radius: 4rem;
+  position: absolute;
+  left: calc(50% - 12.5vh);
+  box-sizing: border-box;
+  font-family: "Dynalight", cursive;
+}
+
+.button-hide{
+  height: 10vh;
+  width: 25vh;
+  background-color: black;
+  border: #000 solid 2px;
+  position:absolute;
+  left: calc(50% - 12.5vh);
+}
+
+.b-hide-1{
+  animation: slide_X_1 4s linear forwards;
+  animation-delay: 3.5s;
+}
+
+.b-hide-2{
+
+  animation: slide_X_2 4s linear forwards;
+  animation-delay: 3.5s;
+}
+
+.anim-fadeOut{
+  animation: fadeOut 0.5s ease-in forwards;
+}
+
+.bord-content{
+  opacity: 0;
+  position: fixed;
+  z-index: 10;
+}
+.table-container{
+  position: fixed;
+  width: 80vw;
+  height: 80vw;
+  top: calc(50% - 40vw);
+  left: calc(50% - 40vw);
+}
+
+.bord-table{
+  width: 100%;
+  height: 100%;
+  border: solid 1px #fff;
+  box-sizing: border-box;
+  border-collapse: collapse;
+  border-radius: .5rem;
+}
+
+.bord-table tr{
+  width: 100%;
+  height: 33.3%;
+  border: solid 1px #fff;
+}
+
+.bord-table tr td{
+  width: 33.3%;
+  border: solid 1px #fff;
+  background-color: #0000009a;
+  padding: 1px;
+  position: relative;
+}
+
+.bord-table-fadeIn{
+  animation: fadeIn_2 1s linear forwards;
+  animation-delay: 1s;
+}
+
+.bord-table-fadeOut{
+  animation: fadeOut_2 1s linear forwards;
+}
+
+.put-svg{
+  width: 90%;
+  height: 90%;
+  position: absolute; /* 追加: 中央に配置するために absolute に設定 */
+  top: 50%; /* 垂直方向の中央: 親要素の中央に */
+  left: 50%; /* 水平方向の中央: 親要素の中央に */
+  transform: translate(-50%, -50%); /* 中央に配置 */
+}
+
+.replay-btn-container{
+  width: 100%;
+  height: 10vh;
+  position: absolute;
+  bottom: calc(0% + 5vh);
+}
+
+.play-again-button{
+  height: 10vh;
+  width: 30vh;
+  font-size: 4vh;
+  border: #FFF solid 2px;
+  background-color: black;
+  color: #FFF;
+  border-radius: 4rem;
+  position: absolute;
+  left: calc(50% - 15vh);
+  box-sizing: border-box;
+  font-family: "Dynalight", cursive;
+  opacity: 0;
+}
+
+.button-fadeIn-anim{
+  animation: fadeIn_2 1s linear forwards;
+}
+
+.background-content{
+  position: fixed;
+  z-index: 5;
+}
+.s {
+  color: rgb(0, 0, 0);
+  font-size: 15px;
+}
+
+.s_1{
+  position: fixed;
+  top: -15%;
+  animation: anim_twink 7s linear infinite;
+  text-shadow:
+  5vw   -100px 0 #F00,
+  10vw  -400px 0 #FFF,
+  15vw  -200px 0 #FFF,
+  20vw  -500px 0 #FFF,
+  30vw  -280px 0 #FFF,
+  39vw  -250px 0 #0FF,
+  42vw  -340px 0 #FFF,
+  45vw  -350px 0 #FF0,
+  47vw  -450px 0 #FFF,
+  56vw  -150px 0 #F00,
+  72vw  -180px 0 #FFF,
+  78vw  -300px 0 #FFF,
+  85vw  -540px 0 #FFF,
+  90vw  -300px 0 #FFF
+}
+
+.s_2{
+  position: fixed;
+  top: -10%;
+  animation: anim_twink 10s ease-in infinite;
+  text-shadow:      
+  6vw   -300px 0  #FFF,
+  12vw  -570px 0 #FFF,
+  25vw  -300px 0 #FFF,
+  36vw  -600px 0 #FFF,
+  40vw  -30px 0 #FFF,
+  43vw  -120px 0 #FFF,
+  60vw  -350px 0 #FFF,
+  76vw  -200px 0 #0F0,
+  82vw  -180px 0 #FFF,
+  95vw  -600px 0 #F00,
+  98vw  -320px 0 #FFF
+}
+
+.s_3{
+  position: fixed;
+  top: -5%;
+  animation: anim_twink 18s linear infinite;
+  text-shadow:
+  5vw   -100px 0 #F00,
+  20vw  -500px 0 #FFF,
+  39vw  -250px 0 #0FF,
+  42vw  -340px 0 #FFF,
+  45vw  -350px 0 #FF0,
+  47vw  -450px 0 #FFF,
+  56vw  -150px 0 #F00,
+  72vw  -180px 0 #FFF,
+  78vw  -300px 0 #FFF,
+  90vw  -300px 0 #FFF
+}
+
+.twink_token{
+  animation: anim_twink_2 6s linear infinite;
+}
+
+.win_token_anim{
+  animation: win_bright 1.5s linear forwards;
+  animation-delay: .5s;
+}
+
+.lose_token_anim{
+  animation: lose_bright .5s linear forwards;
+}
+
+@keyframes fadeIn {
+  0%{opacity: 0;transform: translateY(20px);}
+  100%{opacity: 1;transform: translateY(0);}
+}
+
+@keyframes fadeIn_2 {
+  0%{opacity: 0;}
+  100%{opacity: 1;}
+}
+
+@keyframes fadeOut {
+  0%{ opacity: 1;}
+  100%{ opacity: 0; transform: translateY(-100px);display: none;}
+}
+
+@keyframes fadeOut_2 {
+  0%{ opacity: 1;}
+  100%{ opacity: 0;display: none;}
+}
+
+@keyframes slide_X_1 {
+  0% { transform: translateX(0); opacity: 1; }
+  50% { transform: translateX(150%); opacity: 1;}
+  65%{ opacity: 0;}
+  100% { transform: translateX(0); opacity: 0;display: none; } 
+}
+
+@keyframes slide_X_2 {
+  0% { transform: translateX(0); opacity: 1; }
+  50% { transform: translateX(-150%); opacity: 1; }
+  65%{ opacity: 0;}
+  100% { transform: translateX(0); opacity: 0;display: none; } 
+}
+
+@keyframes slide_Y_1{
+  0%{top:0;}
+  100%{top:150%;}
+}
+
+@keyframes slide_Y_2{
+  0%{top:0;}
+  100%{top:-150%;}
+}
+
+@keyframes anim_twink {
+  0%{ top: 0%; opacity: 1;}
+  25%{ opacity: 0.5;}
+  50%{ opacity: 1;}
+  75%{ opacity: 0.4;}
+  100% {top:150%; opacity:0;}
+}
+
+@keyframes anim_twink_2{
+  0%{opacity: 1;}
+  10%{opacity: 0.8;}
+  15%{opacity: 0.75;}
+  18%{opacity: 0.69;}
+  20%{opacity: 0.65;}
+  23%{opacity: 0.60;}
+  25%{opacity: 0.8;}
+  28%{opacity: 1;}
+  30%{opacity: 0.9;}
+  34%{opacity: 0.88;}
+  37%{opacity: 0.7;}
+  40%{opacity: 0.85;}
+  45%{opacity: 0.79;}
+  49%{opacity: 0.74;}
+  53%{opacity: 0.69;}
+  58%{opacity: 0.65;}
+  64%{opacity: 0.7;}
+  69%{opacity: 0.72;}
+  74%{opacity: 0.78;}
+  79%{opacity: 0.8;}
+  82%{opacity: 0.9;}
+  87%{opacity: 0.86;}
+  89%{opacity: 0.79;}
+  93%{opacity: 0.63;}
+  98%{opacity: 0.85;}
+  100% {opacity:1;}
+}
+
+@keyframes win_bright {
+  0%{filter: brightness(1);}
+  100%{filter: brightness(2);}
+}
+
+@keyframes lose_bright {
+  0%{opacity: 1;}
+  100%{opacity: 0.2;}
+}

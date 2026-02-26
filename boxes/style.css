@@ -1,0 +1,357 @@
+body{
+  margin: 0;
+  overflow: hidden;
+}
+
+.content-container{
+  background-color: black;
+  width: 100vw;
+  height: 100vh;
+  padding: 2vh;
+  box-sizing: border-box;
+  transition: background-color 0.5s;
+}
+
+.content-box{
+  background-color: inherit;
+  width: 100%;
+  height: 100%;
+  border: 2px solid #FFF;
+  box-sizing: border-box;
+  border-radius: 1vh;
+  padding:2.5vw;
+}
+
+.title{
+  font-size:6vh;
+  font-family: 'Sixtyfour', system-ui;
+  color: #3fff59;
+  text-align: center;
+  width: 100%;
+}
+
+.btn{
+  width:80%;
+  height: 8vh;
+  font-size: 6vh;
+  border-radius: 3rem;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.start_btn{
+  background-color: #000000;
+  border: solid #ffffff 5px;
+  font-family: 'Sixtyfour', system-ui;
+  height: 10vh;
+  color: hsl(0, 0%, 100%);
+  position: absolute;
+  left: calc(50% - 40%);
+  bottom: 50%;
+}
+
+.display-info{
+  width: 100%;
+}
+
+.main-info{
+  color: #ffffff;
+  font-family: 'Sixtyfour', system-ui;
+  font-size: 3vh;
+  width:100%;
+  text-align: center;
+  transition: color .1s linear;
+}
+
+.discription{
+  margin-top: 10px;
+  color: #ffffff;
+  font-family: 'Sixtyfour', system-ui;
+  font-size: 1.5vh;
+  width: 100%;
+  text-align: center;
+  transition: color .1s linear;
+}
+
+.boxes-box{
+  width: calc(var(--r) * 2px);
+  height: calc(var(--r) * 2px);
+  position: absolute;
+  top: calc(35% - var(--r) * 1px);
+  left: calc(50% - var(--r) * 1px);
+  border-radius: 50%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.box{
+  font-family: 'Sixtyfour', system-ui;
+  --a2: calc(var(--a) * 1deg - 90deg);
+  --x: calc(cos(var(--a2)) * var(--r) * 1px);
+  --y: calc(sin(var(--a2)) * var(--r) * 1px);
+  position: absolute;
+  text-align: center;
+  box-sizing: border-box;
+  font-size: 2vh;
+  color: #FFF;
+  border: #FFF solid 2px;
+  width: 6vh;
+  height: 6vh;
+  translate: var(--x) var(--y);
+  rotate: calc(var(--a) * 1deg);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+
+.btns-box{
+  width: 18vh;
+  height: 18vh;
+  position: absolute;
+  top: calc(35% - 9vh);
+  left: calc(50% - 9vh);
+}
+
+.circle-btn{
+  width: 100%;
+  height: 100%;
+  border: #ffffff solid 2px;
+  border-radius: 50%;
+  background-color: #88d471;
+  color:#FFF;
+  font-size: 2vh;
+  font-family: 'Sixtyfour', system-ui;
+  transition: background-color .1s linear;
+}
+
+
+.conditions-to-win-box{
+  width: calc(100% - 14vw);
+  position:absolute;
+  height: 21vh;
+  top: calc(100% - 45vh);
+  left: 7vw;
+  box-sizing: border-box;
+  border: #ffffff solid 2px;
+  border-radius: 2rem;
+  padding:1vh;
+}
+
+.conditions-to-win-box-title{
+  font-size: 2vh;
+  font-weight: bold;
+  font-style: italic;
+  font-family: 'Tektur', sans-serif;
+  margin-bottom: 2vh;
+}
+
+.conditions-to-win{
+  font-size: 1.7vh;
+  font-family: 'Tektur', sans-serif;
+  margin-bottom: 1vh;
+}
+
+.conditions-to-win-box  div{
+  color: #FFF;
+  width: 100%;
+}
+
+.selecting-box{
+  border: #ff0000 solid 2px;
+  color: #ff0000;
+}
+
+.disabled{
+  background-color: #2b2b2b;
+}
+
+.used_box{
+  background-color: #2b2b2b;
+  border: solid 2px #b3b3b3;
+  color: #b3b3b3;
+  opacity: .5;
+}
+
+
+.game-table-box{
+  width: calc(100% - 14vw);
+  position: absolute;
+  height: 16vh;
+  top: calc(100% - 20vh);
+  left: calc(7vw);
+  box-sizing: border-box;
+}
+
+.point-disp-table{
+  border: #FFF solid 1px;
+  color: #FFF;
+  width: 100%;
+  height: 100%;
+  border-collapse: collapse;
+
+}
+
+.point-disp-table  tr{
+  height: 33%;
+}
+
+.point-disp-table td{
+  border: #FFF solid 1px;
+}
+
+.player_name_td{
+  width:10%;
+  text-align: center;
+  font-weight: bold;
+  font-family: 'Sixtyfour', system-ui;
+}
+
+.point_disp_td{
+  width: 10%;
+  font-size: medium;
+  text-align: center;
+  font-family: 'Sixtyfour', system-ui;
+}
+
+.total_disp_td{
+  font-size: medium;
+  text-align: center;
+  font-family: 'Sixtyfour', system-ui;
+}
+
+.round_disp{
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  background-color: #0e0c0cbb;
+  color: #34ff19;
+  top: calc(0%);
+  left: calc(0%);
+  text-align: center;
+  font-size: 5vh;
+  box-sizing: border-box;
+  padding-top: 45vh;
+  font-family: 'Sixtyfour', system-ui;
+}
+
+.safe_disp{
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  background-color: #0e0c0cbb;
+  color: #34ff19;
+  top: calc(0%);
+  left: calc(0%);
+  text-align: center;
+  font-size: 5vh;
+  box-sizing: border-box;
+  padding-top: 45vh;
+  font-family: 'Sixtyfour', system-ui;
+}
+
+.out_disp{
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  background-color: #0e0c0cbb;
+  color: #ff0000;
+  top: calc(0%);
+  left: calc(0%);
+  text-align: center;
+  font-size: 5vh;
+  box-sizing: border-box;
+  padding-top: 45vh;
+  font-family: 'Sixtyfour', system-ui;
+}
+
+.game_end_disp{
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  background-color: #0e0c0cbb;
+  color: #ffffff;
+  top: calc(0%);
+  left: calc(0%);
+  text-align: center;
+  font-size: 5vh;
+  box-sizing: border-box;
+  padding-top: 45vh;
+  font-family: 'Sixtyfour', system-ui;
+}
+
+.modal-content{
+  background-color: #0e0c0cbb;
+  width: 100vw;
+  height: 100vh;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.modal-inner-msg{
+  color: #FFF;
+  width: 100%;
+  text-align: center;
+  margin-top: 30vh;
+  font-size: 3vh;
+  max-height: 6vh;
+  font-family: 'Sixtyfour', system-ui;
+}
+
+.modal-button-container{
+  width: 100%;
+  height: 20vh;
+  margin-top: 24vh;
+  box-sizing: border-box;
+  text-align: center;
+  padding-top: 1vh;
+  padding-bottom: 1vh;
+}
+
+.modal-inner-btn{
+  width: 80%;
+  height: 5vh;
+  border: #FFF 2px solid;
+  border-radius: 2vh;
+  background-color: #dddddd;
+  color: #000;
+  font-size: 3vh;
+  font-family: 'Sixtyfour', system-ui;
+}
+
+.submit-btn{
+  border: #0077ff solid 2px;
+  color: #0077ff;
+  margin-bottom: 8vh;
+}
+
+.cancel-btn{
+  border: #ff0000 solid 2px;
+  color: #ff0000;
+}
+
+.anim-rollIn{
+  animation: rollIn 2s linear forwards;
+}
+
+.anim-rollIn-fast{
+  animation: rollIn .5s linear forwards;
+}
+
+.anim-show-trap{
+  animation: showTrapBox .7s linear forwards;
+}
+@keyframes rollIn {
+  0%{ opacity: 0;}
+  30%{ opacity: 1;}
+}
+
+@keyframes showTrapBox{
+  0%{ background-color: #000;}
+  100%{ background-color: #F00;}
+}
+

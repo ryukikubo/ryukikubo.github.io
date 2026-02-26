@@ -1,0 +1,410 @@
+<!DOCTYPE HTML>
+
+<HEAD>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Zen+Antique+Soft&display=swap" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&display=swap" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+	<script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+	<script src="./script.js"></script>
+	<link rel="stylesheet" href="./style.css" type="text/css">
+	<title>testApp</title>
+</HEAD>
+
+<BODY>
+<div class="content-container">
+	<div class="content-header">
+		麻雀スコア計算アプリ
+	</div>
+	<div class="container-header">設定</div>
+	<div class="setting-btn-container container">
+		<input type="button" class="btn btn-primary" onclick="openModal('player')" value="プレイヤー設定">
+		<input type="button" class="btn btn-primary" onclick="openModal('point')" value="得点設定">
+		<input type="button" class="btn btn-primary" onclick="openModal('result')" value="スコア入力">
+	</div>
+	<div class="modal" id="point-setting">
+		<div class="modal-content">
+			<div class="modal-header">得点設定</div>
+			<div class="point-input">
+				<label class="box-title">配給/返却</label>
+				<div class="start-point">
+					<label class="input-label-block">配給原点 : </label><input type="number" id="start-point-val"><label class="label_fill_zero">000</label>
+					<div class="error-msg" id="start-point-not-empty">
+						配給原点は空欄にできません
+					</div>
+					<div class="error-msg" id="start-point-mast-integer">
+						配給原点は0より大きい数字を入力してください
+					</div>
+				</div>
+				<div class="end-point">
+					<label class="input-label-block">返却点 : </label><input type="number" id="end-point-val"><label  class="label_fill_zero">000</label>
+					<div class="error-msg" id="end-point-not-empty">
+						返却点は空欄に出来ません
+					</div>
+					<div class="error-msg" id="end-point-mast-integer">
+						返却点は0より大きい値を入力してください
+					</div>
+					<div class="error-msg" id="end-point-mast-over-start-point">
+						返却点は配給原点より大きい値を入力してください
+					</div>
+				</div>
+			</div>
+
+			<div class="lank-bonus-input">
+				<label class="box-title">順位ウマ</label>
+				<div class="bonas-input" id="1st-bonas-input">
+					<label class="input-label-inline">1位 : </label><input type="number" id="1st-bonas" class="bonas-input">
+				</div>
+				<div class="bonas-input" id="2nd-bonas-input">
+					<label class="input-label-inline">2位 : </label><input type="number" id="2nd-bonas" class="bonas-input">
+				</div>
+				<div class="bonas-input" id="3rd-bonas-input">
+					<label class="input-label-inline">3位 : </label><input type="number" id="3rd-bonas" class="bonas-input">
+				</div>
+				<div class="bonas-input" id="4th-bonas-input">
+					<label class="input-label-inline">4位 : </label><input type="number" id="4th-bonas" class="bonas-input">
+				</div>
+				<div class="error-msg" id="bonas-input-error">
+					ウマの入力が不正です
+				</div>
+			</div>
+
+			<div class="bust-bonas-input">
+				<label class="box-title">トビ賞</label>
+				<label class="input-label-inline">トビ賞 : </label><input type="number" id="bust-bonas">
+				<div class="error-msg" id="bust-bonas-input-error">
+					トビ賞の入力が不正です
+				</div>
+			</div>
+
+			<div class="bust-point-setting">
+				<label class="box-title">ハコ設定</label>
+				<input type="checkbox" class="bust-setting-checkbox" id="bust-setting"><label for="bust-setting" class="input-label-inline">0点をハコ下にする</label>
+			</div>
+
+			<div class="btn-container">
+				<input type="button" class="btn btn-primary submit-btn" value="決定" onclick="setPointSetting()">
+				<input type="button" class="btn btn-primary close-btn" value="戻る" onclick="modalClose('point')">
+			</div>
+		</div>
+	</div>
+	<div class="modal" id="player-setting">
+		<div class="modal-content">
+			<div class="setting-player-count">
+				<div class="modal-header">プレイヤー設定</div>
+				<label class="box-title">対局人数</label>
+				<div class="player-count-radio">
+					<input type="radio" class="player-count-setting-radio" id="3Players" name="player-count" value="3">
+					<label class="input-label-inline label-for-players select-label-first" for="3Players">3</label>
+					<input type="radio" class="player-count-setting-radio" id="4Players" name="player-count" value="4">
+					<label class="input-label-inline label-for-players select-label-end" for="4Players">4</label>
+				</div>
+			</div>
+			<div class="player-name-input">
+					<label class="box-title">プレイヤー名</label>
+					<div class="player1">
+						<label class="input-label-inline">プレイヤー1</label>
+						<input type="text" id="player1-name">
+						<div class="error-msg" id="player1-name-empty-error">
+							名前を入力してください
+						</div>
+					</div>
+					<div class="player2">
+						<label class="input-label-inline">プレイヤー2</label>
+						<input type="text" id="player2-name">
+						<div class="error-msg" id="player2-name-empty-error">
+							名前を入力してください
+						</div>
+					</div>
+					<div class="player3">
+						<label class="input-label-inline">プレイヤー3</label>
+						<input type="text" id="player3-name">
+						<div class="error-msg" id="player3-name-empty-error">
+							名前を入力してください
+						</div>
+					</div>
+					<div class="player4">
+						<label class="input-label-inline">プレイヤー4</label>
+						<input type="text" id="player4-name">
+						<div class="error-msg" id="player4-name-empty-error">
+							名前を入力してください
+						</div>
+					</div>
+			</div>
+			<div class="btn-container">
+				<input type="button" class="btn btn-primary submit-btn" value="決定" onclick="setPlayerSetting()">
+				<input type="button" class="btn btn-primary close-btn" value="閉じる" onclick="modalClose('player')">
+			</div>
+		</div>
+	</div>
+
+	<div class="modal" id="result-input" style="display: block;">
+		<div class="modal-content">
+			<div class="player-point-input-container">
+				<div class="modal-header">スコア入力</div>
+				<div class="player1">
+						<label class="input-label-block" id="player1-point-name-label"></label>
+						<input class="input-result-point" type="number" id="player1-point"><label  class="label_fill_zero">00</label>
+						<select class="select-position" id="player1-position">
+							<option value="1-1">東</option>
+							<option value="1-2">南</option>
+							<option value="1-3">西</option>
+							<option value="1-4" class="hideOptionfor4">北</option>
+						</select>
+						<div class="bust-select-container" id="bust-p1">
+							<label class="bust-select-label">トビ賞:</label>
+							<select class="bust-select" id="bust-select-p1">
+
+							</select>
+						</div>
+						<div class="error-msg" id="player1-point-empty-error">
+							最終持ち点を入力してください
+						</div>
+				</div>
+				<div class="player2">
+						<label class="input-label-block" id="player2-point-name-label"></label>
+						<input  class="input-result-point" type="number" id="player2-point"><label  class="label_fill_zero">00</label>
+						<select class="select-position" id="player2-position">
+							<option value="2-1">東</option>
+							<option value="2-2">南</option>
+							<option value="2-3">西</option>
+							<option value="2-4" class="hideOptionfor4">北</option>
+						</select>
+						<div class="bust-select-container" id="bust-p2">
+							<label class="bust-select-label">トビ賞:</label>
+							<select class="bust-select" id="bust-select-p2">
+
+							</select>
+						</div>
+						<div class="error-msg" id="player2-point-empty-error">
+							最終持ち点を入力してください
+						</div>
+				</div>
+				<div class="player3">
+						<label class="input-label-block" id="player3-point-name-label"></label>
+						<input class="input-result-point" type="number" id="player3-point" ><label  class="label_fill_zero">00</label>
+						<select class="select-position" id="player3-position">
+							<option value="3-1">東</option>
+							<option value="3-2">南</option>
+							<option value="3-3">西</option>
+							<option value="3-4" class="hideOptionfor4">北</option>
+						</select>
+						<div class="bust-select-container" id="bust-p3">
+							<label class="bust-select-label">トビ賞:</label>
+							<select class="bust-select" id="bust-select-p3">
+
+							</select>
+						</div>
+						<div class="error-msg" id="player3-point-empty-error">
+							最終持ち点を入力してください
+						</div>
+				</div>
+				<div class="player4">
+						<label class="input-label-block" id="player4-point-name-label"></label>
+						<input class="input-result-point" type="number" id="player4-point"><label  class="label_fill_zero">00</label>
+						<select class="select-position" id="player4-position">
+							<option value="4-1">東</option>
+							<option value="4-2">南</option>
+							<option value="4-3">西</option>
+							<option value="4-4">北</option>
+						</select>
+						<div class="bust-select-container" id="bust-p4">
+							<label class="bust-select-label">トビ賞:</label>
+							<select class="bust-select" id="bust-select-p4">
+
+							</select>
+						</div>
+						<div class="error-msg" id="player4-point-empty-error">
+							最終持ち点を入力してください
+						</div>
+				</div>
+				<div class="bust-select-container">
+					<label class="bust-select-label">トビ賞:</label>
+					<select class="bust-select">
+						
+					</select>
+				</div>
+				<div class="invalid-error">
+					<div class="error-msg" id="invalid-result-error">
+						最終持ち点の入力が不正です
+					</div>
+					<div class="error-msg" id="invalid-position-error">
+						風の指定が不正です
+					</div>
+				</div>
+			</div>
+			<div class="btn-container">
+				<input type="button" class="btn btn-primary submit-btn" value="決定" onclick="setResult()">
+				<input type="button" class="btn btn-primary close-btn" value="戻る" onclick="modalClose('result')">
+			</div>
+		</div>
+	</div>
+
+	<!-- 修正用モーダル -->
+	<div class="modal" id="fix-result-input" style="display: block;">
+		<div class="modal-content">
+			<div class="player-point-input-container">
+				<div class="modal-header">スコア修正</div>
+				<div class="player1">
+						<label class="input-label-block" id="player1-fix-point-name-label"></label>
+						<input class="input-result-point" type="number" id="player1-fix-point"><label  class="label_fill_zero">00</label>
+						<select class="select-position" id="player1-fix-position">
+							<option value="1-1">東</option>
+							<option value="1-2">南</option>
+							<option value="1-3">西</option>
+							<option value="1-4" class="hideOptionfor4">北</option>
+						</select>
+						<div class="bust-select-container" id="bust-p1">
+							<label class="bust-select-label">トビ賞:</label>
+							<select class="bust-select" id="bust-select-p1">
+
+							</select>
+						</div>
+						<div class="error-msg" id="player1-point-empty-error">
+							最終持ち点を入力してください
+						</div>
+				</div>
+				<div class="player2">
+						<label class="input-label-block" id="player2-fix-point-name-label"></label>
+						<input  class="input-result-point" type="number" id="player2-fix-point"><label  class="label_fill_zero">00</label>
+						<select class="select-position" id="player2-fix-position">
+							<option value="2-1">東</option>
+							<option value="2-2">南</option>
+							<option value="2-3">西</option>
+							<option value="2-4" class="hideOptionfor4">北</option>
+						</select>
+						<div class="bust-select-container" id="bust-p2">
+							<label class="bust-select-label">トビ賞:</label>
+							<select class="bust-select" id="bust-select-p2">
+
+							</select>
+						</div>
+						<div class="error-msg" id="player2-point-empty-error">
+							最終持ち点を入力してください
+						</div>
+				</div>
+				<div class="player3">
+						<label class="input-label-block" id="player3-fix-point-name-label"></label>
+						<input class="input-result-point" type="number" id="player3-fix-point" ><label  class="label_fill_zero">00</label>
+						<select class="select-position" id="player3-fix-position">
+							<option value="3-1">東</option>
+							<option value="3-2">南</option>
+							<option value="3-3">西</option>
+							<option value="3-4" class="hideOptionfor4">北</option>
+						</select>
+						<div class="bust-select-container" id="bust-p3">
+							<label class="bust-select-label">トビ賞:</label>
+							<select class="bust-select" id="bust-select-p3">
+
+							</select>
+						</div>
+						<div class="error-msg" id="player3-point-empty-error">
+							最終持ち点を入力してください
+						</div>
+				</div>
+				<div class="player4">
+						<label class="input-label-block" id="player4-fix-point-name-label"></label>
+						<input class="input-result-point" type="number" id="player4-fix-point"><label  class="label_fill_zero">00</label>
+						<select class="select-position" id="player4-fix-position">
+							<option value="4-1">東</option>
+							<option value="4-2">南</option>
+							<option value="4-3">西</option>
+							<option value="4-4">北</option>
+						</select>
+						<div class="bust-select-container" id="bust-p4">
+							<label class="bust-select-label">トビ賞:</label>
+							<select class="bust-select" id="bust-select-p4">
+
+							</select>
+						</div>
+						<div class="error-msg" id="player4-point-empty-error">
+							最終持ち点を入力してください
+						</div>
+				</div>
+				<div class="bust-select-container">
+					<label class="bust-select-label">トビ賞:</label>
+					<select class="bust-select">
+						
+					</select>
+				</div>
+				<div class="invalid-error">
+					<div class="error-msg" id="invalid-result-error">
+						最終持ち点の入力が不正です
+					</div>
+					<div class="error-msg" id="invalid-position-error">
+						風の指定が不正です
+					</div>
+				</div>
+			</div>
+			<div class="btn-container">
+				<input type="button" class="btn btn-primary submit-btn" value="決定" onclick="setResult()">
+				<input type="button" class="btn btn-primary close-btn" value="戻る" onclick="modalClose('result')">
+			</div>
+		</div>
+	</div>
+	<!-- モーダルここまで -->
+
+
+	<div class="container-header" id="setting-info-header">設定情報</div>
+	<div class="setting-info-container">
+		<table class="setting-info-table">
+			<tr>
+				<th class="setting-info-title">対局人数</th>
+				<td id="player-count-info">4人</td>
+			</tr>
+			<tr>
+				<th class="setting-info-title">配給原点</th>
+				<td id="start-point-info">25000</td>
+			</tr>
+			<tr>
+				<th class="setting-info-title">返却点</td>
+				<td id="end-point-info">30000</td>
+			</tr>
+			<tr>
+				<th class="setting-info-title">順位ウマ</th>
+				<td id="1st-bonas-info">1位:10</td>
+				<td id="2nd-bonas-info">2位:5</td>
+				<td id="3rd-bonas-info">3位:-5</td>
+				<td id="4th-bonas-info">4位:-10</td>
+			</tr>
+			<tr>
+				<th class="setting-info-title">トビ賞</th>
+				<td id="bust-bonas-info">20</tr>
+			</tr>
+			<tr>
+				<th class="setting-info-title">0点をトビ</th>
+				<td id="bust-limit-info"></td>
+			</tr>
+		</table>
+	</div>
+
+	<div class="container-header" id="disp-result-table">スコア</div>
+	<div class="result-table-container" id="result-table-container">
+		<table class="result-table">
+			<tr id="player-name-header">
+				<th class="total-point"></th>
+				<th id="player1-name-header"></th>
+				<th id="player2-name-header"></th>
+				<th id="player3-name-header"></th>
+				<th id="player4-name-header"></th>
+			</tr>
+			<tr class="result-point-sum">
+				<td>計</td>
+				<td id="player1-total"></td>
+				<td id="player2-total"></td>
+				<td id="player3-total"></td>
+				<td id="player4-total"></td>
+			</tr>
+		</table>
+	</div>
+
+</div>
+
+</div>
+
+</BODY>
+
+</HTML>

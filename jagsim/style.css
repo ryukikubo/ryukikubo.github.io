@@ -1,0 +1,175 @@
+
+body{
+  background-image: url(./background.png);
+  background-color: #DDEBF7;
+  background-size:13%;
+  background-repeat: repeat;
+}
+.title{
+  display:inline-block;
+  background-color: #202fff71;
+  color: #FFF;
+  font-size: 4vw;
+  font-weight: bold;
+  box-sizing: border-box;
+  padding: .5vmin 0;
+  width: 100%;
+  text-align: center;
+}
+
+.content_table{
+  display: flex;
+  flex-direction: row;
+  width:100%;
+  margin-bottom:10px;
+  overflow-x: auto;
+  justify-content: space-between;
+  box-sizing: border-box;
+  padding-bottom: 10px;
+}
+
+.radio_buttons{
+  display: flex;
+  justify-content: center;
+}
+
+.dispSelectRadio{
+  width: 5vw;
+  height: 5vw;
+}
+
+.content_table > .disp {
+  flex: 0 0 auto;
+  width: 100%;
+  margin-right: 20px;
+}
+
+.setting{
+  width:100%;
+  text-align: center;
+  border-collapse: collapse;
+  box-shadow: 2px 2px 4px gray;
+}
+
+.machinetitle{
+  border-bottom: #f00 1px solid;
+  border-left:#f00 3px solid;
+  width:100%;
+  white-space: nowrap;
+  padding-left: .5vw;
+}
+
+.setting th, .setting td{
+  border: 1px solid #5c5c5c;
+  padding: 2px;
+  text-align: center;
+  background-color: #e3f8fd;
+}
+
+.setting th{
+  background-color: #f2f2f2;
+  white-space: nowrap;
+}
+
+.machine_radio{
+  margin-bottom:10px;
+  display: flex;
+  overflow: hidden;
+  overflow-x: scroll;
+}
+
+.machine_radio div{
+  font-weight: bold;
+  white-space: nowrap;
+  margin-right: 10px;
+  box-sizing: border-box;
+  padding-bottom: 5px;
+}
+
+.machine_name_label{
+  white-space: nowrap;
+}
+
+.cnt_table{
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0 5px;
+}
+.cnt_table tr{
+  margin:2vmin;
+  height: 4vh;			
+}
+
+.cnt_input{
+  width: 100%;
+  height: 3vh;
+}
+
+.error p ,.error h4{
+  color:#f00;
+  font-weight: bold;
+}
+
+.btn{
+  background-color: rgb(105, 105, 236);
+  color: #FFF;
+  box-shadow: 2px 2px 4px gray;
+  box-sizing: border-box;
+  border:0px;
+  font-size: 5vmin;
+  font-weight: bold;
+  border-radius: 2px;
+}
+
+.result_disp{
+  text-align: center;
+  border-collapse: collapse;
+  margin-bottom: 3px;
+}
+
+.result_header{
+  background-color: #f2f2f2;
+  white-space: nowrap;
+  border: 1px solid #5c5c5c;
+}
+
+.result_data{
+  border: 1px solid #5c5c5c;
+  text-align: center;
+  background-color: #d3f6ff;
+}
+
+.input-history{
+  width: 100%;
+  box-sizing: border-box;
+  padding: 1vmin 2vmin;
+  overflow: hidden;
+  overflow-x: scroll;
+
+}
+
+.history-tbl{
+  text-align: center;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.history-tbl th, .history-tbl td{
+  border: 1px solid #ddd; 
+  padding: 2px;
+  text-align: center;
+  white-space: nowrap;
+  font-size: 2.5vmin;
+}
+
+.tbl-header th{
+  background-color: #2445ffd3;
+  color: #FFF;
+}
+
+.history-tbl td{
+  border: 1px solid #353535;
+  white-space: nowrap;
+  color : #2600ff;
+  background-color: #FFF; 
+}

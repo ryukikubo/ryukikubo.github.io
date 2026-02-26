@@ -1,0 +1,234 @@
+body{
+  margin: 0;
+  background-color: #404040;
+}
+
+.content_container{
+  width: 100%;
+  background-color: #404040;
+  box-sizing: border-box;
+  padding: 2vw;
+}
+
+.title_box{
+  height: auto;
+  text-align: center;
+  font-family: "Urbanist", serif;
+  font-size: 10vw;
+  color: #FFFFFF;
+  margin-bottom: 4vw;
+}
+
+.game_input_box{
+  width:100%;
+  display: flex;
+  justify-content: left;
+  box-sizing: border-box;
+  padding-left: 4vw;
+  margin-bottom: 2vw;
+}
+
+.game_input_label{
+  font-family: "Urbanist", serif;
+  font-weight: bold;
+  font-size: 6vw;
+  color: #FFFFFF;
+  margin: 0 1vw;
+}
+
+.game_input{
+  font-family: "Orbitron", serif;
+  font-weight: bold;
+  font-size: 5vw;
+  text-align: center;
+  height: auto;
+  width: 10rem;
+  border: solid 2px #FFFFFF;
+  background-color: #404040;
+  color: #FFFFFF;
+  border-radius: .5rem;
+}
+
+.counter_header_box{
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0 2vw;
+}
+
+.counter_box{
+  width: 100%;
+  box-sizing: border-box;
+  padding: 2vw;
+  border-top: solid 1px #FFFFFF;
+}
+
+.counter{
+  width: 100%;
+  height: 11vw;
+  box-sizing: border-box;
+  margin-bottom: 2vw;
+}
+
+.counter_table{
+  width: 100%;
+  height: 100%;
+  border-collapse: separate;
+  border-spacing: .7vw;
+  box-sizing: border-box;
+}
+
+.counter_header{
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.button_cell{
+  width: 10vw;
+}
+
+.button_header_cell{
+  width: 11vw;
+  color: #FFFFFF;
+  text-align: center;
+}
+
+.count_button{
+  width: 100%;
+  height: 100%;
+  background-color: #cccccc;
+  border: solid 2px #FFFFFF;
+  box-sizing: border-box;
+  border-radius: 50%;
+}
+
+.name_cell{
+  width: 35vw;
+  box-sizing: border-box;
+}
+
+.name_header_cell{
+  width: 35vw;
+  color: #FFFFFF;
+  text-align: center;
+}
+
+.count_name{
+  height: auto;
+  font-size: 4vw;
+  font-weight: bold;
+  width: 100%;
+  color: #FFFFFF;
+  border: solid 2px #FFFFFF;
+  box-sizing: border-box;
+  border-radius: .5rem;
+  background-color: #000000;
+  text-align: center;
+}
+
+.count_cell{
+  width: 15vw;
+}
+
+.count_header_cell{
+  width: 15vw;
+  color: #FFFFFF;
+  text-align: center;
+}
+
+.count_input{
+  height: auto;
+  font-size: 4vw;
+  font-weight: bold;
+  text-align: center;
+
+  width: 100%;
+  color: #FFFFFF;
+  border: solid 2px #FFFFFF;
+  border-radius: .5rem;
+  background-color: #000000;
+  box-sizing: border-box;
+}
+
+.prob_cell{
+  box-sizing: border-box;
+  border-bottom: 3px solid #FFFFFF;
+  color: #FFFFFF;
+  font-weight: bold;
+  text-align: center;
+}
+
+.prob_header_cell{
+  color: #FFFFFF;
+  text-align: center;
+}
+
+.remove_cell{
+  width: 5vw;
+}
+
+.remove_header_cell{
+  width: 5vw;
+}
+
+.remove_button {
+    /* ボタンの標準の外観を取り除く */
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+
+    /* 画像を背景に設定 */
+    background-image: url('./remove.svg');
+    background-size: contain; /* 画像のサイズを調整 */
+    background-repeat: no-repeat;
+    background-position: center;
+    width: 100%;
+    height: 100%;
+
+}
+  
+.counter_add_box{
+  width: 100%;
+  height: 11vw;
+  display: flex;
+  justify-content: right;
+  box-sizing: border-box;
+  padding-right: 2vw;
+  padding-bottom: 1vw;
+  border-bottom: solid 1px #FFFFFF;
+}
+
+.add_button{
+  /* ボタンの標準の外観を取り除く */
+  background-color: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+
+    /* 画像を背景に設定 */
+    background-image: url('./add.svg');
+    background-size: contain; /* 画像のサイズを調整 */
+    background-repeat: no-repeat;
+    background-position: center;
+    width: 10vw;
+    height: 100%;
+}
+
+@keyframes buttonClick {
+    0% { 
+      transform: scale(1);
+      filter: brightness(1);
+    }
+    30% { 
+      transform: scale(0.9);
+      filter: brightness(0.9); 
+    }
+    100% { 
+      transform: scale(1);
+      filter: brightness(1);
+    }
+}
+
+.count_button.clicked,.add_button.clicked {
+    animation: buttonClick 0.5s ease;
+}

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+
+<HEAD>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="./style.css">
+    <script src="./jquery.min.js"></script>
+    <script src="./source.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+</HEAD>
+
+<BODY>
+    <div class="content_container">
+        <div class="title_box">
+            JagKatiKun-EX
+        </div>
+        <div class="game_input_box">
+            <label class="game_input_label">
+                GAME:
+            </label>
+            <input type="number" class="game_input">
+        </div>
+        <div class="counter_header_box">
+            <table class="counter_header">
+                <tr>
+                        <th class="button_header_cell"></th>
+                        <th class="name_header_cell">
+                            小役名
+                        </th>
+                        <th class="count_header_cell">
+                            回数
+                        </th>
+                        <th class="prob_header_cell">確率</th>
+                        <th class="remove_header_cell"></th>
+                </tr>
+            </table>
+        </div>
+        <div class="counter_box">
+            <div class="counter">
+                <table class="counter_table">
+                    <tr>
+                        <td class="button_cell">
+                            <input type="button" class="count_button" style="background-color:#ff7f7f;">
+                        </td>
+                        <td class="name_cell">
+                            <input type="text" class="count_name" placeholder="小役名を入力...">
+                        </td>
+                        <td class="count_cell">
+                            <input type="number" class="count_input" value="0">
+                        </td>
+                        <td class="prob_cell"></td>
+                        <td class="remove_cell"><input type="button" class="remove_button"></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="counter_add_box">
+            <input type="button" class="add_button">
+        </div>
+    </div>
+
+    <div class="hidden_elm" style="display:none;">
+        <div class="counter counter_copy">
+            <table class="counter_table">
+                <tr>
+                    <td class="button_cell">
+                        <input type="button" class="count_button">
+                    </td>
+                    <td class="name_cell">
+                        <input type="text" class="count_name" placeholder="小役名を入力...">
+                    </td>
+                    <td class="count_cell">
+                        <input type="number" class="count_input" value="0">
+                    </td>
+                    <td class="prob_cell"></td>
+                    <td class="remove_cell"><input type="button" class="remove_button"></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</BODY>
+</html>

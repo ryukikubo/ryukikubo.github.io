@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="./style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sixtyfour&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Tektur:wght@400..900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Dynalight:wght@400;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+	<script src="./script.js"></script>
+</head>
+
+<body>
+  <div class="content-container">
+    <div class="content-box title-box">
+      <div class="title">12 Boxes</div>
+      <button class="start_btn btn">PLAY</button>
+    </div>
+    <div class="content-box game-content-box"  style="display: none;">
+      <div class="display-info">
+        <div class="main-info">Turn Of Player 2</div>
+        <div class="discription">choose the trap-box</div>
+      </div>
+
+      <div class="boxes-box" style="--r: 130">
+        <div class="box" id="box_1" style="--a:30">1</div>
+        <div class="box" id="box_2" style="--a:60">2</div>
+        <div class="box" id="box_3" style="--a:90">3</div>
+        <div class="box" id="box_4" style="--a:120">4</div>
+        <div class="box" id="box_5" style="--a:150">5</div>
+        <div class="box" id="box_6" style="--a:180">6</div>
+        <div class="box" id="box_7" style="--a:210">7</div>
+        <div class="box" id="box_8" style="--a:240">8</div>
+        <div class="box" id="box_9" style="--a:270">9</div>
+        <div class="box" id="box_10" style="--a:300">10</div>
+        <div class="box" id="box_11" style="--a:330">11</div>
+        <div class="box" id="box_12" style="--a:360">12</div>
+      </div>
+
+      <div class="btns-box">
+        <button class="set-trap-btn circle-btn disabled">SET</button>
+        <button class="choice-box-btn circle-btn disabled" style="display: none;">CHOICE</button>
+        <button class="next-btn circle-btn" style="display:none;">NEXT</button>
+      </div>
+
+      <div class="conditions-to-win-box">
+        <div class="conditions-to-win-box-title">Conditions to win</div>
+        <div class="conditions-to-win">1.Get 40 points over faster than opponent.</div>
+        <div class="conditions-to-win">2.When there is only one box left,<br>You have more points than opponent.</div>
+        <div class="conditions-to-win">3.Trap opponent 3 Times.</div>
+      </div>
+      <div class="game-table-box">
+        <table class="point-disp-table">
+          <tr>
+            <td></td>
+            <td class="point_disp_td">1</td>
+            <td class="point_disp_td">2</td>
+            <td class="point_disp_td">3</td>
+            <td class="point_disp_td">4</td>
+            <td class="point_disp_td">5</td>
+            <td class="point_disp_td">6</td>
+            <td class="point_disp_td">7</td>
+            <td class="total_disp_td">Total</td>
+          </tr>
+          <tr>
+            <td class="player_name_td">P1</td>
+            <td class="point_disp_td" id="p_1_1"></td>
+            <td class="point_disp_td" id="p_1_2"></td>
+            <td class="point_disp_td" id="p_1_3"></td>
+            <td class="point_disp_td" id="p_1_4"></td>
+            <td class="point_disp_td" id="p_1_5"></td>
+            <td class="point_disp_td" id="p_1_6"></td>
+            <td class="point_disp_td" id="p_1_7"></td>
+            <td class="total_disp_td" id="p_1_total"></td>
+          </tr>
+          <tr>
+            <td class="player_name_td">P2</td>
+            <td class="point_disp_td" id="p_2_1"></td>
+            <td class="point_disp_td" id="p_2_2"></td>
+            <td class="point_disp_td" id="p_2_3"></td>
+            <td class="point_disp_td" id="p_2_4"></td>
+            <td class="point_disp_td" id="p_2_5"></td>
+            <td class="point_disp_td" id="p_2_6"></td>
+            <td class="point_disp_td" id="p_2_7"></td>
+            <td class="total_disp_td" id="p_2_total"></td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="round_disp" style="display:none;">
+        ROUND 1
+      </div>
+
+      <div class="safe_disp" style="display: none;">
+        SAFE
+      </div>
+
+      <div class="out_disp" style="display: none;">
+        OUT
+      </div>
+
+      <div class="game_end_disp" style="display: none;">
+        Finish!
+      </div>
+
+      <div class="modal-content" id="set-trap-confirm" style="display: none;">
+        <div class="modal-inner">
+          <div class="modal-inner-msg" id="set-trap-msg">
+            You Set the Trap To 『12』
+          </div>
+          <div class="modal-button-container">
+            <button class="modal-inner-btn set-trap-submit submit-btn">Sure</button>
+            <button class="modal-inner-btn set-trap-cancel cancel-btn">No</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</body>
+
+</html>

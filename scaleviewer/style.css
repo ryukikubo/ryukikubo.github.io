@@ -1,0 +1,318 @@
+/* ============================
+   Global: 背景とベース文字色
+   ============================ */
+html, body {
+  height: 100%;
+}
+body {
+  /* 斜め（135deg）にピンク→ブルーのグラデーション */
+  background: linear-gradient(135deg, #ff6aa6 0%, #5aa9ff 100%);
+  margin: 4px; /* 既存を踏襲 */
+  color: #fff; /* 文字は白 */
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+               "Helvetica Neue", "Hiragino Kaku Gothic ProN", Meiryo,
+               Arial, "Noto Sans JP", sans-serif;
+}
+
+
+/* 全体フォントをやや細くする */
+body, .content-container, .select-config-container, .flat-disp-container,
+.flat-disp td, .config-label, .app-header, .app-header__title {
+  font-weight: 300; /* 細め（Light〜Regular の中間） */
+}
+
+/* セレクトボックスの選択肢も細く */
+.config-selector {
+  font-weight: 300;
+}
+
+/* フレットボードの○/●バッジも細めに */
+.flat-disp td::after,
+.flat-disp td.open-string::after {
+  font-weight: 300;
+}
+
+
+/* =========================
+   Header（白文字 / 黒の半透明）
+   ========================= */
+.app-header {
+  position: sticky;            /* ページ上部に追従 */
+  top: 0;
+  z-index: 1000;
+  color: #fff;                 /* 文字は白 */
+  background: rgba(0, 0, 0, 0.55); /* 黒の透過 */
+  backdrop-filter: blur(4px);       /* ガラス風（対応ブラウザ） */
+  -webkit-backdrop-filter: blur(4px);
+  box-shadow: 0 4px 18px rgba(0,0,0,0.25);
+}
+
+.app-header__inner {
+  max-width: 1280px;   /* 中央寄せの幅（任意） */
+  margin: 0 auto;
+  padding: 10px 16px;  /* ヘッダー内の上下左右余白 */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.app-header__title {
+  font-size: 20px;
+  letter-spacing: 0.4px;
+}
+
+/* ============================
+   レイアウト調整（既存構造そのまま）
+   ============================ */
+.content-container {
+  /* 既存 width/height は維持 */
+  max-width: 1280px;
+  margin: 0 auto;
+	margin-top: 10px;
+}
+
+.select-config-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 18px;
+
+}
+
+.config-block {
+  display: flex;
+  flex-direction: column;
+  width: 90%;             /* 横幅固定（お好みで調整可） */
+}
+
+/* 見出しのデザイン */
+.config-label {
+  font-size: 15px;
+  color: #fff;              /* 白文字に合わせる */
+  margin-bottom: 6px;
+  letter-spacing: 0.5px;
+	border-left: solid 4px #fff;
+	border-bottom: solid 1px #fff;
+	padding-left:3px;
+}
+
+
+/* セレクトの見た目（白系で統一） */
+.select-config-container select {
+  appearance: none;
+  border: 1px solid rgba(255,255,255,0.35);
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 14px;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  cursor: pointer;
+}
+.select-config-container select:focus {
+  outline: 2px solid rgba(255,255,255,0.6);
+  outline-offset: 2px;
+}
+
+/* ============================
+   フレットボード（表）
+   ============================ */
+.flat-disp-container {
+  /* 既存の横スクロールを活かす */
+  background: rgba(255,255,255,0.07); /* うっすら白枠 */
+  border-radius: 14px;
+  padding: 10px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+}
+
+/* テーブル本体：白い文字・ダーク面 */
+.flat-disp {
+  border-collapse: separate;     /* 角丸と影を活かす */
+  border-spacing: 0;
+  color: #fff;                   /* 文字は白 */
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* セル：白ライン / 半透明ダーク面 */
+.flat-disp tr td {
+  border: 1px solid rgba(255,255,255,0.25) !important; /* 白系ラインで上書き */
+  background: rgba(0,0,0,0.22);
+  color: #fff;                    /* 文字は白 */
+  letter-spacing: 0.2px;
+  text-align: center;
+  vertical-align: middle;
+  transition: background 140ms ease;
+}
+
+/* 行頭（開放弦）セルは少し濃く */
+.flat-disp tr td.open-string {
+  background: rgba(0,0,0,0.35);
+}
+
+/* ホバーで少し強調 */
+.flat-disp tr td:hover {
+  background: rgba(0,0,0,0.32);
+}
+
+/* フレット番号行は薄く反転 */
+#flat-num td {
+  background: rgba(255,255,255,0.08) !important;
+  color: #fff;
+}
+
+/* ============================
+   ○/● のバッジ風スタイル
+   - JS で data-badge / クラスを付与する想定
+   - 付与していない場合はセル文字をそのまま表示
+   ============================ */
+
+/* セル内に data-badge を載せる。空なら何も出さない */
+.flat-disp td::after {
+  content: attr(data-badge);
+  display: inline-block;
+  min-width: 24px;
+  height: 24px;
+  line-height: 24px;
+  margin: 0 auto;
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 14px;
+  background: transparent;
+  color: #fff;
+}
+
+/* ルート（●）= 白ピル（黒文字）で最前面 */
+.flat-disp td.is-root::after {
+  background: rgba(255,255,255,0.95);
+  color: #1a1a1a;
+}
+
+/* スケール内（○）= 半透明白ピル */
+.flat-disp td.in-scale::after {
+  background: rgba(255,255,255,0.28);
+  color: #fff;
+}
+
+/* 開放弦セルも同等の見た目に */
+.flat-disp td.open-string::after {
+  content: attr(data-badge);
+  display: inline-block;
+  min-width: 24px;
+  height: 24px;
+  line-height: 24px;
+  margin: 0 auto;
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 14px;
+  background: transparent;
+  color: #fff;
+}
+.flat-disp td.open-string.is-root::after {
+  background: rgba(255,255,255,0.95);
+  color: #1a1a1a;
+}
+.flat-disp td.open-string.in-scale::after {
+  background: rgba(255,255,255,0.28);
+  color: #fff;
+}
+
+/* スマホでのタップ余白調整 */
+@media (max-width: 768px) {
+  .flat-disp tr td {
+    min-width: 34px;
+    height: 34px;
+    padding: 6px 4px;
+    font-size: 15px;
+  }
+}
+
+
+/* 本体は横スクロール禁止（横に溢れるのはフレットボードだけ） */
+html, body {
+  overflow-x: hidden;
+}
+
+/* フレットボードのスクロールはここに集約 */
+.flat-disp-container {
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  -webkit-overflow-scrolling: touch; /* iOS の慣性スクロール */
+}
+
+/* テーブルは親幅に合わせて縮まず、横にだけ広がる */
+.flat-disp {
+  display: table;            /* 既存の table レイアウトを維持 */
+  width: max(100%, calc(3vh * 25)); /* 既存の計算値をベースにしつつ、親幅未満なら100%に */
+}
+
+/* ビューポートが極端に低い端末で vh が小さくなりすぎるのを防止 */
+@media (max-height: 640px) {
+  .flat-disp {
+    width: max(100%, 880px); /* セーフティな最小幅（適宜調整） */
+  }
+}
+
+/* 余白や枠線が原因の横オーバーフローを抑える */
+.content-container {
+  box-sizing: border-box;
+  padding-right: 0.5rem;
+}
+
+
+/* プルダウンを開いたときの各候補（option）は
+   背景を濃いグレー、文字を白で強コントラストに */
+.config-selector option {
+  background: #1e1e1e;  /* or #111 */
+  color: #fff;
+}
+
+/* Windows/Chrome などで選択中の項目の反転色が薄い場合の保険 */
+.config-selector option:checked,
+.config-selector option:hover {
+  background: #2a2a2a;
+  color: #fff;
+}
+
+/* フォーカス時に枠をはっきり（キーボード操作の視認性） */
+.config-selector:focus {
+  outline: 2px solid rgba(255,255,255,0.8);
+  outline-offset: 2px;
+}
+
+/* ドロップダウンが他要素の上に出ず隠れる場合に備えて */
+.select-config-container,
+.config-block,
+.config-selector {
+  position: relative;
+  z-index: 5;
+}
+
+
+/* ==== Scale 名のチップ表示 ==== */
+.scale-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  margin-top: 8px;
+}
+
+.scale-chip {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 13px;
+  line-height: 1;
+  color: #fff;                           /* 文字は白 */
+  background: rgba(255,255,255,0.18);    /* 半透明の白バッジ */
+  border: 1px solid rgba(255,255,255,0.35);
+  letter-spacing: 0.2px;
+  user-select: none;
+}
+
+.root-chip{
+  background: rgba(255, 255, 255, 0.18); 
+  border: 1px solid rgba(255, 0, 0, 0.35);
+  color: #f00;
+}
