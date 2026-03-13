@@ -22,15 +22,22 @@ body{
 .game_input_box{
   width:100%;
   display: flex;
-  justify-content: left;
+  flex-direction: row;
+  align-items: center;
   box-sizing: border-box;
   padding-left: 4vw;
   margin-bottom: 2vw;
+  gap: 1rem;
+}
+
+.game_input_box input[type="radio"] {
+  margin-left: 0.5rem;
 }
 
 .game_input_label{
   font-family: "Urbanist", serif;
   font-weight: bold;
+  width: 30%;
   font-size: 6vw;
   color: #FFFFFF;
   margin: 0 1vw;
@@ -47,6 +54,24 @@ body{
   background-color: #404040;
   color: #FFFFFF;
   border-radius: .5rem;
+}
+
+.memory_input{
+  font-family: "Orbitron", serif;
+  font-weight: bold;
+  font-size: 5vw;
+  text-align: center;
+  height: auto;
+  width: 10rem;
+  border: solid 2px #FFFFFF;
+  background-color: #404040;
+  color: #FFFFFF;
+  border-radius: .5rem;
+}
+
+.current_choice{
+  color: red;
+  transition: color 1s ease-in-out;
 }
 
 .counter_header_box{

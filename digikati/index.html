@@ -15,13 +15,37 @@
 <BODY>
     <div class="content_container">
         <div class="title_box">
-            JagKatiKun-EX
+            DigiKatiKun-EX
         </div>
         <div class="game_input_box">
-            <label class="game_input_label">
-                GAME:
-            </label>
-            <input type="number" class="game_input">
+            <table>
+                <tr>
+                    <td>
+                        <label class="game_input_label current_choice" id="label_for_game">
+                            GAME:
+                        </label>
+                    </td>
+                    <td>
+                        <input type="number" class="game_input">
+                    </td>
+                    <td>
+                        <input type="radio" name="current_input" value="game" checked>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                    <label class="game_input_label" id="label_for_memory">
+                            MEMORY:
+                        </label>
+                    </td>
+                    <td>
+                        <input type="number" class="memory_input">
+                    </td>
+                    <td>
+                        <input type="radio" name="current_input" value="memory">
+                    </td>
+                </tr>
+            </table>
         </div>
         <div class="counter_header_box">
             <table class="counter_header">
