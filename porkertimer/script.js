@@ -27,6 +27,9 @@ $(function () {
     $("#start").on("click", function () {
         levels = [];
 
+        const title = $("#tournament-name").val();
+        $("#tournament-title").text(title || "Poker Tournament");
+
         $(".blind-row").each(function () {
             const type = $(this).find(".level-type").val();
             const minutes = parseInt($(this).find(".level-min").val(), 10);
@@ -98,7 +101,7 @@ function updateDisplay() {
         $("#blind-display").text("BREAK");
         $("#timer").css("color", "#00bfff");
     } else {
-        $("#blind-display").text(`${level.sb} / ${level.bb} (Ante ${level.ante})`);
+        $("#blind-display").text(`${level.sb} / ${level.bb} (${level.ante})`);
         $("#timer").css("color", "#fff");
     }
 
@@ -112,7 +115,7 @@ function updateDisplay() {
     } else if (next.type === "break") {
         $("#next-level-display").text("Next: BREAK");
     } else {
-        $("#next-level-display").text(`Next: ${next.sb} / ${next.bb} (Ante ${next.ante})`);
+        $("#next-level-display").text(`Next: ${next.sb} / ${next.bb} (${next.ante})`);
     }
 
     if (remainingSeconds <= 180) {
