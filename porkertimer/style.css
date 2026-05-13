@@ -1,0 +1,111 @@
+/* 全体 */
+body {
+    font-family: 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    background: #0d0d0d;
+    color: #f5f5f5;
+    margin: 0;
+    padding: 20px;
+    text-align: center;
+}
+
+/* タイトル */
+h2 {
+    font-size: 26px;
+    margin-bottom: 20px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+/* ラベル行 */
+.label-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-weight: bold;
+    padding: 0 5px;
+    color: #bbbbbb;
+}
+
+.label-row span {
+    width: 20%;
+    text-align: center;
+}
+
+/* レベル入力行 */
+.blind-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding: 10px;
+    background: #1a1a1a;
+    border-radius: 8px;
+    border: 1px solid #333;
+}
+
+.blind-row select,
+.blind-row input {
+    width: 18%;
+    padding: 8px;
+    border-radius: 6px;
+    border: none;
+    background: #2a2a2a;
+    color: #fff;
+    font-size: 16px;
+    text-align: center;
+}
+
+/* ボタン */
+button {
+    width: 160px;
+    padding: 14px;
+    margin: 12px;
+    font-size: 18px;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #ff4d4d, #cc0000);
+    color: #fff;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 10px rgba(255, 0, 0, 0.3);
+    transition: 0.2s;
+}
+
+.primary-button {
+    background: linear-gradient(135deg, #4d79ff, #0033cc);
+    box-shadow: 0 4px 10px rgba(0, 51, 204, 0.3);
+}
+
+.secondary-button {
+    background: linear-gradient(135deg, #4dff4d, #00cc00);
+    box-shadow: 0 4px 10px rgba(0, 204, 0, 0.3);
+}
+
+button:hover {
+    transform: scale(1.05);
+    opacity: 0.9;
+}
+
+/* タイマー画面 */
+#timer {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 72px;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+
+#blind-display {
+    font-size: 32px;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+#next-level-display {
+    font-size: 20px;
+    margin-bottom: 15px;
+    color: #bbbbbb;
+}
+
+/* ブレイク時の色 */
+.break-mode {
+    color: #00bfff !important;
+}
