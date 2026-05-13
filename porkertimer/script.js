@@ -1,6 +1,7 @@
 let levels = [];
 let currentLevel = 0;
 let remainingSeconds = 0;
+let totalTimeSeconds = 0;
 let timerInterval = null;
 
 $(function () {
@@ -56,8 +57,10 @@ $(function () {
             clearInterval(timerInterval);
             timerInterval = null;
             $(this).text("Resume");
+            $(this).addClass("primary-btn");
         } else {
             startTimer();
+            $(this).removeClass("primary-btn");
             $(this).text("Pause");
         }
     });
@@ -71,6 +74,8 @@ $(function () {
 function startTimer() {
     timerInterval = setInterval(function () {
         remainingSeconds--;
+        totalTimeSeconds++;
+        updateTotalTime();
 
         if (remainingSeconds <= 0) {
             nextLevel();
@@ -90,6 +95,7 @@ function nextLevel() {
 
     remainingSeconds = levels[currentLevel].minutes * 60;
     updateDisplay();
+    updateChipStats()
 }
 
 function updateDisplay() {
@@ -123,4 +129,75 @@ function updateDisplay() {
     if (remainingSeconds <= 180) {
         $("#timer").css("color", "#ff2020");
     }
+
+    updateNextBreakTime();
+}
+
+$(document).on("click", ".plus, .minus", function () {
+    const target = $(this).data("target");
+    const span = $("#" + target);
+    let value = parseInt(span.text(), 10);
+
+    if ($(this).hasClass("plus")) {
+        value++;
+    } else {
+        value = Math.max(0, value - 1);
+    }
+
+    span.text(value);
+    updateChipStats();
+});
+
+function updateChipStats() {
+    const players = parseInt($("#players-left").text(), 10);
+    const buyins = parseInt($("#buyin-count").text(), 10);
+    const buyinValue = parseInt($("#buyin-value").val(), 10);
+
+    const total = (players + buyins) * buyinValue;
+    const avg = players > 0 ? Math.floor( total / players) : 0;
+
+    const currentBB = parseInt(levels[currentLevel].bb, 10);
+    const totalBB = currentBB > 0 ? Math.floor(total / currentBB) : 0;
+    const avgBB = currentBB > 0 ? Math.floor(avg / currentBB) : 0;
+
+    // 表示
+    $("#total-chips").text(`${total.toLocaleString()} (${totalBB} BB)`);
+    $("#avg-stack").text(`${avg.toLocaleString()} (${avgBB} BB)`);
+
+}
+
+$("#buyin-value").on("input", updateChipStats);
+
+function updateTotalTime() {
+    const min = Math.floor(totalTimeSeconds / 60);
+    const sec = ("0" + (totalTimeSeconds % 60)).slice(-2);
+    $("#total-time").text(`${min}:${sec}`);
+}
+
+function updateNextBreakTime() {
+    let secondsUntilBreak = 0;
+
+    // 現在レベルの残り時間を足す
+    secondsUntilBreak += remainingSeconds;
+
+    // 現在レベルの次から break を探す
+    for (let i = currentLevel + 1; i < levels.length; i++) {
+        if (levels[i].type === "break") {
+            break; // break レベルに到達したら終了
+        }
+        secondsUntilBreak += levels[i].minutes * 60;
+    }
+
+    // break が存在しない場合
+    const nextBreakLevel = levels.find(l => l.type === "break");
+    if (!nextBreakLevel) {
+        $("#next-break").text("--");
+        return;
+    }
+
+    // 時間表示に変換
+    const min = Math.floor(secondsUntilBreak / 60);
+    const sec = ("0" + (secondsUntilBreak % 60)).slice(-2);
+
+    $("#next-break").text(`${min}:${sec}`);
 }

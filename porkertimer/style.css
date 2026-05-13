@@ -1,154 +1,104 @@
-/* 全体 */
+/* ===========================
+   全体
+=========================== */
 body {
-    font-family: 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    font-family: 'Roboto', sans-serif;
     background: #0d0d0d;
-    color: #f5f5f5;
+    color: #fff;
     margin: 0;
     text-align: center;
-}
-
-/* タイトル */
-h2 {
-    font-size: 26px;
-    margin-bottom: 20px;
-    font-weight: 700;
-    letter-spacing: 1px;
-}
-
-/* ラベル行 */
-.label-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 10px;
-    font-weight: bold;
-    padding: 0 5px;
-    color: #bbbbbb;
-}
-
-.label-row span {
-    width: 20%;
-    text-align: center;
-}
-
-/* レベル入力行 */
-.blind-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 12px;
-    padding: 10px;
-    background: #1a1a1a;
-    border-radius: 8px;
-    border: 1px solid #333;
-}
-
-.blind-row select,
-.blind-row input {
-    width: 18%;
-    padding: 8px;
-    border-radius: 6px;
-    border: none;
-    background: #2a2a2a;
-    color: #fff;
-    font-size: 16px;
-    text-align: center;
-}
-
-/* ボタン */
-button {
-    width: 160px;
-    padding: 14px;
-    margin: 12px;
-    font-size: 18px;
-    font-weight: 600;
-    border: none;
-    border-radius: 8px;
-    background: linear-gradient(135deg, #ff4d4d, #cc0000);
-    color: #fff;
-    letter-spacing: 1px;
-    box-shadow: 0 4px 10px rgba(255, 0, 0, 0.3);
-    transition: 0.2s;
-}
-
-.primary-button {
-    background: linear-gradient(135deg, #4d79ff, #0033cc);
-    box-shadow: 0 4px 10px rgba(0, 51, 204, 0.3);
-}
-
-.secondary-button {
-    background: linear-gradient(135deg, #4dff4d, #00cc00);
-    box-shadow: 0 4px 10px rgba(0, 204, 0, 0.3);
-}
-
-button:hover {
-    transform: scale(1.05);
-    opacity: 0.9;
-}
-
-/* タイマー画面 */
-#timer {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 72px;
-    font-weight: 700;
-    letter-spacing: 2px;
-}
-
-#blind-display {
-    font-size: 32px;
-    margin-bottom: 10px;
-    font-weight: 600;
-}
-
-#next-level-display {
-    font-size: 20px;
-    margin-bottom: 15px;
-    color: #bbbbbb;
-}
-
-.break-mode {
-    color: #00bfff !important;
-}
-
-#tournament-name {
-    font-size: 20px;
-    font-weight: 600;
-    letter-spacing: 1px;
-}
-
-#timer-screen {
-    position: relative;
-    padding: 20px;
-
-    background: linear-gradient(135deg, #3a0066, #6600cc, #330066, #5500aa);
-    background-size: 400% 400%;
-    animation: purpleFlow 10s ease infinite;
-
-    width: 100vw;
-    height: 100vh;
-
     overflow: hidden;
 }
 
-.break-bg {
-    background: linear-gradient(135deg, #004d26, #00994d, #006633, #00cc66) !important;
-    background-size: 400% 400% !important;
-    animation: greenFlow 10s ease infinite !important;
-
-    width: 100%;
-    height: 100%;
+/* ===========================
+   設定画面
+=========================== */
+#setup-screen input,
+#setup-screen select {
+    width: 90%;
+    padding: 10px;
+    margin-bottom: 10px;
+    background: #1a1a1a;
+    border: 2px solid #333;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 16px;
+    transition: 0.25s;
 }
 
-#timer-screen::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    border-radius: 12px;
-    pointer-events: none;
+.label-row {
+    display: flex;
+    justify-content: space-between;
+    width: 90%;
+    margin: 6px auto 8px;
+    color: #bbb;
+    font-size: 14px;
+}
 
-    /* うっすら光るレイヤー */
-    background: radial-gradient(circle at center, rgba(255,255,255,0.08), transparent 70%);
+.blind-row {
+    display: flex;
+    justify-content: space-between;
+    width: 90%;
+    margin: 6px auto;
+    padding: 8px;
+    background: #1a1a1a;
+    border-radius: 10px;
+}
+
+.blind-row input,
+.blind-row select {
+    width: 18%;
+    padding: 8px;
+    background: #222;
+    border: 1px solid #444;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 14px;
+}
+
+button {
+    width: 140px;
+    padding: 10px;
+    margin: 6px;
+    background: linear-gradient(135deg, #ff4d4d, #cc0000);
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.primary-btn {
+    background: linear-gradient(135deg, #4dcdff, #0066cc) !important;
+}
+
+.secondary-btn{
+    background: linear-gradient(135deg, #27e53a, #1bdc28) !important;
+}
+
+/* ===========================
+   タイマー画面背景（通常：紫）
+=========================== */
+#timer-screen {
+    background: linear-gradient(135deg, #3a0066, #6600cc, #330066, #5500aa);
+    background-size: 400% 400%;
+    animation: purpleFlow 10s ease infinite;
+    padding: 10px;
+    height: 100vh;
+}
+
+@keyframes purpleFlow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* ブレイク時：緑背景 */
+.break-bg {
+    background: linear-gradient(135deg, #00351b, #00994d, #006633, #00cc66) !important;
+    background-size: 400% 400% !important;
+    animation: greenFlow 10s ease infinite !important;
 }
 
 @keyframes greenFlow {
@@ -157,8 +107,165 @@ button:hover {
     100% { background-position: 0% 50%; }
 }
 
-@keyframes purpleFlow {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+/* ===========================
+   タイマー画面レイアウト
+=========================== */
+#timer-layout {
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    height: calc(100vh - 120px); /* 画面に収める */
+    gap: 10px;
 }
+
+#timer-left {
+    width: 60%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* タイトル（Level） */
+#level-title {
+    font-size: 22px;
+    margin: 0;
+}
+
+/* 現在のブラインド */
+#blind-display {
+    font-size: 22px;
+    margin: 0;
+}
+
+/* 次のレベル */
+#next-level-display {
+    font-size: 14px;
+    margin: 0;
+}
+
+/* タイマー数字 */
+#timer {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 48px;
+    font-weight: 700;
+    margin: 6px 0;
+    text-align: center;
+}
+
+/* ボタン行 */
+#button-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+/* ボタン中央揃え */
+#button-row button {
+    width: 48%;
+    padding: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #ff4d4d, #cc0000);
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* ===========================
+   右側パネル
+=========================== */
+#timer-right {
+    width: 20%;
+    background: rgba(0,0,0,0.35);
+    padding: 10px;
+    border-radius: 12px;
+    border: 1px solid #7e7e7e;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow: hidden;
+}
+
+.status-box {
+    margin-bottom: 4px;
+}
+
+.status-box label {
+    font-size: 16px;
+    margin-bottom: 4px;
+    display: block;
+}
+
+/* カウンター（＋−ボタン） */
+.counter {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+}
+
+.counter button {
+    width: 34px;
+    height: 34px;
+    font-size: 20px;
+    border-radius: 8px;
+    background: #222;
+    border: 1px solid #444;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.counter span {
+    font-size: 22px;
+    width: 50px;
+    text-align: center;
+}
+
+/* Buyin Value / Add On Value */
+#buyin-value{
+    width: 80%;
+    padding: 8px;
+    background: #1c1c1c;
+    border: 1px solid #444;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 18px;
+}
+
+/* ===========================
+   トーナメントタイトル
+=========================== */
+#tournament-title {
+    font-size: 22px;
+    margin: 0 0 6px;
+}
+
+/* 左側のチップ情報（折り返し防止） */
+#chip-stats {
+    width: 20%;
+    text-align: left;
+    margin-bottom: 15px;
+    font-size: 15px;
+}
+
+.chip-stats-label{
+    display: block;
+    width: 100%;
+    font-weight: 600;
+}
+
+.chip-line {
+    display: flex;
+    justify-content: space-between;
+    padding: 2px 4px;
+    white-space: nowrap; /* ← 折り返し禁止 */
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+
