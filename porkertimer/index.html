@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+<title>Poker Tournament Timer</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="script.js"></script>
+</head>
+<body>
+
+<!-- 設定画面 -->
+<div id="setup-screen">
+    <h2>Tournament Setup</h2>
+
+    <!-- ラベル行 -->
+    <div class="label-row">
+        <span class="label-type">Type</span>
+        <span class="label-time">Time (min)</span>
+        <span class="label-sb">SB</span>
+        <span class="label-bb">BB</span>
+        <span class="label-ante">Ante</span>
+    </div>
+
+    <!-- レベル入力リスト -->
+    <div id="blind-list">
+        <div class="blind-row">
+            <select class="level-type">
+                <option value="normal">normal</option>
+                <option value="break">break</option>
+            </select>
+
+            <input type="number" class="level-min" value="15">
+
+            <input type="number" class="sb" value="100">
+            <input type="number" class="bb" value="200">
+            <input type="number" class="ante" value="0">
+        </div>
+    </div>
+
+    <button id="add-level" class="secondary-button">Add Level</button>
+    <button id="start">Start</button>
+</div>
+
+<!-- タイマー画面 -->
+<div id="timer-screen" style="display:none;">
+    <h2 id="level-title">Level 1</h2>
+    <div id="blind-display">100 / 200</div>
+    <div id="next-level-display">Next: --</div>
+    <div id="timer">15:00</div>
+
+
+    <button id="pause">Pause</button>
+    <button id="next-level" class="primary-button">Next Level</button>
+</div>
+
+</body>
+</html>
