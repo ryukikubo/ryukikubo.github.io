@@ -99,10 +99,12 @@ function updateDisplay() {
 
     if (level.type === "break") {
         $("#blind-display").text("BREAK");
-        $("#timer").css("color", "#00bfff");
+        $("#timer").css("color", "#35fb5d");
+        $("#timer-screen").addClass("break-bg");
     } else {
         $("#blind-display").text(`${level.sb} / ${level.bb} (${level.ante})`);
         $("#timer").css("color", "#fff");
+        $("#timer-screen").removeClass("break-bg");
     }
 
     const min = Math.floor(remainingSeconds / 60);
@@ -119,14 +121,6 @@ function updateDisplay() {
     }
 
     if (remainingSeconds <= 180) {
-        $("#timer").css("color", "#ff4444");
-    } else {
-        // 通常レベルなら白、ブレイクなら緑
-        if (level.type === "break") {
-            $("#timer").css("color", "#4df658");
-        } else {
-            $("#timer").css("color", "#ffffff");
-        }
+        $("#timer").css("color", "#ff2020");
     }
-
 }
