@@ -71,7 +71,7 @@ body{
 
 .current_choice{
   color: red;
-  transition: color 1s ease-in-out;
+  transition: color .5s ease-in-out;
 }
 
 .counter_header_box{
