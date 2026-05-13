@@ -14,6 +14,8 @@
 <!-- 設定画面 -->
 <div id="setup-screen">
     <h2>Tournament Setup</h2>
+    <label for="tournament-name">Tournament Name</label>
+    <input type="text" id="tournament-name" placeholder="My Poker Tournament" style="width:90%; padding:10px; margin-bottom:20px; font-size:18px;">
 
     <!-- ラベル行 -->
     <div class="label-row">
@@ -46,7 +48,8 @@
 
 <!-- タイマー画面 -->
 <div id="timer-screen" style="display:none;">
-    <h2 id="level-title">Level 1</h2>
+    <h1 id="tournament-title" style="margin-bottom:10px;"></h1>
+    <h3 id="level-title">Level 1</h3>
     <div id="blind-display">100 / 200</div>
     <div id="next-level-display">Next: --</div>
     <div id="timer">15:00</div>
