@@ -188,6 +188,7 @@ $(document).ready(function () {
         }, 2000);
       } else {
         $('.selecting-box').removeClass('selecting-box');
+        navigator.vibrate(1000);
         $('.content-container').css('background-color', '#F00');
         setTimeout(function () {
           $('.out_disp').show();
