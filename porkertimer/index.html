@@ -3,9 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
 <title>Poker Tournament Timer</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="script.js"></script>
 </head>
@@ -13,50 +15,101 @@
 
 <!-- 設定画面 -->
 <div id="setup-screen">
-    <h2>Tournament Setup</h2>
-    <label for="tournament-name">Tournament Name</label>
-    <input type="text" id="tournament-name" placeholder="My Poker Tournament" style="width:90%; padding:10px; margin-bottom:20px; font-size:18px;">
+    <h2>トーナメント設定</h2>
 
-    <!-- ラベル行 -->
+    <label for="tournament-name">Tournament Name</label>
+    <input type="text" id="tournament-name" placeholder="My Poker Tournament">
+
     <div class="label-row">
-        <span class="label-type">Type</span>
-        <span class="label-time">Time (min)</span>
-        <span class="label-sb">SB</span>
-        <span class="label-bb">BB</span>
-        <span class="label-ante">Ante</span>
+        <span>Type</span>
+        <span>Time</span>
+        <span>SB</span>
+        <span>BB</span>
+        <span>Ante</span>
     </div>
 
-    <!-- レベル入力リスト -->
     <div id="blind-list">
         <div class="blind-row">
             <select class="level-type">
-                <option value="normal">normal</option>
-                <option value="break">break</option>
+                <option value="normal">通常</option>
+                <option value="break">ブレイク</option>
             </select>
 
             <input type="number" class="level-min" value="15">
-
             <input type="number" class="sb" value="100">
             <input type="number" class="bb" value="200">
             <input type="number" class="ante" value="0">
         </div>
     </div>
 
-    <button id="add-level" class="secondary-button">Add Level</button>
-    <button id="start" class="primary-button">Start</button>
+    <button id="add-level" class="secondary-btn">Add Level</button>
+    <button id="start" class="primary-btn">Start</button>
 </div>
 
 <!-- タイマー画面 -->
 <div id="timer-screen" style="display:none;">
-    <h1 id="tournament-title" style="margin-bottom:10px;"></h1>
-    <h3 id="level-title">Level 1</h3>
-    <div id="blind-display">100 / 200</div>
-    <div id="next-level-display">Next: --</div>
-    <div id="timer">15:00</div>
+    <h1 id="tournament-title"></h1>
 
+    <div id="timer-layout">
 
-    <button id="pause">Pause</button>
-    <button id="next-level" class="primary-button">Next Level</button>
+        <div id="chip-stats">
+            <div class="chip-line">
+                <span class="chip-stats-label">Total Chips:</span>
+                <span id="total-chips">0</span>
+            </div>
+            <div class="chip-line">
+                <span class="chip-stats-label">Avg Stack:</span>
+                <span id="avg-stack">0</span>
+            </div>
+            <div class="chip-line">
+                <span class="chip-stats-label">Total Time:</span>
+                <span id="total-time">0:00</span>
+            </div>
+        <div class="chip-line">
+            <span class="chip-stats-label">Next Break:</span>
+            <span id="next-break">--</span>
+        </div>
+        </div>
+
+        <div id="timer-left">
+            <h2 id="level-title">Level 1</h2>
+            <div id="blind-display"></div>
+            <div id="next-level-display"></div>
+            <div id="timer"></div>
+
+            <div id="button-row">
+                <button id="pause">Pause</button>
+                <button id="next-level" class="secondary-btn">Next Level</button>
+            </div>
+        </div>
+
+        <div id="timer-right">
+
+            <div class="status-box">
+                <label>Players Left</label>
+                <div class="counter">
+                    <button class="minus" data-target="players-left">−</button>
+                    <span id="players-left">9</span>
+                    <button class="plus" data-target="players-left">＋</button>
+                </div>
+            </div>
+
+            <div class="status-box">
+                <label>Buyin Count</label>
+                <div class="counter">
+                    <button class="minus" data-target="buyin-count">−</button>
+                    <span id="buyin-count">0</span>
+                    <button class="plus" data-target="buyin-count">＋</button>
+                </div>
+            </div>
+
+            <div class="status-box">
+                <label>Buyin Value</label>
+                <input type="number" id="buyin-value" value="10000">
+            </div>
+
+        </div>
+    </div>
 </div>
 
 </body>
