@@ -17,12 +17,12 @@
 <div id="setup-screen">
     <h2>Tournament Setup</h2>
 
-    <label for="tournament-name">Tournament Name</label>
+    <label class="tournament-label" for="tournament-name">Tournament Name</label>
     <input type="text" id="tournament-name" placeholder="My Poker Tournament">
 
     <div class="label-row">
         <span>Type</span>
-        <span>Time</span>
+        <span>Min</span>
         <span>SB</span>
         <span>BB</span>
         <span>Ante</span>
@@ -44,7 +44,8 @@
 
     <button id="add-level" class="secondary-btn">Add Level</button>
     <button id="open-preset" class="secondary-btn">Open Preset</button>
-    <button id="start" class="primary-btn">Start</button>
+    <button id="start" class="primary-btn">Resume</button>
+    <button id="set-bg" class="other-btn">Set BG</button>
 </div>
 
 <!-- タイマー画面 -->
@@ -123,8 +124,21 @@
             <!-- JS でプリセットを追加 -->
         </select>
 
-        <button id="apply-preset" class="preset-apply-btn">Apply</button>
+        <button id="apply-preset" class="preset-apply-btn primary-btn">Apply</button>
         <button id="close-preset" class="close-btn">Close</button>
+    </div>
+</div>
+
+<div id="bgset-modal" class="modal">
+    <div class="modal-content">
+        <h2>Set Background</h2>
+
+        <select id="bg-select">
+
+        </select>
+
+        <button id="apply-bg" class="primary-btn">Apply</button>
+        <button id="close-bg" class="close-btn">Close</button>
     </div>
 </div>
 

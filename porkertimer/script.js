@@ -102,6 +102,21 @@ const presets = [
     },
 ];
 
+const bgs = [
+    { title: "Deep Purple", key: "purple" },
+    { title: "Neon Pink", key: "neon" },
+    { title: "Ocean Blue", key: "ocean" },
+    { title: "Sunset Orange", key: "sunset" },
+    { title: "Emerald Green", key: "emerald" },
+    { title: "Fire Red", key: "fire" },
+    { title: "Cyber Blue", key: "cyber" },
+    { title: "Gold Shine", key: "gold" },
+    { title: "Ice Blue", key: "ice" },
+    { title: "Dark Mode", key: "dark" }
+];
+
+currentBGIndex = 0;
+
 $(function () {
 
     // レベル追加
@@ -146,7 +161,7 @@ $(function () {
         $("#timer-screen").show();
         $("html, body").scrollTop(0);
         updateDisplay();
-        $("#pause").text("Resume");
+        $("#pause").text("Start");
         $("#pause").addClass("primary-btn");
     });
 
@@ -305,14 +320,28 @@ $(function () {
         $("#preset-modal").css("display", "flex");
     });
 
+    $("#set-bg").on("click",function(){
+        $("#bgset-modal").css("display","flex");
+    })
+
     // モーダル閉じる
     $("#close-preset").on("click", function () {
         $("#preset-modal").hide();
     });
 
+    $("#close-bg").on("click",function(){
+        $("#bgset-modal").hide();
+    })
+
     presets.forEach((preset, index) => {
         $("#preset-select").append(`
             <option value="${index}">${preset.name}</option>
+        `);
+    });
+
+    bgs.forEach((bg, index) => {
+        $("#bg-select").append(`
+            <option value="${index}">${bg.title}</option>
         `);
     });
 
@@ -345,6 +374,18 @@ $(function () {
         $("#preset-modal").hide();
 
         $("#tournament-name").val(`${preset.name} - preset`);
+    });
+
+    $("#apply-bg").on("click", function () {
+        const index = $("#bg-select").val();
+        const bg = bgs[index];
+
+        // すべての背景クラスを削除
+        $("#timer-screen")
+            .removeClass("bg-purple bg-neon bg-ocean bg-sunset bg-emerald bg-fire bg-cyber bg-gold bg-ice bg-dark")
+            .addClass("bg-" + bg.key);
+
+        $("#bgset-modal").hide();
     });
 
     $("#back-to-setup").on("click", function () {
