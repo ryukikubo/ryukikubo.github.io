@@ -7,7 +7,7 @@ body {
     color: #fff;
     margin: 0;
     text-align: center;
-    overflow: hidden;
+    overflow-x: hidden;
 }
 
 /* ===========================
@@ -84,7 +84,7 @@ button {
     background: linear-gradient(135deg, #3a0066, #6600cc, #330066, #5500aa);
     background-size: 400% 400%;
     animation: purpleFlow 10s ease infinite;
-    padding: 10px;
+    padding: 25px 10px;
     height: 100vh;
 }
 
@@ -127,26 +127,27 @@ button {
 
 /* タイトル（Level） */
 #level-title {
-    font-size: 22px;
+    font-size: 25px;
     margin: 0;
 }
 
 /* 現在のブラインド */
 #blind-display {
-    font-size: 22px;
+    font-size: 30px;
+    font-weight: bold;
     margin: 0;
 }
 
 /* 次のレベル */
 #next-level-display {
-    font-size: 14px;
+    font-size: 20px;
     margin: 0;
 }
 
 /* タイマー数字 */
 #timer {
     font-family: 'Orbitron', sans-serif;
-    font-size: 48px;
+    font-size: 70px;
     font-weight: 700;
     margin: 6px 0;
     text-align: center;
@@ -194,9 +195,10 @@ button {
 }
 
 .status-box label {
-    font-size: 16px;
+    font-size: 20px;
     margin-bottom: 4px;
     display: block;
+    font-weight: bold;
 }
 
 /* カウンター（＋−ボタン） */
@@ -249,14 +251,15 @@ button {
 #chip-stats {
     width: 20%;
     text-align: left;
-    margin-bottom: 15px;
-    font-size: 15px;
+    margin: 15px 0;
+    font-size: 20px;
 }
 
 .chip-stats-label{
     display: block;
     width: 100%;
     font-weight: 600;
+    font-size:20px
 }
 
 .chip-line {
@@ -268,4 +271,82 @@ button {
     margin-bottom: 10px;
 }
 
+/* モーダル背景 */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    justify-content: center;
+    align-items: center;
+}
+
+/* モーダル本体 */
+.modal-content {
+    background: #1a1a1a;
+    padding: 20px;
+    width: 80%;
+    max-width: 400px;
+    border-radius: 12px;
+    border: 1px solid #444;
+    text-align: center;
+}
+
+/* プリセットボタン */
+.preset-btn {
+    width: 90%;
+    padding: 12px;
+    margin: 8px auto;
+    background: #333;
+    border: 1px solid #555;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 18px;
+}
+
+/* 閉じるボタン */
+.close-btn {
+    margin-top: 10px;
+    background: #555;
+}
+
+#preset-select {
+    width: 90%;
+    padding: 12px;
+    margin: 10px auto;
+    background: #333;
+    border: 1px solid #555;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 18px;
+}
+
+.preset-apply-btn {
+    width: 90%;
+    padding: 12px;
+    margin-top: 10px;
+    background: #ff4d4d;
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 18px;
+}
+
+.back-btn {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 2px 14px;
+    background: #ededed28;
+    border: 1px solid #ffffff;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    z-index: 10;
+}
 
