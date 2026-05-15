@@ -26,6 +26,11 @@ body {
     transition: 0.25s;
 }
 
+.tournament-label{
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
 .label-row {
     display: flex;
     justify-content: space-between;
@@ -33,6 +38,13 @@ body {
     margin: 6px auto 8px;
     color: #bbb;
     font-size: 14px;
+}
+
+.label-row > span{
+    display: block;
+    width:20%;
+    text-align: center;
+    font-weight: bold;
 }
 
 .blind-row {
@@ -77,28 +89,105 @@ button {
     background: linear-gradient(135deg, #27e53a, #1bdc28) !important;
 }
 
+.other-btn{
+    background: linear-gradient(135deg, #9f9f9f, #595959) !important;
+}
+
 /* ===========================
    タイマー画面背景（通常：紫）
 =========================== */
 #timer-screen {
-    background: linear-gradient(135deg, #3a0066, #6600cc, #330066, #5500aa);
     background-size: 400% 400%;
-    animation: purpleFlow 10s ease infinite;
     padding: 25px 10px;
     height: 100vh;
 }
 
-@keyframes purpleFlow {
+@keyframes bgFlow {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
 }
 
+/* Deep Purple */
+.bg-purple {
+    background: linear-gradient(135deg, #861cff, #b300ff, #35075a, #9900ff);
+    background-size: 400% 400%;
+    animation: bgFlow 10s ease infinite;
+}
+
+/* Neon Pink */
+.bg-neon {
+    background: linear-gradient(135deg, #ff0099, #9900ff, #ff33cc, #cc00ff);
+    background-size: 400% 400%;
+    animation: bgFlow 10s ease infinite;
+}
+
+/* Ocean Blue */
+.bg-ocean {
+    background: linear-gradient(135deg, #0066ff, #00ccff, #0033cc, #0099ff);
+    background-size: 400% 400%;
+    animation: bgFlow 12s ease infinite;
+}
+
+/* Sunset Orange */
+.bg-sunset {
+    background: linear-gradient(135deg, #ff6600, #ff3300, #ff9933, #cc3300);
+    background-size: 400% 400%;
+    animation: bgFlow 12s ease infinite;
+}
+
+/* Emerald Green */
+.bg-emerald {
+    background: linear-gradient(135deg, #00cc66, #00994d, #33ff99, #00e673);
+    background-size: 400% 400%;
+    animation: bgFlow 10s ease infinite;
+}
+
+/* Fire Red */
+.bg-fire {
+    background: linear-gradient(135deg, #ff0000, #990000, #ff3300, #660000);
+    background-size: 400% 400%;
+    animation: bgFlow 8s ease infinite;
+}
+
+
+/* Cyber Blue */
+.bg-cyber {
+    background: linear-gradient(135deg, #00ffff, #0066ff, #00ccff, #0033cc);
+    background-size: 400% 400%;
+    animation: bgFlow 9s ease infinite;
+}
+
+
+/* Gold */
+.bg-gold {
+    background: linear-gradient(135deg, #ffcc00, #ff9900, #ffdd33, #cc8800);
+    background-size: 400% 400%;
+    animation: bgFlow 10s ease infinite;
+}
+
+
+/* Ice Blue */
+.bg-ice {
+    background: linear-gradient(135deg, #ccffff, #99ccff, #66ffff, #99ddff);
+    background-size: 400% 400%;
+    animation: bgFlow 14s ease infinite;
+}
+
+
+/* Dark Mode */
+.bg-dark {
+    background: linear-gradient(135deg, #111, #222, #000, #333);
+    background-size: 400% 400%;
+    animation: bgFlow 20s ease infinite;
+}
+
+
 /* ブレイク時：緑背景 */
 .break-bg {
     background: linear-gradient(135deg, #00351b, #00994d, #006633, #00cc66) !important;
     background-size: 400% 400% !important;
-    animation: greenFlow 10s ease infinite !important;
+    animation: bgFlow 10s ease infinite !important;
 }
 
 @keyframes greenFlow {
@@ -314,7 +403,7 @@ button {
     background: #555;
 }
 
-#preset-select {
+#preset-select,#bg-select {
     width: 90%;
     padding: 12px;
     margin: 10px auto;
