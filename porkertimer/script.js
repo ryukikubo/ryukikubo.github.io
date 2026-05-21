@@ -139,8 +139,6 @@ $(function () {
 
     // スタート
     $("#start").on("click", function () {
-        const setup = document.getElementById("se-setup");
-        setup.play().catch(e => console.log("se-setup play blocked", e));
 
         levels = [];
 
@@ -176,6 +174,8 @@ $(function () {
             $(this).text("Resume");
             $(this).addClass("primary-btn");
         } else {
+            const setup = document.getElementById("se-setup");
+            setup.play().catch(e => console.log("se-setup play blocked", e));
             startTimer();
             $(this).removeClass("primary-btn");
             $(this).text("Pause");
@@ -214,6 +214,8 @@ $(function () {
     function nextLevel() {
         currentLevel++;
         if (currentLevel >= levels.length) {
+            $("#timer").css("color", "#fff");
+            $("#timer").text("00:00");
             alert("Tournament finished");
             clearInterval(timerInterval);
             return;
@@ -263,6 +265,10 @@ $(function () {
             $("#next-level-display").text(`Next: ${next.sb} / ${next.bb} (${next.ante})`);
         }
 
+        if(remainingSeconds == 180 && level.type !== "break"){
+            playSE("se-warn");
+        }
+
         if (remainingSeconds <= 180) {
             $("#timer").css("color", "#ff2020");
         }
@@ -277,6 +283,11 @@ $(function () {
 
         if ($(this).hasClass("plus")) {
             value++;
+            if(target === "players-left"){
+                let buyins = parseInt($("#buyin-count").text(), 10);
+                buyins++;
+                $("#buyin-count").text(buyins);
+            }   
         } else {
             value = Math.max(0, value - 1);
         }
@@ -290,12 +301,12 @@ $(function () {
         const buyins = parseInt($("#buyin-count").text(), 10);
         const buyinValue = parseInt($("#buyin-value").val(), 10);
 
-        const total = (players + buyins) * buyinValue;
-        const avg = players > 0 ? Math.floor( total / players) : 0;
+        const total = buyins * buyinValue;
+        const avg = players > 0 ? (total / players).toFixed(1) : 0;
 
         const currentBB = parseInt(levels[currentLevel].bb, 10);
-        const totalBB = currentBB > 0 ? Math.floor(total / currentBB) : 0;
-        const avgBB = currentBB > 0 ? Math.floor(avg / currentBB) : 0;
+        const totalBB = currentBB > 0 ? (total / currentBB).toFixed(1) : 0;
+        const avgBB = currentBB > 0 ? (avg / currentBB).toFixed(1) : 0;
 
         // 表示
         $("#total-chips").text(`${total.toLocaleString()} (${totalBB} BB)`);
