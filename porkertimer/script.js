@@ -198,12 +198,28 @@ $(function () {
         }, 1000);
     }
 
+    function getRealLevelNumber(index) {
+        let count = 0;
+        for (let i = 0; i <= index; i++) {
+            if (levels[i].type !== "break") {
+                count++;
+            }
+        }
+        return count;
+    }
+
     function nextLevel() {
         currentLevel++;
         if (currentLevel >= levels.length) {
             alert("Tournament finished");
             clearInterval(timerInterval);
             return;
+        }
+
+        if (levels[currentLevel].type === "break") {
+            playSE("se-break");
+        } else {
+            playSE("se-levelup");
         }
 
         remainingSeconds = levels[currentLevel].minutes * 60;
@@ -214,7 +230,12 @@ $(function () {
     function updateDisplay() {
         const level = levels[currentLevel];
 
-        $("#level-title").text(`Level ${currentLevel + 1}`);
+        if (level.type === "break") {
+            $("#level-title").text("");
+        } else {
+            const realLevel = getRealLevelNumber(currentLevel);
+            $("#level-title").text(`Level ${realLevel}`);
+        }
 
         if (level.type === "break") {
             $("#blind-display").text("BREAK");
@@ -402,4 +423,11 @@ $(function () {
         $("#setup-screen").show();
     });
 
+    function playSE(id) {
+        const audio = document.getElementById(id);
+        if (audio) {
+            audio.currentTime = 0;
+            audio.play();
+        }
+    }
 });
