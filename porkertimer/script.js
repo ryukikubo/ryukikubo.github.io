@@ -139,6 +139,9 @@ $(function () {
 
     // スタート
     $("#start").on("click", function () {
+        const setup = document.getElementById("se-setup");
+        setup.play().catch(e => console.log("se-setup play blocked", e));
+
         levels = [];
 
         const title = $("#tournament-name").val();
