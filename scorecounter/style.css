@@ -1,0 +1,423 @@
+/* ===== 全体 ===== */
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #5f9cff, #8ef6e4);
+  margin: 0;
+  padding: 0;
+  color: #333;
+  height: 100vh;
+  overflow-y: hidden;
+}
+
+/* ===== コンテナ ===== */
+.container {
+  max-width: 420px;
+  margin: 20px auto;
+  padding: 20px;
+  border-radius: 16px;
+  background: #ffffffdd;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+/* ===== タイトル ===== */
+h1 {
+  font-size: 30px;
+  text-align: center;
+  margin-bottom: 20px;
+  color: #444;
+}
+
+/* ===== ボタン ===== */
+button {
+  border: none;
+  border-radius: 12px;
+  padding: 14px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+/* グラデーションボタン */
+#addPlayerBtn {
+  background: linear-gradient(135deg, #00c6ff, #0072ff);
+  color: white;
+}
+
+#scoreEditBtn {
+  background: linear-gradient(135deg, #ff9966, #ff5e62);
+  color: white;
+}
+
+
+button:active {
+  transform: scale(0.95);
+}
+
+button:hover {
+  transform: scale(1.05);
+  filter: brightness(1.05)
+}
+
+/* 横並び */
+.btn-area {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-area button {
+  flex: 1;
+}
+
+/* ===== 入力 ===== */
+input, select {
+  width: 100%;
+  padding: 14px;
+  margin: 10px 0;
+  font-size: 18px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  box-sizing: border-box; /* ★これが必須 */
+}
+
+#scoreTypeList{
+  padding-inline-start: 0;
+}
+/* ===== メモ ===== */
+.memo {
+  background: #f5f5f5;
+}
+
+/* ===== 合計 ===== */
+.total {
+  text-align: center;
+  padding: 15px;
+  font-size: 22px;
+  font-weight: bold;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ffd86f, #fc6262);
+  color: white;
+  margin-bottom: 15px;
+}
+
+/* ===== プレイヤーリスト ===== */
+#playerList {
+  list-style: none;
+  padding: 0;
+}
+
+#playerList li {
+  display: block;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px;
+  border-radius: 14px;
+  margin-bottom: 8px;
+  background: linear-gradient(145deg, #ffffff, #f0f0f0);
+  font-size: 18px;
+  box-shadow: 
+    0 4px 8px rgba(0,0,0,0.1),
+    inset 0 1px 0 rgba(255,255,255,0.7);
+  transition: 0.2s;
+}
+
+#playerList li:active {
+  transform: scale(0.98);
+}
+
+#playerList strong {
+  font-size: 18px;
+  color: #222;
+}
+
+/* 点数 */
+.minus {
+  color: #ff3b30;
+  font-weight: bold;
+}
+
+/* ===== モーダル ===== */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+}
+
+/* モーダル中身 */
+.modal-content {
+  position: absolute;
+  top: 2%;
+  left: 50%;
+  transform: translate(-50%, -2%);
+  width: 90%;
+  max-width: 360px;
+  padding: 24px;
+  border: 1px solid rgba(255,255,255,0.5);
+  border-radius: 16px;
+  background: rgba(255,255,255,0.9);
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;  /* ★縦並び安定 */
+  gap: 12px; /* ★余白を統一 */
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+
+@keyframes popup {
+  from {
+    transform: translate(-50%, -40%) scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+
+/* モーダルタイトル */
+.modal-content h2 {
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+/* モーダルボタン */
+.modal-content button {
+  width: 100%;
+  margin-top: 10px;
+}
+
+/* アクションボタン */
+#savePlayer {
+  background: linear-gradient(135deg, #42e695, #3bb2b8);
+  color: white;
+}
+
+#applyScore {
+  background: linear-gradient(135deg, #f7971e, #ffd200);
+  color: white;
+}
+
+/* Close */
+.close {
+  background: #ddd;
+}
+
+/* ScoreType 行 */
+#scoreTypeList li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  border-radius: 10px;
+  background: #f5f5f5;
+}
+
+/* score type テキスト */
+.score-type-name {
+  font-size: 16px;
+}
+
+/* ×ボタン（削除） */
+.delete-btn {
+  background: #ff4d4f;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 14px;
+
+
+  width: auto !important;   /* ★強制上書き */
+  flex-shrink: 0;           /* ★縮まないように */
+  min-width: 32px;    /* ★小さめに固定 */
+  height: 32px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content > button {
+  width: 100%;
+}
+
+/* ホバー */
+.delete-btn:hover {
+  background: #d9363e;
+}
+
+/* Addボタン */
+#addScoreType {
+  background: linear-gradient(135deg, #36d1dc, #5b86e5);
+  color: white;
+}
+
+/* Applyボタン */
+#saveScoreTypes {
+  background: linear-gradient(135deg, #42e695, #3bb2b8);
+  color: white;
+}
+
+/* Closeボタン */
+.close {
+  background: #bbb;
+  color: #333;
+}
+
+
+/* ===== ラベル縦 ===== */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.form-group label {
+  font-size: 14px;
+  color: #555;
+}
+
+/* ===== スコア行（横並び） ===== */
+.score-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+/* ラベル */
+.score-row label {
+  flex: 1;
+  font-size: 16px;
+}
+
+/* 入力 */
+.score-row input {
+  width: 120px;
+  padding: 10px;
+}
+
+.score-type-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.type-left {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+}
+
+.type-name {
+  flex: 2;
+}
+
+.type-default {
+  width: 80px;
+}
+
+.score-detail {
+  font-size: 17px;
+  color: #888;
+  margin-left: 8px;
+}
+
+#scoreEditList{
+  max-height: 45vh;
+  overflow-y: scroll;
+  padding-right: 4px;
+}
+
+
+#scoreEditList::-webkit-scrollbar {
+  width: 6px;
+}
+
+#scoreEditList::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 10px;
+}
+
+/* 行 */
+.score-edit-row {
+  background: linear-gradient(145deg, #ffffff, #eeeeee);
+  border-radius: 14px;
+  padding: 12px;
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+}
+
+.score-row-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #eef6ff;
+  padding: 8px;
+  border-radius: 10px;
+
+}
+
+.score-row-bottom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* select */
+.score-edit-row select {
+  flex: 1;
+  padding: 10px;
+  font-size: 14px;
+}
+
+/* amount */
+.score-edit-row input {
+  width: 100px;
+  text-align: right;
+  padding: 10px;
+  font-size: 16px;
+}
+
+/* 矢印 */
+.arrow {
+  font-size: 18px;
+}
+
+/* 行削除 */
+.delete-row {
+  background: #ff4d4f;
+  color: white;
+  border-radius: 8px;
+  width: 40px !important;
+  height: 40px;
+  padding: 0;
+
+  flex-shrink: 0;
+}
+
+/* 行追加 */
+#addRowBtn {
+  background: linear-gradient(135deg, #36d1dc, #5b86e5);
+  color: white;
+}
+
+
+input:focus, select:focus {
+  outline: none;
+  border: 2px solid #5f9cff;
+  box-shadow: 0 0 0 3px rgba(95,156,255,0.2);
+}
+

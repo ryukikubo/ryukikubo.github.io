@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Score Counter</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="style.css">
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+
+
+<body>
+
+<div class="container">
+  <h1>Score Counter</h1>
+
+  <div class="btn-area">
+    <button id="scoreSetBtn">Score Set</button>
+    <button id="addPlayerBtn">Add Player</button>
+    <button id="scoreEditBtn">Score Edit</button>
+  </div>
+
+  <input type="text" placeholder="memo..." class="memo">
+
+  <ul id="playerList"></ul>
+</div>
+
+<!-- Add Player（修正） -->
+<div id="addModal" class="modal">
+  <div class="modal-content">
+    <h2>Add Player</h2>
+
+    <!-- ★スコア種別ごと入力 -->
+    <div id="scoreInputs"></div>
+
+    <button id="savePlayer">Save</button>
+    <button class="close">Close</button>
+  </div>
+</div>
+
+<!-- Score Edit -->
+
+<div id="scoreModal" class="modal">
+  <div class="modal-content">
+    <h2>Score Edit</h2>
+
+    <!-- 行リスト -->
+    <div id="scoreEditList"></div>
+
+    <!-- 追加ボタン -->
+    <button id="addRowBtn">+ Add Row</button>
+
+    <button id="applyScore">Apply</button>
+    <button class="close">Close</button>
+  </div>
+</div>
+
+
+<!-- Score Set -->
+<div id="scoreSetModal" class="modal">
+  <div class="modal-content">
+    <h2>Score Set</h2>
+
+    <input type="text" id="newScoreType" placeholder="score type">
+    <button id="addScoreType">Add</button>
+
+    <ul id="scoreTypeList"></ul>
+
+    <button id="saveScoreTypes">Apply</button>
+    <button class="close">Close</button>
+  </div>
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
