@@ -12,7 +12,6 @@ body {
 /* ===== コンテナ ===== */
 .container {
   max-width: 420px;
-  margin: 20px auto;
   padding: 20px;
   border-radius: 16px;
   background: #ffffffdd;
@@ -40,6 +39,11 @@ button {
 }
 
 /* グラデーションボタン */
+#scoreSetBtn{
+  background: linear-gradient(135deg, #62ff5f, #a2fe7b);
+  color: white;
+}
+
 #addPlayerBtn {
   background: linear-gradient(135deg, #00c6ff, #0072ff);
   color: white;
@@ -50,6 +54,10 @@ button {
   color: white;
 }
 
+#resetBtn {
+  background: linear-gradient(135deg, #8442ff, #5e62ff);
+  color: white;
+}
 
 button:active {
   transform: scale(0.95);
@@ -63,11 +71,13 @@ button:hover {
 /* 横並び */
 .btn-area {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
 }
 
 .btn-area button {
-  flex: 1;
+  flex: 1 1 calc(50% - 10px);
+  min-width: 150px;
 }
 
 /* ===== 入力 ===== */
@@ -105,30 +115,93 @@ input, select {
 #playerList {
   list-style: none;
   padding: 0;
+  max-height: 55vh;
+  overflow-y: auto;
+  margin-top:0;
 }
 
 #playerList li {
+  position: relative;
   display: block;
   justify-content: space-between;
   align-items: center;
-  padding: 14px;
-  border-radius: 14px;
-  margin-bottom: 8px;
-  background: linear-gradient(145deg, #ffffff, #f0f0f0);
+  padding: 14px 14px;
+  border-radius: 16px;
+  margin-bottom: 10px;
+  background: linear-gradient(145deg, #fef3f7, #eff6ff);
+  border: 1px solid rgba(255,255,255,0.85);
   font-size: 18px;
-  box-shadow: 
-    0 4px 8px rgba(0,0,0,0.1),
+  box-shadow:
+    0 8px 18px rgba(121, 125, 147, 0.14),
     inset 0 1px 0 rgba(255,255,255,0.7);
-  transition: 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
-#playerList li:active {
-  transform: scale(0.98);
+.delete-player-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: #ff4d4f;
+  color: white;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-player-btn:hover {
+  background: #d9363e;
+}
+
+#playerList li:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 12px 24px rgba(121, 125, 147, 0.16),
+    inset 0 1px 0 rgba(255,255,255,0.8);
 }
 
 #playerList strong {
   font-size: 18px;
-  color: #222;
+  color: #3b3a42;
+}
+
+.player-card-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.score-details {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.score-details::-webkit-scrollbar {
+  height: 6px;
+}
+
+.score-details::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: 999px;
+}
+
+.score-detail {
+  flex-shrink: 0;
+  font-size: 16px;
+  color: #242424;
+  background: rgba(255,255,255,0.7);
+  padding: 6px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
 }
 
 /* 点数 */
@@ -153,9 +226,9 @@ input, select {
 /* モーダル中身 */
 .modal-content {
   position: absolute;
-  top: 2%;
+  top: 10%;
   left: 50%;
-  transform: translate(-50%, -2%);
+  transform: translate(-50%, -10%);
   width: 90%;
   max-width: 360px;
   padding: 24px;
@@ -319,11 +392,13 @@ input, select {
 }
 
 .type-name {
-  flex: 2;
+  flex: 1;
+  min-width: 90px;
 }
 
 .type-default {
-  width: 80px;
+  width: 140px;
+  min-width: 120px;
 }
 
 .score-detail {
