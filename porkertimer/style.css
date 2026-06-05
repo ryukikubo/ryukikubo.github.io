@@ -98,7 +98,7 @@ button {
 =========================== */
 #timer-screen {
     background-size: 400% 400%;
-    padding: 35px 10px;
+    padding: 40px 10px;
     height: 100vh;
 }
 
@@ -218,6 +218,11 @@ button {
 #level-title {
     font-size: 25px;
     margin: 0;
+    font-weight: bold;
+    font-family: 'Orbitron', sans-serif;
+    background: linear-gradient(#FFF,#656565);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 /* 現在のブラインド */
@@ -225,12 +230,20 @@ button {
     font-size: 30px;
     font-weight: bold;
     margin: 0;
+    font-family: 'Orbitron', sans-serif;
+    background: linear-gradient(#FFF,#656565);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 /* 次のレベル */
 #next-level-display {
     font-size: 20px;
     margin: 0;
+    font-family: 'Orbitron', sans-serif;
+    background: linear-gradient(#FFF,#656565);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 /* タイマー数字 */
@@ -240,6 +253,9 @@ button {
     font-weight: 700;
     margin: 6px 0;
     text-align: center;
+    background: linear-gradient(#FFF,#656565);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 /* ボタン行 */
@@ -334,6 +350,10 @@ button {
 #tournament-title {
     font-size: 22px;
     margin: 0 0 6px;
+    font-family: 'Orbitron', sans-serif;
+    background: linear-gradient(#FFF,#656565);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 /* 左側のチップ情報（折り返し防止） */
@@ -342,6 +362,8 @@ button {
     text-align: left;
     margin: 15px 0;
     font-size: 20px;
+    padding: 10px;
+    box-sizing: border-box;
 }
 
 .chip-stats-label{

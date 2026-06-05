@@ -1,5 +1,15 @@
 let players = JSON.parse(localStorage.getItem("players")) || [];
 let scoreTypes = JSON.parse(localStorage.getItem("scoreTypes")) || ["default"];
+let pendingDeleteIndex = null;
+
+const pastelCardColors = [
+  ["#ffe7f0", "#f9f1ff"],
+  ["#e7f8ff", "#e8f9e8"],
+  ["#fff4e7", "#f9f1ff"],
+  ["#e7fff9", "#e8f1ff"],
+  ["#fff1e9", "#f7e8ff"],
+  ["#f4f8ff", "#fef2f5"]
+];
 
 function save() {
   localStorage.setItem("players", JSON.stringify(players));
@@ -13,6 +23,8 @@ function render() {
   let total = 0;
 
   players.forEach(p => {
+    const [start, end] = pastelCardColors[Math.floor(Math.random() * pastelCardColors.length)];
+    const bgStyle = `background: linear-gradient(145deg, ${start}, ${end});`;
 
     let detailHtml = "";
 
@@ -20,10 +32,11 @@ function render() {
       detailHtml += `<div class="score-detail">${k}: ${v.toLocaleString()}</div>`;
     });
     $("#playerList").append(`
-      <li>
-        <div>
+      <li style="${bgStyle}">
+        <button class="delete-player-btn" data-index="${players.indexOf(p)}" aria-label="Delete player">×</button>
+        <div class="player-card-inner">
           <div><strong>${p.name}</strong></div>
-          ${detailHtml}
+          <div class="score-details">${detailHtml}</div>
         </div>
       </li>
     `);
@@ -90,6 +103,29 @@ $("#savePlayer").click(() => {
   save();
   render();
   $("#addModal").hide();
+});
+
+/* ===== Reset Scores ===== */
+$("#resetBtn").click(() => {
+  if (players.length === 0) {
+    alert("No players to reset.");
+    return;
+  }
+
+  if (!confirm("Reset all player scores to their default values?")) {
+    return;
+  }
+
+  players = players.map(player => ({
+    ...player,
+    scores: scoreTypes.reduce((acc, item) => {
+      acc[item.name] = item.default;
+      return acc;
+    }, {})
+  }));
+
+  save();
+  render();
 });
 
 /* ===== Score Set ===== */
@@ -182,6 +218,20 @@ $(document).on("click", ".delete-row", function(){
   $(this).closest(".score-edit-row").remove();
 });
 
+$(document).on("click", ".delete-player-btn", function(){
+  pendingDeleteIndex = parseInt($(this).data("index"), 10);
+  $("#deleteConfirmModal").show();
+});
+
+$("#confirmDeleteBtn").click(() => {
+  if (pendingDeleteIndex === null) return;
+
+  players.splice(pendingDeleteIndex, 1);
+  pendingDeleteIndex = null;
+  save();
+  render();
+  $("#deleteConfirmModal").hide();
+});
 
 function updateSelects() {
   $("#fromPlayer, #toPlayer, #scoreTypeSelect").empty();
