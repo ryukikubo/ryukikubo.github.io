@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NLH Tracker</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+
+<body>
+
+<div class="container">
+  <h1>NLH Tracker</h1>
+
+  <div class="btn-area">
+    <button id="addPlayerBtn">Add Player</button>
+    <button id="settingBtn">Game Setting</button>
+    <button id="startGameBtn">Start Game</button>
+    <button id="nextGameBtn">Next game</button>
+  </div>
+
+
+  <div class="game-info">
+    SB: <span id="sb">-</span> /
+    BB: <span id="bb">-</span> /
+    Ante: <span id="ante">-</span>
+    <div>Street: <span id="street">-</span></div>
+  </div>
+  <div class="pot">Pot: <span id="pot">0</span></div>
+
+  <ul id="playerList"></ul>
+</div>
+
+
+<div id="playerModal" class="modal">
+  <div class="modal-content">
+    <h2>Add Player</h2>
+
+    <div class="form-group">
+      <label>Player Name</label>
+      <input type="text" id="playerName">
+    </div>
+
+    <div class="form-group">
+      <label>Initial Stack</label>
+      <input type="number" id="playerStack">
+    </div>
+
+    <button id="savePlayer">Save</button>
+    <button class="close">Close</button>
+  </div>
+</div>
+
+<div id="startModal" class="modal">
+  <div class="modal-content">
+    <h2>Start Game</h2>
+
+    <div class="form-group">
+      <label>Button Player</label>
+      <select id="btnPlayer"></select>
+    </div>
+
+    <button id="startGame">Start</button>
+    <button class="close">Close</button>
+  </div>
+</div>
+
+
+<!-- Action Modal -->
+<div id="actionModal" class="modal">
+  <div class="modal-content">
+    <h2>Action</h2>
+
+    <div class="form-group">
+      <label>Street</label>
+      <select id="streetType">
+        <option value="preflop">Preflop</option>
+        <option value="flop">Flop</option>
+        <option value="turn">Turn</option>
+        <option value="river">River</option>
+      </select>
+    </div>
+
+    <select id="targetPlayer"></select>
+
+    <select id="actionType">
+      <option value="bet">Bet</option>
+      <option value="call">Call</option>
+      <option value="raise">Raise</option>
+      <option value="all-in">All-in</option>
+      <option value="fold">Fold</option>
+    </select>
+
+    <input type="number" id="actionAmount" placeholder="amount">
+
+    <button id="addAction">Add</button>
+    <button class="close">Close</button>
+  </div>
+</div>
+
+<div id="distributionModal" class="modal">
+  <div class="modal-content">
+    <h2>Pot Distribution</h2>
+    <p>River 終了後の残りプレイヤーへの配分を入力してください。</p>
+
+    <div class="form-group">
+      <label>Total Pot</label>
+      <div id="distributionTotal">0</div>
+    </div>
+
+    <div class="form-group">
+      <label>Pot Breakdown</label>
+      <div id="distributionBreakdown">-</div>
+    </div>
+
+    <div id="distributionList"></div>
+
+    <div class="form-group">
+      <label>Remaining</label>
+      <div id="distributionRemaining">0</div>
+    </div>
+
+    <button id="applyDistribution">Apply</button>
+    <button class="close">Close</button>
+  </div>
+</div>
+
+<div id="settingModal" class="modal">
+  <div class="modal-content">
+    <h2>Game Setting</h2>
+
+    <div class="form-group">
+      <label>Small Blind</label>
+      <input type="number" id="sbValue">
+    </div>
+
+    <div class="form-group">
+      <label>Big Blind</label>
+      <input type="number" id="bbValue">
+    </div>
+
+    <div class="form-group">
+      <label>Ante</label>
+      <input type="number" id="anteValue">
+    </div>
+
+    <button id="saveSetting">Apply</button>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
