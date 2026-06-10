@@ -21,7 +21,7 @@ body {
   margin: 10px 0;
   padding: 16px;
   border-radius: 16px;
-  background: #ffffffdd;
+  background: #ffffff4f;
 }
 
 /* ===== タイトル ===== */
@@ -30,6 +30,28 @@ h1 {
   text-align: center;
   margin-bottom: 20px;
   color: #444;
+}
+.app-title {
+  font-family: 'Segoe UI', 'Inter', sans-serif;
+  font-size: 34px;
+  font-weight: 800;
+  text-align: center;
+  letter-spacing: 1.5px;
+  color: #2b2b2b;
+  margin: 0;
+  padding: 0;
+}
+
+.app-subtitle {
+  font-family: 'Segoe UI', 'Inter', sans-serif;
+  font-size: 14px;
+  text-align: center;
+  letter-spacing: 3px;
+  color: #4a4a4a;
+  text-transform: uppercase;
+  margin-top: 4px;
+  margin-bottom: 20px;
+  opacity: 0.7;
 }
 
 /* ===== ボタン ===== */
@@ -47,6 +69,21 @@ button {
 /* グラデーションボタン */
 #addPlayerBtn {
   background: linear-gradient(135deg, #00c6ff, #0072ff);
+  color: white;
+}
+
+#settingBtn{
+  background: linear-gradient(135deg, #929292, #535353);
+  color: white;
+}
+
+#startGameBtn {
+  background: linear-gradient(135deg, #42e695, #3bb2b8);
+  color: white;
+}
+
+#nextGameBtn {
+  background: linear-gradient(135deg, #f7971e, #ffd200);
   color: white;
 }
 
@@ -89,6 +126,10 @@ button[disabled] {
   display: grid;
   grid-template-columns: 1fr 1fr; /* 2列維持 */
   gap: 10px;
+
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #dfe6f5;
 }
 
 .btn-area button {
@@ -102,7 +143,7 @@ button[disabled] {
 input, select {
   width: 100%;
   padding: 14px;
-  margin: 10px 0;
+  margin: 5px 0;
   font-size: 18px;
   border-radius: 10px;
   border: 1px solid #ccc;
@@ -193,7 +234,7 @@ input, select {
   backdrop-filter: blur(10px);
   display: flex;
   flex-direction: column;  /* ★縦並び安定 */
-  gap: 12px; /* ★余白を統一 */
+  gap: 2px; /* ★余白を統一 */
   box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
 
@@ -512,8 +553,8 @@ input:focus, select:focus {
 }
 
 .player-card.folded-player {
-  background: #e0e0e0;
-  color: #666;
+  background: #e0e0e0 !important;
+  color: #666 !important;
 }
 
 .player-card.folded-player .player-header {
@@ -597,7 +638,7 @@ input:focus, select:focus {
   text-align: center;
   font-size: 16px;
   margin-top: 6px;
-  color: #555;
+  color: #000000;
 }
 
 
@@ -614,7 +655,8 @@ input:focus, select:focus {
 
 /* アクティブプレイヤー */
 .active-player {
-  border: 2px solid red;
+  border: 2px solid rgb(45, 108, 254);
+  background: #e4e4e464 !important;
 }
 
 .player-meta {
@@ -648,14 +690,14 @@ input:focus, select:focus {
 .action-panel {
   margin-top: 10px;
   padding: 10px;
-  background: #eef3ff;
+  background: #e4e7ff;
   border-radius: 10px;
   display: flex;
   flex-direction: column;
   gap: 6px;
   opacity: 0;
   transform: translateY(-10px);
-  animation: slideDown 0.25s ease-out forwards;
+  animation: slideDown 1s ease-out forwards;
 }
 
 @keyframes slideDown {
@@ -668,17 +710,39 @@ input:focus, select:focus {
     transform: translateY(0);
   }
 }
-
+.bet-input{
+  width: 60%;
+  padding:10px;
+}
 /* ボタン */
 .action-btn {
   padding: 10px;
   border-radius: 8px;
   font-size: 14px;
+  border: solid 1px rgb(199, 199, 199)
 }
-
+.check-btn{
+  background: #2196f3;
+  color: white;
+}
+.call-btn{
+  background: #4caf50;
+  color: white;
+}
+.raise-btn{
+  background: #f88d31;
+  color: white;
+  flex:1;
+}
+.all-in-btn{
+  color: white;
+  font-weight:bold;
+  width:100%;
+  background: #d44b4b
+}
 /* fold */
 .fold-btn {
-  background: #ff4d4f;
+  background: #989898;
   color: white;
 }
 
@@ -686,8 +750,70 @@ input:focus, select:focus {
 .bet-row {
   display: flex;
   gap: 6px;
+  flex-wrap: wrap;
 }
 
-.bet-input {
-  flex: 1;
+.out-player {
+  background: #e0e0e0 !important;
+  color: #777 !important;
+  opacity: 0.6;
+}
+
+.out-player .player-header {
+  opacity: 0.7;
+}
+
+.out-player .player-pos {
+  background: #aaa !important;
+  color: #fff !important;
+}
+
+/* ストリート表示のベースデザインをリッチに */
+#street {
+  display: inline-block;
+  font-weight: bold;
+  font-size: 1.5rem;
+  transition: all 0.5s ease; /* 色の変化を滑らかに */
+}
+
+/* ストリートごとのテーマカラー定義 */
+#street.st-preflop {
+  background: linear-gradient(135deg, #3397fa, #0080ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+#street.st-flop {
+  background: linear-gradient(135deg, #3ccf61, #025a02);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+#street.st-turn {
+  background:linear-gradient(135deg, #e03894, #c7007b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+#street.st-river {
+  background: linear-gradient(135deg, #d90429, #ef233c);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ストリートが変わった時のポップ＆フラッシュアニメーション */
+.street-change-animation {
+  animation: streetPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes streetPop {
+  0% {
+    transform: scale(0.8);
+    filter: brightness(1.8);
+  }
+  50% {
+    transform: scale(1.2); /* 一瞬大きく膨らむ */
+    filter: brightness(2);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
 }
