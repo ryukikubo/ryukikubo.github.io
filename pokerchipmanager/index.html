@@ -11,7 +11,8 @@
 <body>
 
 <div class="container">
-  <h1>NLH Tracker</h1>
+  <h1 class="app-title">Stack Ledger</h1>
+  <div class="app-subtitle">Poker Stack Manager</div>
 
   <div class="btn-area">
     <button id="addPlayerBtn">Add Player</button>
@@ -52,6 +53,32 @@
   </div>
 </div>
 
+<div id="playerModalGameInProgress" class="modal" style="display: none;">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h3>Add Player (In Game)</h3>
+    
+    <div class="form-group">
+      <label>Player Name:</label>
+      <input type="text" id="playerNameGameInProgress" placeholder="Enter name">
+    </div>
+    
+    <div class="form-group">
+      <label>Initial Stack:</label>
+      <input type="number" id="playerStackGameInProgress" placeholder="1000">
+    </div>
+
+    <div class="form-group">
+      <label style="font-weight: bold; color: #ff7b00;">Who's next ?</label>
+      <small style="display:block; color:#6c757d; margin-bottom:5px;">※選択したプレイヤーの次（直後）の手番に挿入されます</small>
+      <select id="insertAfterPlayer">
+        </select>
+    </div>
+    
+    <button id="savePlayerGameInProgress" class="btn">Add & Insert</button>
+  </div>
+</div>
+
 <div id="startModal" class="modal">
   <div class="modal-content">
     <h2>Start Game</h2>
@@ -66,43 +93,10 @@
   </div>
 </div>
 
-
-<!-- Action Modal -->
-<div id="actionModal" class="modal">
-  <div class="modal-content">
-    <h2>Action</h2>
-
-    <div class="form-group">
-      <label>Street</label>
-      <select id="streetType">
-        <option value="preflop">Preflop</option>
-        <option value="flop">Flop</option>
-        <option value="turn">Turn</option>
-        <option value="river">River</option>
-      </select>
-    </div>
-
-    <select id="targetPlayer"></select>
-
-    <select id="actionType">
-      <option value="bet">Bet</option>
-      <option value="call">Call</option>
-      <option value="raise">Raise</option>
-      <option value="all-in">All-in</option>
-      <option value="fold">Fold</option>
-    </select>
-
-    <input type="number" id="actionAmount" placeholder="amount">
-
-    <button id="addAction">Add</button>
-    <button class="close">Close</button>
-  </div>
-</div>
-
 <div id="distributionModal" class="modal">
   <div class="modal-content">
-    <h2>Pot Distribution</h2>
-    <p>River 終了後の残りプレイヤーへの配分を入力してください。</p>
+    <h2>Show Down!</h2>
+    <p>Input the distribution amounts for each player.</p>
 
     <div class="form-group">
       <label>Total Pot</label>
@@ -145,6 +139,11 @@
       <input type="number" id="anteValue">
     </div>
 
+    <label>Ante Type</label>
+    <select id="anteType">
+      <option value="all">All Players</option>
+      <option value="bb">BB Only</option>
+    </select>
     <button id="saveSetting">Apply</button>
   </div>
 </div>
