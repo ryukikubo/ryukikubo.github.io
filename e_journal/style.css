@@ -883,6 +883,18 @@ button{
     padding:10px;
 }
 
+#journal-tab input[type="datetime-local"],
+#history-tab input[type="date"]{
+    display:block;
+    width:100%;
+    min-width:0;
+    max-width:100%;
+    box-sizing:border-box;
+    padding-right:8px;
+    padding-left:8px;
+    font-size:16px;
+}
+
 .no-data{
 
     text-align:center;
