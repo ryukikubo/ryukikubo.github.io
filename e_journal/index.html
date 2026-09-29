@@ -8,6 +8,10 @@
 
     <title>e-journal</title>
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet">
+
         <link rel="icon"
             type="image/svg+xml"
             href="favicon.svg">
@@ -22,6 +26,10 @@
 </head>
 
 <body>
+
+<header class="app-header">
+    <h1>e-journal</h1>
+</header>
 
 <button id="resetStorageButton">
     データ全削除
@@ -74,23 +82,31 @@
                    id="memo">
         </div>
 
-        <h3>借方</h3>
+        <div class="journal-section-heading">
+            <h3>借方</h3>
+            <button id="addDebit"
+                    type="button"
+                    aria-label="借方を追加"
+                    title="借方を追加">
+                +
+            </button>
+        </div>
 
         <div id="debits"></div>
 
-        <button id="addDebit">
-            借方追加
-        </button>
-
         <hr>
 
-        <h3>貸方</h3>
+        <div class="journal-section-heading">
+            <h3>貸方</h3>
+            <button id="addCredit"
+                    type="button"
+                    aria-label="貸方を追加"
+                    title="貸方を追加">
+                +
+            </button>
+        </div>
 
         <div id="credits"></div>
-
-        <button id="addCredit">
-            貸方追加
-        </button>
 
         <hr>
 
@@ -139,15 +155,41 @@
 
         <h2>勘定科目一覧</h2>
 
-        <table>
+        <div class="item-filter" role="group" aria-label="区分で絞り込み">
+            <span class="item-filter-label">区分</span>
+            <div class="item-filter-options">
+                <button class="item-filter-button" type="button" data-filter-type="資産" aria-pressed="true">資産</button>
+                <button class="item-filter-button" type="button" data-filter-type="負債" aria-pressed="true">負債</button>
+                <button class="item-filter-button" type="button" data-filter-type="純資産" aria-pressed="true">純資産</button>
+                <button class="item-filter-button" type="button" data-filter-type="費用" aria-pressed="true">費用</button>
+                <button class="item-filter-button" type="button" data-filter-type="収益" aria-pressed="true">収益</button>
+            </div>
+        </div>
+
+        <div class="item-table-wrap">
+        <table class="item-table">
 
             <thead>
             <tr>
-                <th>ID</th>
+                <th scope="col" aria-sort="ascending">
+                    <button class="item-sort-button"
+                            type="button"
+                            data-sort-key="itemId">
+                        <span>ID</span>
+                        <span class="sort-indicator" aria-hidden="true">↑</span>
+                    </button>
+                </th>
                 <th>勘定科目</th>
-                <th>区分</th>
+                <th scope="col" aria-sort="none">
+                    <button class="item-sort-button"
+                            type="button"
+                            data-sort-key="type">
+                        <span>区分</span>
+                        <span class="sort-indicator" aria-hidden="true">↕</span>
+                    </button>
+                </th>
                 <th>現残高</th>
-                <th>操作</th>
+                <th><span class="visually-hidden">操作</span></th>
             </tr>
             </thead>
 
@@ -155,6 +197,7 @@
             </tbody>
 
         </table>
+        </div>
 
     </div>
 

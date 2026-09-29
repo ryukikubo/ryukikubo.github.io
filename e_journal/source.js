@@ -1,48 +1,22 @@
 const STORAGE_KEY = "accountingData";
 
 let data = {
-    items: [
-      {
-          itemId: 1,
-          name: "現金",
-          type: "資産",
-          balance: 100000
-      },
-      {
-          itemId: 2,
-          name: "普通預金",
-          type: "資産",
-          balance: 500000
-      },
-      {
-          itemId: 3,
-          name: "買掛金",
-          type: "負債",
-          balance: 20000
-      },
-      {
-          itemId: 4,
-          name: "資本金",
-          type: "純資産",
-          balance: 300000
-      },
-      {
-          itemId: 5,
-          name: "消耗品費",
-          type: "費用",
-          balance: 0
-      },
-      {
-          itemId: 6,
-          name: "売上高",
-          type: "収益",
-          balance: 0
-      }
-    ],
+    items: [],
     journals: []
 };
 
 let pendingJournal = null;
+const selectedItemTypes = new Set([
+    "資産",
+    "負債",
+    "純資産",
+    "費用",
+    "収益"
+]);
+let itemSort = {
+    key: "itemId",
+    direction: "asc"
+};
 
 function saveStorage() {
     localStorage.setItem(
@@ -64,28 +38,57 @@ function loadStorage() {
 function renderItems() {
 
     let html = "";
+    const sortedItems = data.items
+        .filter(item => selectedItemTypes.has(item.type))
+        .sort((left, right) => {
+        const comparison = itemSort.key === "itemId"
+            ? left.itemId - right.itemId
+            : left.type.localeCompare(right.type, "ja");
 
-    data.items.forEach(item => {
+        return itemSort.direction === "asc"
+            ? comparison
+            : -comparison;
+    });
+
+    if (sortedItems.length === 0) {
+        html = `
+            <tr>
+                <td class="item-empty-state" colspan="5">
+                    該当する勘定科目がありません
+                </td>
+            </tr>
+        `;
+    }
+
+    sortedItems.forEach(item => {
 
         html += `
         <tr>
 
-            <td>${item.itemId}</td>
+            <td><span class="item-id">${item.itemId}</span></td>
 
             <td>${item.name}</td>
 
-            <td>${item.type}</td>
+            <td>
+                <span class="item-type" data-type="${item.type}">
+                    ${item.type}
+                </span>
+            </td>
 
             <td>
-                ${(item.balance || 0).toLocaleString()}
+                <span class="item-balance">
+                    ${(item.balance || 0).toLocaleString()}
+                </span>
             </td>
 
             <td>
 
                 <button
                     class="delete-item"
+                    type="button"
                     data-id="${item.itemId}">
-                    削除
+                    <span aria-hidden="true">×</span>
+                    <span class="visually-hidden">${item.name}を削除</span>
                 </button>
 
             </td>
@@ -95,6 +98,36 @@ function renderItems() {
     });
 
     $("#itemTable").html(html);
+
+    $(".item-filter-button").each(function () {
+        const active = selectedItemTypes.has(
+            $(this).attr("data-filter-type")
+        );
+        $(this).attr("aria-pressed", active);
+    });
+
+    $(".item-sort-button").each(function () {
+        const key = $(this).data("sortKey");
+        const active = key === itemSort.key;
+        const label = key === "itemId" ? "ID" : "区分";
+        const nextDirection = active && itemSort.direction === "asc"
+            ? "降順"
+            : "昇順";
+
+        $(this)
+            .attr("aria-label", `${label}を${nextDirection}で並べ替え`)
+            .find(".sort-indicator")
+            .text(active
+                ? itemSort.direction === "asc" ? "↑" : "↓"
+                : "↕");
+
+        $(this).closest("th").attr(
+            "aria-sort",
+            active
+                ? itemSort.direction === "asc" ? "ascending" : "descending"
+                : "none"
+        );
+    });
 }
 
 function createLine(container) {
@@ -121,9 +154,16 @@ function createLine(container) {
 
             <div class="field">
 
-                <label>
-                    勘定科目
-                </label>
+                <div class="field-heading">
+                    <label>勘定科目</label>
+                    <button
+                        type="button"
+                        class="remove"
+                        aria-label="仕訳行を削除"
+                        title="仕訳行を削除">
+                        ×
+                    </button>
+                </div>
 
                 <select class="item">
                     ${options}
@@ -143,14 +183,6 @@ function createLine(container) {
                     placeholder="金額">
 
             </div>
-
-            <button
-                type="button"
-                class="remove">
-
-                削除
-
-            </button>
 
         </div>
 
@@ -382,6 +414,43 @@ $(document).on(
     }
 );
 
+$(document).on(
+    "click",
+    ".item-sort-button",
+    function () {
+        const key = $(this).data("sortKey");
+
+        if (itemSort.key === key) {
+            itemSort.direction = itemSort.direction === "asc"
+                ? "desc"
+                : "asc";
+        } else {
+            itemSort = {
+                key: key,
+                direction: "asc"
+            };
+        }
+
+        renderItems();
+    }
+);
+
+$(document).on(
+    "click",
+    ".item-filter-button",
+    function () {
+        const type = $(this).attr("data-filter-type");
+
+        if (selectedItemTypes.has(type)) {
+            selectedItemTypes.delete(type);
+        } else {
+            selectedItemTypes.add(type);
+        }
+
+        renderItems();
+    }
+);
+
 /* 借方追加 */
 
 $("#addDebit").on(
@@ -409,9 +478,17 @@ $(document).on(
     ".remove",
     function () {
 
-        $(this)
-            .closest(".line")
-            .remove();
+        const line = $(this).closest(".line");
+
+        if (line.hasClass("is-removing")) {
+            return;
+        }
+
+        line
+            .addClass("is-removing")
+            .one("animationend", function () {
+                $(this).remove();
+            });
     }
 );
 
@@ -525,6 +602,15 @@ $("#saveJournal").on(
                 "#credits"
             );
 
+        if (!debits.length || !credits.length) {
+
+            alert(
+                "借方・貸方それぞれに金額を入力してください"
+            );
+
+            return;
+        }
+
         const debitTotal =
             debits.reduce(
                 (s, x) =>
@@ -549,11 +635,6 @@ $("#saveJournal").on(
 
             return;
         }
-        
-      updateBalances(
-        debits,
-        credits
-      );
 
       pendingJournal = {
 
