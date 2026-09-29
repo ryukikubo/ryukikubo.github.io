@@ -52,7 +52,9 @@
 <div id="timer-screen" style="display:none;">
     <button id="back-to-setup" class="back-btn">← back setup</button>
 
-    <h1 id="tournament-title"></h1>
+    <div class="fx-glitch" data-text="Tournament Title">
+        <h1 id="tournament-title"></h1>
+    </div>
 
     <div id="timer-layout">
 
@@ -80,6 +82,7 @@
             <div id="blind-display"></div>
             <div id="next-level-display"></div>
             <div id="timer"></div>
+            <div id="paused-label" aria-live="polite">paused</div>
 
             <div id="button-row">
                 <button id="pause">Pause</button>

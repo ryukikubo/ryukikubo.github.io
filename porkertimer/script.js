@@ -144,6 +144,7 @@ $(function () {
 
         const title = $("#tournament-name").val();
         $("#tournament-title").text(title || "Poker Tournament");
+        $(".fx-glitch").attr("data-text", title || "Poker Tournament");
 
         $(".blind-row").each(function () {
             const type = $(this).find(".level-type").val();
@@ -171,12 +172,14 @@ $(function () {
         if (timerInterval) {
             clearInterval(timerInterval);
             timerInterval = null;
+            $("#paused-label").addClass("is-visible");
             $(this).text("Resume");
             $(this).addClass("primary-btn");
         } else {
             const setup = document.getElementById("se-setup");
             setup.play().catch(e => console.log("se-setup play blocked", e));
             startTimer();
+            $("#paused-label").removeClass("is-visible");
             $(this).removeClass("primary-btn");
             $(this).text("Pause");
         }
@@ -432,6 +435,7 @@ $(function () {
 
         // タイマー画面を隠す
         $("#timer-screen").hide();
+        $("#paused-label").removeClass("is-visible");
 
         // 設定画面を表示
         $("#setup-screen").show();
