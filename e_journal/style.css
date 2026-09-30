@@ -88,6 +88,9 @@ body{
 .tab-button{
 
     flex:1;
+    min-width:0;
+    white-space:nowrap;
+    text-align:center;
 
     border:none;
 
@@ -657,12 +660,26 @@ button{
 
 @media screen and (max-width:768px){
 
+    input,
+    select,
+    textarea{
+        font-size:16px;
+    }
+
     .tabs{
+        display:grid;
+        grid-template-columns:repeat(4, minmax(0, 1fr));
+        gap:5px;
         position:sticky;
         top:0;
         background:#f5f5f5;
         z-index:100;
         padding-bottom:5px;
+    }
+
+    .tab-button{
+        padding:10px 2px;
+        font-size:10px;
     }
 
     .row{
@@ -848,6 +865,129 @@ button{
     display:flex;
 
     gap:15px;
+}
+
+.daily-filter-grid{
+    display:grid;
+    grid-template-columns:minmax(0, 1fr) minmax(0, 1.4fr);
+    gap:12px;
+    max-width:680px;
+    margin-bottom:18px;
+}
+
+.daily-filter-field label{
+    display:block;
+    margin-bottom:5px;
+    color:#456579;
+    font-size:13px;
+    font-weight:700;
+}
+
+.daily-filter-field input,
+.daily-filter-field select{
+    min-width:0;
+    margin:0;
+}
+
+.daily-change-summary{
+    display:grid;
+    grid-template-columns:repeat(3, minmax(0, 1fr));
+    border-top:1px solid rgba(69,101,121,.18);
+    border-bottom:1px solid rgba(69,101,121,.18);
+    margin-bottom:16px;
+}
+
+.daily-summary-item{
+    min-width:0;
+    margin:0;
+    padding:12px 10px;
+}
+
+.daily-summary-item + .daily-summary-item{
+    border-left:1px solid rgba(69,101,121,.18);
+}
+
+.daily-summary-item dt{
+    margin-bottom:4px;
+    color:#688397;
+    font-size:12px;
+}
+
+.daily-summary-item dd{
+    margin:0;
+    font-size:18px;
+    font-weight:700;
+    font-variant-numeric:tabular-nums;
+}
+
+.amount-increase{
+    color:#218558;
+}
+
+.amount-decrease{
+    color:#c24d4d;
+}
+
+.daily-change-table-wrap{
+    overflow-x:auto;
+}
+
+.daily-change-table{
+    width:100%;
+    border-collapse:collapse;
+    white-space:normal;
+}
+
+.daily-change-table th,
+.daily-change-table td{
+    padding:11px 10px;
+    border:0;
+    border-bottom:1px solid rgba(69,101,121,.14);
+    background:transparent;
+}
+
+.daily-change-table thead th{
+    color:#688397;
+    font-size:12px;
+    font-weight:700;
+}
+
+.daily-change-table thead th:not(:first-child){
+    text-align:right;
+}
+
+.daily-change-table tbody th{
+    color:#29485c;
+    font-weight:600;
+}
+
+.daily-change-table td{
+    text-align:right;
+    font-variant-numeric:tabular-nums;
+}
+
+.daily-change-table td:last-child{
+    font-weight:700;
+}
+
+@media screen and (max-width:768px){
+    .daily-filter-grid{
+        grid-template-columns:1fr;
+    }
+
+    .daily-summary-item{
+        padding:10px 6px;
+    }
+
+    .daily-summary-item dd{
+        font-size:15px;
+    }
+
+    .daily-change-table th,
+    .daily-change-table td{
+        padding:10px 6px;
+        font-size:13px;
+    }
 }
 
 .history-side{

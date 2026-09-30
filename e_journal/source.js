@@ -98,6 +98,7 @@ function renderItems() {
     });
 
     $("#itemTable").html(html);
+    renderDailyItemOptions();
 
     $(".item-filter-button").each(function () {
         const active = selectedItemTypes.has(
@@ -128,6 +129,143 @@ function renderItems() {
                 : "none"
         );
     });
+}
+
+function renderDailyItemOptions() {
+
+    const selectedItemId = $("#dailyItemFilter").val();
+    let html = '<option value="">勘定科目を選択</option>';
+
+    data.items.forEach(item => {
+        html += `<option value="${item.itemId}">${item.name}</option>`;
+    });
+
+    $("#dailyItemFilter").html(html);
+
+    if (data.items.some(item => String(item.itemId) === selectedItemId)) {
+        $("#dailyItemFilter").val(selectedItemId);
+    }
+
+    renderDailyChanges();
+}
+
+function renderDailyChanges() {
+
+    const selectedMonth = $("#dailyMonthFilter").val();
+    const selectedItemId = Number($("#dailyItemFilter").val());
+    const item = data.items.find(entry => entry.itemId === selectedItemId);
+
+    if (!selectedMonth || !item) {
+        $("#dailyChangeSummary").empty();
+        $("#dailyChangeTable").html(`
+            <div class="no-data">
+                月と勘定科目を選択してください
+            </div>
+        `);
+        return;
+    }
+
+    const dailyTotals = new Map();
+    const debitIncreasesBalance = ["資産", "費用"].includes(item.type);
+
+    data.journals.forEach(journal => {
+        const eventDateTime = journal.eventDateTime || "";
+
+        if (!eventDateTime.startsWith(selectedMonth)) {
+            return;
+        }
+
+        const date = eventDateTime.slice(0, 10);
+
+        const addEntries = (entries, isDebit) => {
+            (entries || []).forEach(entry => {
+                if (Number(entry.itemId) !== selectedItemId) {
+                    return;
+                }
+
+                const totals = dailyTotals.get(date) || {
+                    increase: 0,
+                    decrease: 0
+                };
+                const increases = isDebit === debitIncreasesBalance;
+                totals[increases ? "increase" : "decrease"] += Number(entry.amount);
+                dailyTotals.set(date, totals);
+            });
+        };
+
+        addEntries(journal.debits, true);
+        addEntries(journal.credits, false);
+    });
+
+    const dailyRows = [...dailyTotals.entries()]
+        .sort(([left], [right]) => left.localeCompare(right));
+    const totalIncrease = dailyRows.reduce((sum, [, totals]) => sum + totals.increase, 0);
+    const totalDecrease = dailyRows.reduce((sum, [, totals]) => sum + totals.decrease, 0);
+    const netChange = totalIncrease - totalDecrease;
+    const formatAmount = amount => amount.toLocaleString("ja-JP");
+    const formatNet = amount => amount > 0
+        ? `+${formatAmount(amount)}`
+        : formatAmount(amount);
+
+    $("#dailyChangeSummary").html(`
+        <dl class="daily-summary-item">
+            <dt>月間増加</dt>
+            <dd class="amount-increase">${formatAmount(totalIncrease)}</dd>
+        </dl>
+        <dl class="daily-summary-item">
+            <dt>月間減少</dt>
+            <dd class="amount-decrease">${formatAmount(totalDecrease)}</dd>
+        </dl>
+        <dl class="daily-summary-item">
+            <dt>月間差引</dt>
+            <dd class="${netChange >= 0 ? "amount-increase" : "amount-decrease"}">
+                ${formatNet(netChange)}
+            </dd>
+        </dl>
+    `);
+
+    if (dailyRows.length === 0) {
+        $("#dailyChangeTable").html(`
+            <div class="no-data">
+                この月の仕訳データはありません
+            </div>
+        `);
+        return;
+    }
+
+    let rowsHtml = "";
+
+    dailyRows.forEach(([date, totals]) => {
+        const day = Number(date.slice(8, 10));
+        const net = totals.increase - totals.decrease;
+
+        rowsHtml += `
+            <tr>
+                <th scope="row">${day}日</th>
+                <td class="amount-increase">${formatAmount(totals.increase)}</td>
+                <td class="amount-decrease">${formatAmount(totals.decrease)}</td>
+                <td class="${net >= 0 ? "amount-increase" : "amount-decrease"}">
+                    ${formatNet(net)}
+                </td>
+            </tr>
+        `;
+    });
+
+    $("#dailyChangeTable").html(`
+        <div class="daily-change-table-wrap">
+            <table class="daily-change-table">
+                <thead>
+                    <tr>
+                        <th scope="col">日付</th>
+                        <th scope="col">増加</th>
+                        <th scope="col">減少</th>
+                        <th scope="col">差引</th>
+                    </tr>
+                </thead>
+                <tbody>${rowsHtml}</tbody>
+            </table>
+        </div>
+    `);
 }
 
 function createLine(container) {
@@ -811,6 +949,13 @@ $("#journalDateFilter").on(
     }
 );
 
+$("#dailyMonthFilter, #dailyItemFilter").on(
+    "change",
+    function () {
+        renderDailyChanges();
+    }
+);
+
 function buildConfirmModal(
     debits,
     credits,
@@ -915,6 +1060,12 @@ function setCurrentDateTime() {
     );
 }
 
+function setCurrentMonth() {
+    const now = new Date();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    $("#dailyMonthFilter").val(`${now.getFullYear()}-${month}`);
+}
+
 $(function () {
 
 const today = new Date()
@@ -924,6 +1075,7 @@ const today = new Date()
 $("#journalDateFilter").val(today);
 
     loadStorage();
+    setCurrentMonth();
 
     renderItems();
 

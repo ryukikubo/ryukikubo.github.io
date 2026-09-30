@@ -1,160 +1,78 @@
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>e-journal</title>
-
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet">
-
-        <link rel="icon"
-            type="image/svg+xml"
-            href="favicon.svg">
-
-    <link rel="stylesheet"
-          href="style.css">
-
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="style.css">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-
-    <script src="source.js"
-            defer></script>
+    <script src="source.js" defer></script>
 </head>
-
 <body>
 
 <header class="app-header">
     <h1>e-journal</h1>
 </header>
 
-<button id="resetStorageButton">
-    データ全削除
-</button>
+<button id="resetStorageButton">データ全削除</button>
 
 <div class="tabs">
-
-    <button class="tab-button active"
-            data-target="journal-tab">
-        仕訳登録
-    </button>
-
-    <button class="tab-button"
-            data-target="item-tab">
-        勘定科目一覧
-    </button>
-
-    <button class="tab-button"
-            data-target="history-tab">
-        仕訳参照
-    </button>
-
+    <button class="tab-button active" data-target="journal-tab">仕訳登録</button>
+    <button class="tab-button" data-target="item-tab">勘定科目一覧</button>
+    <button class="tab-button" data-target="history-tab">仕訳参照</button>
+    <button class="tab-button" data-target="daily-change-tab">日別増減</button>
 </div>
 
-<!-- 仕訳登録 -->
-
-<div id="journal-tab"
-     class="tab-content active">
-
+<div id="journal-tab" class="tab-content active">
     <div class="card">
-
         <h2>仕訳登録</h2>
-
         <div>
-
-            <label>
-                発生日時
-            </label>
-
-            <input
-                type="datetime-local"
-                id="journalDatetime">
-
+            <label for="journalDatetime">発生日時</label>
+            <input type="datetime-local" id="journalDatetime">
         </div>
-
         <br>
         <div>
-            <label>メモ</label>
-            <input type="text"
-                   id="memo">
+            <label for="memo">メモ</label>
+            <input type="text" id="memo">
         </div>
-
         <div class="journal-section-heading">
             <h3>借方</h3>
-            <button id="addDebit"
-                    type="button"
-                    aria-label="借方を追加"
-                    title="借方を追加">
-                +
-            </button>
+            <button id="addDebit" type="button" aria-label="借方を追加" title="借方を追加">+</button>
         </div>
-
         <div id="debits"></div>
-
         <hr>
-
         <div class="journal-section-heading">
             <h3>貸方</h3>
-            <button id="addCredit"
-                    type="button"
-                    aria-label="貸方を追加"
-                    title="貸方を追加">
-                +
-            </button>
+            <button id="addCredit" type="button" aria-label="貸方を追加" title="貸方を追加">+</button>
         </div>
-
         <div id="credits"></div>
-
         <hr>
-
-        <button id="saveJournal">
-            保存
-        </button>
-
+        <button id="saveJournal">保存</button>
     </div>
-
 </div>
 
-<!-- 勘定科目 -->
-
-<div id="item-tab"
-     class="tab-content">
-
+<div id="item-tab" class="tab-content">
     <div class="card">
-
         <h2>勘定科目追加</h2>
-
         <div class="row">
-
-            <input type="text"
-                   id="newItemName"
-                   placeholder="勘定科目名">
-
+            <input type="text" id="newItemName" placeholder="勘定科目名">
             <select id="newItemType">
-
                 <option value="資産">資産</option>
                 <option value="負債">負債</option>
                 <option value="純資産">純資産</option>
                 <option value="費用">費用</option>
                 <option value="収益">収益</option>
-
             </select>
-
-            <button id="addItem">
-                追加
-            </button>
-
+            <button id="addItem">追加</button>
         </div>
-
     </div>
 
     <div class="card">
-
         <h2>勘定科目一覧</h2>
-
         <div class="item-filter" role="group" aria-label="区分で絞り込み">
             <span class="item-filter-label">区分</span>
             <div class="item-filter-options">
@@ -165,88 +83,70 @@
                 <button class="item-filter-button" type="button" data-filter-type="収益" aria-pressed="true">収益</button>
             </div>
         </div>
-
         <div class="item-table-wrap">
-        <table class="item-table">
-
-            <thead>
-            <tr>
-                <th scope="col" aria-sort="ascending">
-                    <button class="item-sort-button"
-                            type="button"
-                            data-sort-key="itemId">
-                        <span>ID</span>
-                        <span class="sort-indicator" aria-hidden="true">↑</span>
-                    </button>
-                </th>
-                <th>勘定科目</th>
-                <th scope="col" aria-sort="none">
-                    <button class="item-sort-button"
-                            type="button"
-                            data-sort-key="type">
-                        <span>区分</span>
-                        <span class="sort-indicator" aria-hidden="true">↕</span>
-                    </button>
-                </th>
-                <th>現残高</th>
-                <th><span class="visually-hidden">操作</span></th>
-            </tr>
-            </thead>
-
-            <tbody id="itemTable">
-            </tbody>
-
-        </table>
+            <table class="item-table">
+                <thead>
+                    <tr>
+                        <th scope="col" aria-sort="ascending">
+                            <button class="item-sort-button" type="button" data-sort-key="itemId">
+                                <span>ID</span>
+                                <span class="sort-indicator" aria-hidden="true">↑</span>
+                            </button>
+                        </th>
+                        <th>勘定科目</th>
+                        <th scope="col" aria-sort="none">
+                            <button class="item-sort-button" type="button" data-sort-key="type">
+                                <span>区分</span>
+                                <span class="sort-indicator" aria-hidden="true">↕</span>
+                            </button>
+                        </th>
+                        <th>現残高</th>
+                        <th><span class="visually-hidden">操作</span></th>
+                    </tr>
+                </thead>
+                <tbody id="itemTable"></tbody>
+            </table>
         </div>
-
     </div>
-
 </div>
 
-<!-- 仕訳一覧 -->
-
-<div id="history-tab"
-     class="tab-content">
-
+<div id="history-tab" class="tab-content">
     <div class="card">
-
         <h2>仕訳一覧</h2>
-
-        <input
-            type="date"
-            id="journalDateFilter">
-
-        <div id="journalTable">
-        </div>
-
+        <input type="date" id="journalDateFilter">
+        <div id="journalTable"></div>
     </div>
-
 </div>
-<!-- 確認モーダル -->
+
+<div id="daily-change-tab" class="tab-content">
+    <div class="card">
+        <h2>日別勘定増減</h2>
+        <div class="daily-filter-grid">
+            <div class="daily-filter-field">
+                <label for="dailyMonthFilter">対象月</label>
+                <input type="month" id="dailyMonthFilter">
+            </div>
+            <div class="daily-filter-field">
+                <label for="dailyItemFilter">勘定科目</label>
+                <select id="dailyItemFilter">
+                    <option value="">勘定科目を選択</option>
+                </select>
+            </div>
+        </div>
+        <div id="dailyChangeSummary" class="daily-change-summary" aria-live="polite"></div>
+        <div id="dailyChangeTable"></div>
+    </div>
+</div>
 
 <div id="confirmModal" class="modal">
-
     <div class="modal-content">
-
         <h2>仕訳確認</h2>
-
-        <div id="confirmBody">
-        </div>
-
+        <div id="confirmBody"></div>
         <div class="modal-buttons">
-
-            <button id="confirmOk">
-                登録
-            </button>
-
-            <button id="confirmCancel">
-                キャンセル
-            </button>
-
+            <button id="confirmOk">登録</button>
+            <button id="confirmCancel">キャンセル</button>
         </div>
-
     </div>
-
 </div>
 
 </body>
