@@ -54,6 +54,19 @@ function getStorageUsageBytes() {
     return bytes;
 }
 
+function formatStorageBytes(bytes) {
+
+    if (bytes >= 1000 * 1000) {
+        return `${(bytes / (1000 * 1000)).toFixed(2)} MB`;
+    }
+
+    if (bytes >= 1000) {
+        return `${(bytes / 1000).toFixed(1)} KB`;
+    }
+
+    return `${bytes.toLocaleString("ja-JP")} B`;
+}
+
 function renderStorageUsage() {
 
     const usageBytes = getStorageUsageBytes();
@@ -65,9 +78,9 @@ function renderStorageUsage() {
     const fill = $("#storageUsageGaugeFill");
 
     $("#storageUsageValue").text(
-        `${usageBytes.toLocaleString("ja-JP")} B / ${
-            (STORAGE_QUOTA_BYTES / (1024 * 1024)).toLocaleString("ja-JP")
-        } MiB`
+        `${formatStorageBytes(usageBytes)} / ${formatStorageBytes(
+            STORAGE_QUOTA_BYTES
+        )}`
     );
     $("#storageUsagePercent").text(`${percentage}%`);
     gauge.attr("aria-valuenow", percentage);

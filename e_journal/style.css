@@ -284,9 +284,12 @@ body{
     font-size:12px;
 }
 
-.storage-usage-label strong{
+#storageUsageValue{
+    flex:0 0 auto;
     color:#246;
     font-size:13px;
+    font-variant-numeric:tabular-nums;
+    white-space:nowrap;
 }
 
 .storage-usage-gauge{
