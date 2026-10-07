@@ -99,6 +99,7 @@ function renderItems() {
 
     $("#itemTable").html(html);
     renderDailyItemOptions();
+    renderCounterpartItemOptions();
 
     $(".item-filter-button").each(function () {
         const active = selectedItemTypes.has(
@@ -257,6 +258,167 @@ function renderDailyChanges() {
                 <thead>
                     <tr>
                         <th scope="col">日付</th>
+                        <th scope="col">増加</th>
+                        <th scope="col">減少</th>
+                        <th scope="col">差引</th>
+                    </tr>
+                </thead>
+                <tbody>${rowsHtml}</tbody>
+            </table>
+        </div>
+    `);
+}
+
+function renderCounterpartItemOptions() {
+
+    const selectedItemId = $("#counterpartItemFilter").val();
+    let html = '<option value="">勘定科目を選択</option>';
+
+    data.items.forEach(item => {
+        html += `<option value="${item.itemId}">${item.name}</option>`;
+    });
+
+    $("#counterpartItemFilter").html(html);
+
+    if (data.items.some(item => String(item.itemId) === selectedItemId)) {
+        $("#counterpartItemFilter").val(selectedItemId);
+    }
+
+    renderCounterpartChanges();
+}
+
+function renderCounterpartChanges() {
+
+    const selectedMonth = $("#counterpartMonthFilter").val();
+    const selectedItemId = Number($("#counterpartItemFilter").val());
+    const selectedItem = data.items.find(item => item.itemId === selectedItemId);
+
+    if (!selectedMonth || !selectedItem) {
+        $("#counterpartChangeSummary").empty();
+        $("#counterpartChangeTable").html(`
+            <div class="no-data">
+                月と勘定科目を選択してください
+            </div>
+        `);
+        return;
+    }
+
+    const counterpartTotals = new Map();
+
+    data.journals.forEach(journal => {
+        const eventDateTime = journal.eventDateTime || "";
+
+        if (!eventDateTime.startsWith(selectedMonth)) {
+            return;
+        }
+
+        const date = eventDateTime.slice(0, 10);
+        const debitEntries = journal.debits || [];
+        const creditEntries = journal.credits || [];
+
+        const selectedEntries = [
+            ...debitEntries
+                .filter(entry => Number(entry.itemId) === selectedItemId)
+                .map(entry => ({ entry, isDebit: true })),
+            ...creditEntries
+                .filter(entry => Number(entry.itemId) === selectedItemId)
+                .map(entry => ({ entry, isDebit: false }))
+        ];
+
+        selectedEntries.forEach(({ entry, isDebit }) => {
+            const counterpartEntries = isDebit ? creditEntries : debitEntries;
+
+            counterpartEntries.forEach(counterpartEntry => {
+                if (Number(counterpartEntry.itemId) === selectedItemId) {
+                    return;
+                }
+
+                const counterpartItem = data.items.find(
+                    item => item.itemId === Number(counterpartEntry.itemId)
+                );
+
+                if (!counterpartItem) {
+                    return;
+                }
+
+                const amount = Number(counterpartEntry.amount);
+                const counterpartIsDebit = !isDebit;
+                const isIncrease =
+                    ["資産", "費用"].includes(counterpartItem.type) ===
+                    counterpartIsDebit;
+                const direction = isIncrease ? "increase" : "decrease";
+                const key = String(counterpartItem.itemId);
+                const totals = counterpartTotals.get(key) || {
+                    itemId: counterpartItem.itemId,
+                    increase: 0,
+                    decrease: 0
+                };
+
+                totals[direction] += amount;
+                counterpartTotals.set(key, totals);
+            });
+        });
+    });
+
+    const rows = [...counterpartTotals.values()].sort((left, right) => left.itemId - right.itemId);
+    const totalIncrease = rows.reduce((sum, row) => sum + row.increase, 0);
+    const totalDecrease = rows.reduce((sum, row) => sum + row.decrease, 0);
+    const netChange = totalIncrease - totalDecrease;
+    const formatAmount = amount => amount.toLocaleString("ja-JP");
+    const formatNet = amount => amount > 0
+        ? `+${formatAmount(amount)}`
+        : formatAmount(amount);
+
+    $("#counterpartChangeSummary").html(`
+        <dl class="daily-summary-item">
+            <dt>月間増加</dt>
+            <dd class="amount-increase">${formatAmount(totalIncrease)}</dd>
+        </dl>
+        <dl class="daily-summary-item">
+            <dt>月間減少</dt>
+            <dd class="amount-decrease">${formatAmount(totalDecrease)}</dd>
+        </dl>
+        <dl class="daily-summary-item">
+            <dt>月間差引</dt>
+            <dd class="${netChange >= 0 ? "amount-increase" : "amount-decrease"}">
+                ${formatNet(netChange)}
+            </dd>
+        </dl>
+    `);
+
+    if (rows.length === 0) {
+        $("#counterpartChangeTable").html(`
+            <div class="no-data">
+                対勘定科目の残高変化はありません
+            </div>
+        `);
+        return;
+    }
+
+    let rowsHtml = "";
+
+    rows.forEach(row => {
+        const item = data.items.find(entry => entry.itemId === row.itemId);
+        const net = row.increase - row.decrease;
+
+        rowsHtml += `
+            <tr>
+                <th scope="row">${item ? item.name : "不明な勘定科目"}</th>
+                <td class="amount-increase">${formatAmount(row.increase)}</td>
+                <td class="amount-decrease">${formatAmount(row.decrease)}</td>
+                <td class="${net >= 0 ? "amount-increase" : "amount-decrease"}">
+                    ${formatNet(net)}
+                </td>
+            </tr>
+        `;
+    });
+
+    $("#counterpartChangeTable").html(`
+        <div class="daily-change-table-wrap">
+            <table class="daily-change-table counterpart-change-table">
+                <thead>
+                    <tr>
+                        <th scope="col">相手勘定</th>
                         <th scope="col">増加</th>
                         <th scope="col">減少</th>
                         <th scope="col">差引</th>
@@ -533,6 +695,31 @@ function clearJournalForm() {
 
 /* タブ切替 */
 
+function setMenuOpen(isOpen) {
+
+    const menu = $("#appMenu");
+    const toggle = $("#menuToggle");
+    const overlay = $("#menuOverlay");
+
+    menu.toggleClass("open", isOpen);
+    overlay.toggleClass("open", isOpen);
+    toggle.attr("aria-expanded", isOpen);
+    toggle.attr(
+        "aria-label",
+        isOpen ? "メニューを閉じる" : "メニューを開く"
+    );
+}
+
+$(document).on(
+    "click",
+    "#menuToggle",
+    function () {
+        setMenuOpen(
+            !$("#appMenu").hasClass("open")
+        );
+    }
+);
+
 $(document).on(
     "click",
     ".tab-button",
@@ -549,6 +736,43 @@ $(document).on(
 
         $("#" + $(this).data("target"))
             .addClass("active");
+
+        setMenuOpen(false);
+    }
+);
+
+$(document).on(
+    "click",
+    "#menuOverlay",
+    function () {
+        setMenuOpen(false);
+        $("#menuToggle").focus();
+    }
+);
+
+$(document).on(
+    "keydown",
+    function (event) {
+        if (event.key === "Escape") {
+            setMenuOpen(false);
+            $("#menuToggle").focus();
+        }
+    }
+);
+
+$(document).on(
+    "click",
+    function (event) {
+        const menu = $("#appMenu");
+        const toggle = $("#menuToggle");
+
+        if (
+            menu.hasClass("open") &&
+            !menu.is(event.target) &&
+            !toggle.is(event.target)
+        ) {
+            setMenuOpen(false);
+        }
     }
 );
 
@@ -956,6 +1180,13 @@ $("#dailyMonthFilter, #dailyItemFilter").on(
     }
 );
 
+$("#counterpartMonthFilter, #counterpartItemFilter").on(
+    "change",
+    function () {
+        renderCounterpartChanges();
+    }
+);
+
 function buildConfirmModal(
     debits,
     credits,
@@ -1063,7 +1294,9 @@ function setCurrentDateTime() {
 function setCurrentMonth() {
     const now = new Date();
     const month = String(now.getMonth() + 1).padStart(2, "0");
-    $("#dailyMonthFilter").val(`${now.getFullYear()}-${month}`);
+    const currentMonth = `${now.getFullYear()}-${month}`;
+    $("#dailyMonthFilter").val(currentMonth);
+    $("#counterpartMonthFilter").val(currentMonth);
 }
 
 $(function () {

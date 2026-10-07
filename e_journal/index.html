@@ -15,17 +15,41 @@
 <body>
 
 <header class="app-header">
-    <h1>e-journal</h1>
+    <div class="header-toolbar">
+        <div class="brand">
+            <h1>e-journal</h1>
+            <span class="brand-subtitle">Accounting journal</span>
+        </div>
+        <button
+            id="menuToggle"
+            class="menu-toggle"
+            type="button"
+            aria-label="メニューを開く"
+            aria-controls="appMenu"
+            aria-expanded="false">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </div>
+
+    <nav id="appMenu" class="tabs" aria-label="主要メニュー">
+        <button class="tab-button active" data-target="journal-tab">仕訳登録</button>
+        <button class="tab-button" data-target="item-tab">勘定科目一覧</button>
+        <button class="tab-button" data-target="history-tab">仕訳参照</button>
+        <button class="tab-button" data-target="daily-change-tab">日別増減</button>
+        <button class="tab-button" data-target="counterpart-change-tab">対勘定別増減</button>
+    </nav>
 </header>
 
-<button id="resetStorageButton">データ全削除</button>
+<button
+    id="menuOverlay"
+    class="menu-overlay"
+    type="button"
+    aria-label="メニューを閉じる">
+</button>
 
-<div class="tabs">
-    <button class="tab-button active" data-target="journal-tab">仕訳登録</button>
-    <button class="tab-button" data-target="item-tab">勘定科目一覧</button>
-    <button class="tab-button" data-target="history-tab">仕訳参照</button>
-    <button class="tab-button" data-target="daily-change-tab">日別増減</button>
-</div>
+<button id="resetStorageButton">データ全削除</button>
 
 <div id="journal-tab" class="tab-content active">
     <div class="card">
@@ -135,6 +159,29 @@
         </div>
         <div id="dailyChangeSummary" class="daily-change-summary" aria-live="polite"></div>
         <div id="dailyChangeTable"></div>
+    </div>
+</div>
+
+<div id="counterpart-change-tab" class="tab-content">
+    <div class="card">
+        <h2>対勘定別増減</h2>
+        <p class="counterpart-description">
+            選択した勘定科目の仕訳に含まれる相手勘定の残高変化を確認できます。
+        </p>
+        <div class="daily-filter-grid counterpart-filter-grid">
+            <div class="daily-filter-field">
+                <label for="counterpartMonthFilter">対象月</label>
+                <input type="month" id="counterpartMonthFilter">
+            </div>
+            <div class="daily-filter-field">
+                <label for="counterpartItemFilter">勘定科目</label>
+                <select id="counterpartItemFilter">
+                    <option value="">勘定科目を選択</option>
+                </select>
+            </div>
+        </div>
+        <div id="counterpartChangeSummary" class="daily-change-summary" aria-live="polite"></div>
+        <div id="counterpartChangeTable"></div>
     </div>
 </div>
 

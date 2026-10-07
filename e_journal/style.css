@@ -24,7 +24,21 @@ body{
 }
 
 .app-header{
+    position:relative;
+    z-index:200;
     margin-bottom:16px;
+}
+
+.header-toolbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    margin-bottom:12px;
+}
+
+.brand{
+    min-width:0;
 }
 
 .app-header h1{
@@ -34,6 +48,53 @@ body{
     font-size:34px;
     font-weight:700;
     line-height:1.1;
+}
+
+.brand-subtitle{
+    display:block;
+    margin-top:3px;
+    color:#688397;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.08em;
+}
+
+.menu-toggle{
+    flex:0 0 auto;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:4px;
+    width:46px;
+    height:46px;
+    min-height:46px;
+    padding:0;
+    border:1px solid rgba(36,102,153,.2);
+    border-radius:14px;
+    background:rgba(255,255,255,.72);
+    box-shadow:0 6px 18px rgba(0,150,255,.12);
+}
+
+.menu-toggle span{
+    display:block;
+    width:20px;
+    height:2px;
+    border-radius:999px;
+    background:#246;
+    transition:transform .2s ease, opacity .2s ease;
+}
+
+.menu-toggle[aria-expanded="true"] span:nth-child(1){
+    transform:translateY(6px) rotate(45deg);
+}
+
+.menu-toggle[aria-expanded="true"] span:nth-child(2){
+    opacity:0;
+}
+
+.menu-toggle[aria-expanded="true"] span:nth-child(3){
+    transform:translateY(-6px) rotate(-45deg);
 }
 
 .card{
@@ -78,25 +139,34 @@ body{
 
 .tabs{
 
-    display:flex;
-
-    gap:10px;
-
+    display:none;
+    flex-wrap:wrap;
+    gap:8px;
     margin-bottom:20px;
+    padding:10px;
+    border:1px solid rgba(36,102,153,.14);
+    border-radius:18px;
+    background:rgba(255,255,255,.72);
+    box-shadow:0 10px 30px rgba(0,150,255,.1);
+    backdrop-filter:blur(12px);
+}
+
+.tabs.open{
+    display:flex;
 }
 
 .tab-button{
 
-    flex:1;
+    flex:1 1 150px;
     min-width:0;
     white-space:nowrap;
     text-align:center;
 
     border:none;
 
-    border-radius:16px;
+    border-radius:12px;
 
-    padding:14px;
+    padding:12px 10px;
 
     font-size:12px;
 
@@ -110,7 +180,7 @@ body{
             255,
             255,
             255,
-            0.45
+            0.65
         );
 
     color:#246;
@@ -161,6 +231,24 @@ body{
 }
 
 .tab-content.active{
+    display:block;
+}
+
+.menu-overlay{
+    position:fixed;
+    inset:0;
+    z-index:150;
+    display:none;
+    width:100%;
+    height:100%;
+    min-height:100%;
+    padding:0;
+    border:0;
+    background:rgba(23,51,72,.48);
+    backdrop-filter:blur(2px);
+}
+
+.menu-overlay.open{
     display:block;
 }
 
@@ -655,6 +743,17 @@ button{
     margin:0;
 }
 
+@keyframes menu-fade-in{
+    from{
+        opacity:0;
+        transform:translateY(-5px);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
 
 /* スマホ対応 */
 
@@ -667,19 +766,32 @@ button{
     }
 
     .tabs{
-        display:grid;
-        grid-template-columns:repeat(4, minmax(0, 1fr));
-        gap:5px;
-        position:sticky;
-        top:0;
-        background:#f5f5f5;
-        z-index:100;
-        padding-bottom:5px;
+        position:absolute;
+        top:calc(100% + 8px);
+        right:0;
+        left:0;
+        display:none;
+        flex-direction:column;
+        gap:6px;
+        padding:10px;
+        overflow:hidden;
+    }
+
+    .tabs.open{
+        display:flex;
+        animation:menu-fade-in .18s ease-out both;
+    }
+
+    .menu-overlay.open{
+        z-index:190;
     }
 
     .tab-button{
-        padding:10px 2px;
-        font-size:10px;
+        flex:1 1 auto;
+        width:100%;
+        padding:12px 10px;
+        font-size:12px;
+        text-align:left;
     }
 
     .row{
@@ -968,6 +1080,18 @@ button{
 
 .daily-change-table td:last-child{
     font-weight:700;
+}
+
+.counterpart-description{
+    margin:0 0 14px;
+    color:#688397;
+    font-size:13px;
+    line-height:1.5;
+}
+
+.counterpart-change-table th:first-child,
+.counterpart-change-table td:first-child{
+    text-align:left;
 }
 
 @media screen and (max-width:768px){
