@@ -1,4 +1,5 @@
 const STORAGE_KEY = "accountingData";
+const STORAGE_QUOTA_BYTES = 5 * 1024 * 1024;
 
 let data = {
     items: [],
@@ -23,6 +24,8 @@ function saveStorage() {
         STORAGE_KEY,
         JSON.stringify(data)
     );
+
+    renderStorageUsage();
 }
 
 function loadStorage() {
@@ -33,6 +36,136 @@ function loadStorage() {
     if (saved) {
         data = JSON.parse(saved);
     }
+}
+
+function getStorageUsageBytes() {
+
+    let bytes = 0;
+
+    for (let index = 0; index < localStorage.length; index++) {
+        const key = localStorage.key(index);
+        const value = localStorage.getItem(key);
+
+        if (key !== null && value !== null) {
+            bytes += new Blob([key, value]).size;
+        }
+    }
+
+    return bytes;
+}
+
+function renderStorageUsage() {
+
+    const usageBytes = getStorageUsageBytes();
+    const percentage = Math.min(
+        100,
+        Math.round((usageBytes / STORAGE_QUOTA_BYTES) * 100)
+    );
+    const gauge = $("#storageUsageGauge");
+    const fill = $("#storageUsageGaugeFill");
+
+    $("#storageUsageValue").text(
+        `${usageBytes.toLocaleString("ja-JP")} B / ${
+            (STORAGE_QUOTA_BYTES / (1024 * 1024)).toLocaleString("ja-JP")
+        } MiB`
+    );
+    $("#storageUsagePercent").text(`${percentage}%`);
+    gauge.attr("aria-valuenow", percentage);
+    fill.css("width", `${percentage}%`);
+    fill.css(
+        "background",
+        percentage >= 80
+            ? "linear-gradient(90deg, #ff8a80, #d63031)"
+            : percentage >= 50
+                ? "linear-gradient(90deg, #ffd166, #f4a300)"
+                : "linear-gradient(90deg, #79d8ff, #39a8ff)"
+    );
+}
+
+function validateImportedData(value) {
+
+    if (!value || typeof value !== "object") {
+        return false;
+    }
+
+    if (!Array.isArray(value.items) || !Array.isArray(value.journals)) {
+        return false;
+    }
+
+    return value.items.every(item =>
+        item &&
+        Number.isFinite(Number(item.itemId)) &&
+        typeof item.name === "string" &&
+        typeof item.type === "string" &&
+        Number.isFinite(Number(item.balance))
+    ) && value.journals.every(journal =>
+        journal &&
+        Array.isArray(journal.debits) &&
+        Array.isArray(journal.credits)
+    );
+}
+
+function exportJsonBackup() {
+
+    const blob = new Blob(
+        [JSON.stringify(data, null, 2)],
+        { type: "application/json;charset=utf-8" }
+    );
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const date = new Date().toISOString().slice(0, 10);
+
+    link.href = url;
+    link.download = `accounting-data-${date}.json`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+
+    alert("LocalStorageのバックアップをダウンロードしました。");
+}
+
+function importJsonBackup(file) {
+
+    if (!file) {
+        return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = function () {
+
+        try {
+            const importedData = JSON.parse(String(reader.result));
+
+            if (!validateImportedData(importedData)) {
+                alert("JSONファイルの形式が不正です。");
+                return;
+            }
+
+            const result = confirm(
+                "インポートしたデータで上書きしますか？"
+            );
+
+            if (!result) {
+                return;
+            }
+
+            data = importedData;
+            saveStorage();
+            renderItems();
+            renderJournalList();
+            alert("JSONファイルを読み込みました。");
+        } catch (error) {
+            alert("JSONファイルを読み込めませんでした。");
+        }
+    };
+
+    reader.onerror = function () {
+        alert("JSONファイルを読み込めませんでした。");
+    };
+
+    reader.readAsText(file);
 }
 
 function renderItems() {
@@ -1083,6 +1216,26 @@ $("#confirmCancel").on(
     }
 );
 
+$("#exportJsonButton").on(
+    "click",
+    exportJsonBackup
+);
+
+$("#importJsonButton").on(
+    "click",
+    function () {
+        $("#importJsonInput").click();
+    }
+);
+
+$("#importJsonInput").on(
+    "change",
+    function () {
+        importJsonBackup(this.files[0]);
+        this.value = "";
+    }
+);
+
 $("#resetStorageButton").on(
     "click",
     function(){
@@ -1096,6 +1249,7 @@ $("#resetStorageButton").on(
         }
 
         localStorage.clear();
+        renderStorageUsage();
 
         alert(
             "LocalStorageを削除しました。画面を再読み込みします。"
@@ -1308,6 +1462,7 @@ const today = new Date()
 $("#journalDateFilter").val(today);
 
     loadStorage();
+    renderStorageUsage();
     setCurrentMonth();
 
     renderItems();

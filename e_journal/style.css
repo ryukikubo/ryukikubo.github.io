@@ -252,6 +252,107 @@ body{
     display:block;
 }
 
+.config-card{
+    max-width:720px;
+}
+
+.config-description{
+    margin:0 0 18px;
+    color:#526a7a;
+    line-height:1.6;
+}
+
+.storage-usage{
+    margin-bottom:18px;
+    padding:14px;
+    border:1px solid rgba(36,102,153,.2);
+    border-radius:14px;
+    background:rgba(238,248,255,.7);
+}
+
+.storage-usage-label,
+.storage-usage-meta{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+}
+
+.storage-usage-label{
+    margin-bottom:10px;
+    color:#526a7a;
+    font-size:12px;
+}
+
+.storage-usage-label strong{
+    color:#246;
+    font-size:13px;
+}
+
+.storage-usage-gauge{
+    height:12px;
+    overflow:hidden;
+    border-radius:999px;
+    background:rgba(36,102,153,.14);
+    box-shadow:inset 0 1px 3px rgba(36,102,153,.16);
+}
+
+.storage-usage-gauge-fill{
+    display:block;
+    width:0;
+    height:100%;
+    border-radius:inherit;
+    background:linear-gradient(90deg, #79d8ff, #39a8ff);
+    transition:width .3s ease;
+}
+
+.storage-usage-meta{
+    margin-top:8px;
+    color:#778b99;
+    font-size:11px;
+}
+
+.storage-usage-meta span:first-child{
+    color:#246;
+    font-weight:bold;
+}
+
+.config-actions{
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+    gap:10px;
+}
+
+.config-actions button{
+    min-height:48px;
+    padding:11px 14px;
+    border:1px solid rgba(36,102,153,.24);
+    background:rgba(255,255,255,.8);
+    color:#246;
+    font-size:13px;
+    line-height:1.35;
+    text-align:center;
+    transition:transform .18s ease, background .18s ease, box-shadow .18s ease;
+}
+
+.config-actions button:hover{
+    background:rgba(255,255,255,.98);
+    transform:translateY(-1px);
+    box-shadow:0 6px 16px rgba(36,102,153,.12);
+}
+
+.config-actions .danger-button{
+    grid-column:1 / -1;
+    border-color:rgba(214,48,49,.3);
+    background:rgba(255,232,232,.78);
+    color:#a62323;
+}
+
+.config-actions .danger-button:hover{
+    background:rgba(255,214,214,.98);
+    box-shadow:0 6px 16px rgba(214,48,49,.13);
+}
+
 table{
     width:100%;
     border-collapse:collapse;
@@ -601,45 +702,6 @@ button{
     color:white;
 }
 
-#resetStorageButton{
-
-    position:fixed;
-
-    right:15px;
-
-    bottom:15px;
-
-    z-index:999;
-
-    border:none;
-
-    border-radius:999px;
-
-    padding:15px 20px;
-
-    background:
-
-        linear-gradient(
-            180deg,
-            #ff7675,
-            #d63031
-        );
-
-    color:white;
-
-    font-weight:bold;
-
-    box-shadow:
-
-        0 8px 20px
-        rgba(
-            214,
-            48,
-            49,
-            0.4
-        );
-}
-
 .journal-card{
 
     background:white;
@@ -875,12 +937,16 @@ button{
         width:100%;
     }
 
-    #resetStorageButton{
-        top:auto;
-        bottom:15px;
-        right:15px;
-        border-radius:50px;
-        padding:15px;
+    .config-actions{
+        grid-template-columns:1fr;
+    }
+
+    .config-actions .danger-button{
+        grid-column:auto;
+    }
+
+    .config-actions button{
+        width:100%;
     }
 
     .history-body{
