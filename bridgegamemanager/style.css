@@ -1,0 +1,63 @@
+*, ::before, ::after {
+	box-sizing: border-box;
+}
+
+body {
+	background-color: #031e11;
+	user-select: none;
+	-webkit-user-select: none;
+	touch-action: manipulation;
+}
+
+/* Felt table gradient effect */
+.poker-felt {
+	background: radial-gradient(circle at center, #117043 0%, #08482a 70%, #032414 100%);
+	box-shadow: inset 0 0 40px rgba(0,0,0,0.7);
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+::-webkit-scrollbar-thumb { background: rgba(212,175,55,0.4); border-radius: 4px; }
+
+/* Hide scrollbars for top header nav while permitting touch swipe */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Active turn pulsing border */
+@keyframes activePulse {
+	0% { box-shadow: 0 0 0 0px rgba(250, 204, 21, 0.8); }
+	50% { box-shadow: 0 0 0 8px rgba(250, 204, 21, 0); }
+	100% { box-shadow: 0 0 0 0px rgba(250, 204, 21, 0); }
+}
+.active-turn {
+	animation: activePulse 1.8s infinite;
+	border-color: #facc15 !important;
+	background-color: rgba(250, 204, 21, 0.25) !important;
+}
+
+/* Orientations for sit-around seating with fixed bounds */
+.player-rotate-N { transform: rotate(180deg); }
+.player-rotate-E { transform: rotate(270deg); transform-origin: center center; }
+.player-rotate-W { transform: rotate(90deg); transform-origin: center center; }
+.player-rotate-S { transform: rotate(0deg); }
+
+/* Side seat wrappers to reserve space after 90deg rotation */
+.side-seat-container {
+	width: 80px;
+	height: 125px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	position: relative;
+	flex-shrink: 0;
+}
+.side-seat-card {
+	width: 125px;
+	height: 80px;
+	position: absolute;
+}
+
+.modal-blur {
+	backdrop-filter: blur(6px);
+}
