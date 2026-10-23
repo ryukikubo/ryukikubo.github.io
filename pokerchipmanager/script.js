@@ -3,6 +3,8 @@ let players = [];
 let dealerIndex = 0;
 let currentHand = null;
 let currentPlayerIndex = null;
+let pendingAllInAction = null;
+let pendingRebuyPlayerIndex = null;
 let lastStreet = null;
 let streetAnimationTimer = null;
 
@@ -414,6 +416,7 @@ function render(){
 
   players.forEach((p, i) => {
     const stack = p.stack ?? 0;
+    const pendingRebuy = p.pendingRebuy ?? 0;
 
     let pos = "";
     if(currentHand && players.length > 1){
@@ -507,6 +510,13 @@ function render(){
       `;
     }
 
+    const rebuyPanel = stack <= 0 ? `
+      <div class="rebuy-panel">
+        <span class="rebuy-status">${pendingRebuy > 0 ? `Queued +${pendingRebuy.toLocaleString()}` : "Out of chips"}</span>
+        <button class="rebuy-btn" data-i="${i}">${pendingRebuy > 0 ? "Edit Rebuy" : "Rebuy"}</button>
+      </div>
+    ` : "";
+
     $("#playerList").append(`
       <li class="player-card ${folded ? "folded-player" : ""} ${allIn ? "all-in-player" : ""} ${out ? "out-player" : ""} ${isActive ? "active-player" : ""}">
 
@@ -525,11 +535,57 @@ function render(){
         </div>
 
         ${actionPanel}
+        ${rebuyPanel}
 
       </li>
     `);
+
   });
 }
+
+/* ===== Rebuy ===== */
+$(document).on("click", ".rebuy-btn", function(){
+  pendingRebuyPlayerIndex = parseInt($(this).data("i"));
+  const player = players[pendingRebuyPlayerIndex];
+  if(!player) return;
+
+  $("#rebuyPlayer").text(player.name);
+  $("#rebuyAmount").val(player.pendingRebuy || "");
+  $("#rebuyTiming").text(currentHand && !currentHand.finished
+    ? "このハンド中は保留され、次のハンドから反映されます。"
+    : "確認するとチップがスタックに追加されます。");
+  $("#rebuyModal").show();
+});
+
+$("#confirmRebuy").on("click", function(){
+  const player = players[pendingRebuyPlayerIndex];
+  const amount = parseInt($("#rebuyAmount").val(), 10);
+
+  if(!player || !Number.isInteger(amount) || amount <= 0){
+    alert("1以上のリバイ金額を入力してください。");
+    return;
+  }
+
+  if(currentHand && !currentHand.finished){
+    player.pendingRebuy = amount;
+  } else {
+    player.stack = (player.stack || 0) + amount;
+    player.pendingRebuy = 0;
+    if(currentHand && currentHand.startStacks){
+      currentHand.startStacks[pendingRebuyPlayerIndex] += amount;
+    }
+  }
+
+  pendingRebuyPlayerIndex = null;
+  $("#rebuyAmount").val("");
+  $("#rebuyModal").hide();
+  render();
+});
+
+$("#cancelRebuy").on("click", function(){
+  pendingRebuyPlayerIndex = null;
+  $("#rebuyModal").hide();
+});
 
 /* ===== Add Player (ゲーム状況別のモーダル分岐) ===== */
 $("#addPlayerBtn").click(()=>{
@@ -768,6 +824,7 @@ $(document).on("click", ".action-btn", function () {
 
   let type = $(this).data("type");
   let amount = 0;
+  let shouldUpdateAggressor = false;
   const player = players[idx];
   const street = currentHand.street || "preflop";
   const currentStreetMax = getCurrentStreetBetAmount();
@@ -829,10 +886,18 @@ $(document).on("click", ".action-btn", function () {
       amount = player.stack;
     }
 
-    if (inputVal > currentStreetMax) {
-      currentHand.lastAggressor = idx;
-    }
+    shouldUpdateAggressor = inputVal > currentStreetMax;
   }
+
+  if (type === "all-in") {
+    pendingAllInAction = { idx, amount, street, shouldUpdateAggressor };
+    $("#allInPlayer").text(player.name);
+    $("#allInAmount").text(amount.toLocaleString());
+    $("#allInModal").show();
+    return;
+  }
+
+  if (shouldUpdateAggressor) currentHand.lastAggressor = idx;
 
   player.stack -= amount;
   currentHand.pot += amount;
@@ -843,6 +908,36 @@ $(document).on("click", ".action-btn", function () {
   settleHand();
   handlePostAction();
   render();
+});
+
+$("#confirmAllIn").on("click", function(){
+  const action = pendingAllInAction;
+  pendingAllInAction = null;
+  $("#allInModal").hide();
+
+  if(!action || !currentHand || currentHand.finished || isFolded(action.idx)) return;
+  const player = players[action.idx];
+  if(!player || action.amount <= 0 || player.stack < action.amount) return;
+
+  if(action.shouldUpdateAggressor) currentHand.lastAggressor = action.idx;
+  player.stack -= action.amount;
+  currentHand.pot += action.amount;
+  currentHand.actions.push({
+    player: action.idx,
+    type: "all-in",
+    amount: action.amount,
+    street: action.street
+  });
+
+  updateHandPots();
+  settleHand();
+  handlePostAction();
+  render();
+});
+
+$("#cancelAllIn").on("click", function(){
+  pendingAllInAction = null;
+  $("#allInModal").hide();
 });
 
 /* ===== 精算の適用 ===== */
@@ -879,6 +974,13 @@ $("#applyDistribution").click(()=>{
 /* ===== Next Game ===== */
 $("#nextGameBtn").click(function(){
   if(!currentHand || !currentHand.finished) return;
+
+  players.forEach(player => {
+    if(player.pendingRebuy > 0){
+      player.stack += player.pendingRebuy;
+      player.pendingRebuy = 0;
+    }
+  });
 
   for (let i = players.length - 1; i >= 0; i--) {
     if (players[i].stack <= 0) {

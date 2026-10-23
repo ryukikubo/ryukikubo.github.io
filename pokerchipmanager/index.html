@@ -3,8 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NLH Tracker</title>
+<title>Stack Edge | Poker Chip Manager</title>
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 </head>
@@ -12,8 +15,8 @@
 <body>
 
 <div class="container">
-  <h1 class="app-title">Stack Ledger</h1>
-  <div class="app-subtitle">Poker Stack Manager</div>
+  <h1 class="app-title">Stack Edge</h1>
+  <div class="app-subtitle">Poker Chip Manager</div>
 
   <div class="btn-area">
     <button id="addPlayerBtn">Add Player</button>
@@ -34,6 +37,28 @@
   <ul id="playerList"></ul>
 </div>
 
+<div id="allInModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="allInTitle">
+  <div class="modal-content">
+    <h2 id="allInTitle">Confirm All-in</h2>
+    <p><strong id="allInPlayer"></strong> will commit the full remaining stack of <strong id="allInAmount">0</strong>. Continue?</p>
+    <button id="confirmAllIn">Confirm All-in</button>
+    <button id="cancelAllIn">Cancel</button>
+  </div>
+</div>
+
+<div id="rebuyModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="rebuyTitle">
+  <div class="modal-content">
+    <h2 id="rebuyTitle">Rebuy</h2>
+    <p><strong id="rebuyPlayer"></strong>の追加チップ数を入力してください。</p>
+    <div id="rebuyTiming" class="rebuy-timing"></div>
+    <div class="form-group">
+      <label for="rebuyAmount">Rebuy amount</label>
+      <input type="number" id="rebuyAmount" min="1" step="1" inputmode="numeric" placeholder="例: 1000">
+    </div>
+    <button id="confirmRebuy">Confirm Rebuy</button>
+    <button id="cancelRebuy">Cancel</button>
+  </div>
+</div>
 
 <div id="playerModal" class="modal">
   <div class="modal-content">
