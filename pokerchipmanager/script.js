@@ -332,8 +332,11 @@ function handlePostAction() {
   }
 
   const nextIndex = getNextActivePlayer((currentPlayerIndex + 1) % players.length);
+  const roundEndPlayer = currentHand.lastAggressor !== null && canAct(currentHand.lastAggressor)
+    ? currentHand.lastAggressor
+    : currentHand.streetStarter;
 
-  if (isStreetBalanced() && nextIndex === currentHand.streetStarter) {
+  if (isStreetBalanced() && nextIndex === roundEndPlayer) {
     if (currentHand.street === "river") {
       currentPlayerIndex = null;
       openDistributionModal();
