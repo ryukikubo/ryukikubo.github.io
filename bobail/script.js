@@ -30,6 +30,11 @@ $(document).ready(function () {
     $('.game-container').show();
   });
 
+  $('.replay-btn').on('click', function () {
+    if (gameF) return;
+    readyToPlay();
+  });
+
   $('.table-cell').on('click', function () {
     if(!gameF){return}
     var targetId = $(this).attr('id');
@@ -44,6 +49,7 @@ $(document).ready(function () {
       }
     }
     if (phase == 2 && $(this).hasClass('p' + turn + '-token')) {
+      $('.token-movable').removeClass('token-movable');
       $(this).addClass('current-select-token');
       moveTokenCurrentPoint[0] = row;
       moveTokenCurrentPoint[1] = clm;
@@ -72,6 +78,16 @@ $(document).ready(function () {
 
 
   function readyToPlay() {
+    $('.game-container').removeClass('game-over');
+    $('.table-cell')
+      .removeClass('p1-token p2-token bobail current-select-token can_move token-movable')
+      .text('');
+    $('.p1-display, .p2-display').text('');
+    $('.replay-btn').prop('disabled', true).prop('hidden', true);
+    bord = Array.from({ length: 5 }, function () { return [0,0,0,0,0]; });
+    moveTokenCurrentPoint = [0,0];
+    bobailCurrentPoint = [2,2];
+
     for (i = 0; i < 5; i++){
       for (n = 0; n < 5; n++){
         if (i == 0) {
@@ -96,6 +112,7 @@ $(document).ready(function () {
 
   function dispInfoMsg() {
     msg = "";
+    $('.token-movable').removeClass('token-movable');
     if (phase == 1) {
       msg = "move Bobail.";
       if (turn == 1) {
@@ -105,11 +122,13 @@ $(document).ready(function () {
       }
     } else if (phase == 2) {
       msg = "move Your Token."
+      $('.p' + turn + '-token').addClass('token-movable');
     }
     $('.p' + turn + '-display').text(msg);
   }
 
   function dispResultMsg(winner) {
+    $('.token-movable').removeClass('token-movable');
     if (winner == 1) {
       $('.p1-display').text('you win!');
       $('.p2-display').text('you lose...');
@@ -117,6 +136,8 @@ $(document).ready(function () {
       $('.p2-display').text('you win!');
       $('.p1-display').text('you lose...');
     }
+    $('.game-container').addClass('game-over');
+    $('.replay-btn').prop('disabled', false).prop('hidden', false);
   }
   function dispTokenMovePoint() {
     var movePointExistF = false
@@ -208,9 +229,11 @@ $(document).ready(function () {
     if(bobailCurrentPoint[0] == 0){
       gameF = false;
       dispResultMsg(1);
+      return;
     } else if (bobailCurrentPoint[0] == 4) {
       gameF = false;
       dispResultMsg(2);
+      return;
     }
 
     for (i = 0; i < 8; i++){
