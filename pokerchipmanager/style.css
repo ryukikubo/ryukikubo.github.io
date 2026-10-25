@@ -956,6 +956,22 @@ select:focus-visible {
   background: linear-gradient(135deg, #283b31, #18251f);
 }
 
+#nextGameBtn:not(:disabled) {
+  border-color: var(--brass-bright);
+  color: #1a1b14;
+  background: linear-gradient(135deg, #f0d48c, #c49c4e);
+  animation: next-game-attention 1.6s ease-in-out infinite;
+}
+
+@keyframes next-game-attention {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(240, 212, 140, 0.18), 0 5px 14px rgba(0, 0, 0, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(240, 212, 140, 0.1), 0 0 22px rgba(215, 182, 107, 0.48);
+  }
+}
+
 .btn-area {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
@@ -984,6 +1000,26 @@ select:focus-visible {
 .game-info > div {
   padding-top: 6px;
   border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.game-info .pending-setting-notice {
+  margin-top: 7px;
+  padding: 7px 9px;
+  border: 1px solid rgba(215, 182, 107, 0.22);
+  border-radius: 4px;
+  color: var(--brass-bright);
+  background: rgba(215, 182, 107, 0.08);
+  font-size: 12px;
+}
+
+.game-info .pending-setting-notice[hidden] {
+  display: none;
+}
+
+.setting-timing {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 13px;
 }
 
 #sb,
@@ -1119,6 +1155,60 @@ select:focus-visible {
   background: #18201b !important;
 }
 
+.queued-players {
+  margin-top: 14px;
+  padding: 12px;
+  border: 1px solid rgba(215, 182, 107, 0.22);
+  border-radius: 6px;
+  background: rgba(215, 182, 107, 0.06);
+}
+
+.queued-players[hidden] {
+  display: none;
+}
+
+.queued-players h2 {
+  margin: 0 0 8px;
+  color: var(--brass-bright);
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 18px;
+}
+
+#queuedPlayerList {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+#queuedPlayerList li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0;
+  padding: 7px 9px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  color: var(--ivory);
+  background: rgba(5, 15, 11, 0.5);
+  font-size: 12px;
+}
+
+.remove-queued-player {
+  min-height: 30px;
+  padding: 5px 9px;
+  color: #e9a69c;
+  background: #442c28;
+  font-size: 11px;
+}
+
+.queued-player-help {
+  color: var(--muted);
+  font-size: 12px;
+}
+
 .action-list {
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 5px;
@@ -1210,6 +1300,30 @@ select:focus-visible {
   box-shadow: 0 22px 70px rgba(0, 0, 0, 0.58), inset 0 1px rgba(255, 255, 255, 0.06);
   transform: translate(-50%, -50%);
   animation: modal-arrive 220ms ease-out both;
+}
+
+#playerModalGameInProgress .modal-content {
+  padding-top: 58px;
+}
+
+#playerModalGameInProgress .modal-close-button {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: grid;
+  width: 36px;
+  min-height: 36px;
+  height: 36px;
+  margin: 0;
+  padding: 0;
+  place-items: center;
+  border: 1px solid rgba(215, 182, 107, 0.3);
+  border-radius: 50%;
+  color: var(--brass-bright);
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 22px;
+  line-height: 1;
+  box-shadow: none;
 }
 
 .modal-content h2,

@@ -5,6 +5,7 @@ let currentHand = null;
 let currentPlayerIndex = null;
 let pendingAllInAction = null;
 let pendingRebuyPlayerIndex = null;
+let queuedPlayers = [];
 let lastStreet = null;
 let streetAnimationTimer = null;
 
@@ -14,6 +15,13 @@ let gameSetting = {
   ante: 0,
   anteType: "all"
 };
+let pendingGameSetting = null;
+
+function applyPendingGameSetting(){
+  if(!pendingGameSetting) return;
+  gameSetting = pendingGameSetting;
+  pendingGameSetting = null;
+}
 
 function getUTG(){
   if(players.length === 2) return dealerIndex; // Heads-up: preflop starts from SB (=BTN)
@@ -375,6 +383,11 @@ function render(){
   $("#sb").text(gameSetting.sb || "-");
   $("#bb").text(gameSetting.bb || "-");
   $("#ante").text(gameSetting.ante || "-");
+  $("#pendingSettingNotice")
+    .prop("hidden", !pendingGameSetting)
+    .text(pendingGameSetting
+      ? `Next game: SB ${pendingGameSetting.sb} / BB ${pendingGameSetting.bb} / Ante ${pendingGameSetting.ante}`
+      : "");
 
   $("#playerList").empty();
   $("#pot").text(currentHand ? currentHand.pot.toLocaleString() : 0);
@@ -544,6 +557,24 @@ function render(){
     `);
 
   });
+
+  const queuedPlayerList = $("#queuedPlayerList").empty();
+  queuedPlayers.forEach((entry, index) => {
+    const positionLabel = entry.beforePlayer
+      ? `Before ${entry.beforePlayer.name}`
+      : "At end of table";
+    const item = $("<li>");
+    $("<span>")
+      .text(`${entry.player.name} · ${entry.player.stack.toLocaleString()} · ${positionLabel}`)
+      .appendTo(item);
+    $("<button>", {
+      type: "button",
+      class: "remove-queued-player",
+      "data-index": index
+    }).text("Remove").appendTo(item);
+    queuedPlayerList.append(item);
+  });
+  $("#queuedPlayersPanel").prop("hidden", queuedPlayers.length === 0);
 }
 
 /* ===== Rebuy ===== */
@@ -595,9 +626,10 @@ $("#addPlayerBtn").click(()=>{
   if (currentHand) {
     const insertSelect = $("#insertAfterPlayer");
     insertSelect.empty();
-    
+
+    insertSelect.append($("<option>", { value: 0 }).text("At beginning of table"));
     players.forEach((p, i) => {
-      insertSelect.append(`<option value="${i}">${p.name}</option>`);
+      insertSelect.append($("<option>", { value: i + 1 }).text(`After ${p.name}`));
     });
     
     $("#playerModalGameInProgress").show();
@@ -622,61 +654,22 @@ $("#savePlayer").click(()=>{
   render();
 });
 
-/* ===== ゲーム進行中のPlayer割り込み追加＆補正ロジック ===== */
+/* ===== 次ゲーム参加プレイヤーをキューへ追加 ===== */
 $("#savePlayerGameInProgress").click(() => {
   const name = $("#playerNameGameInProgress").val();
   const stack = parseInt($("#playerStackGameInProgress").val());
-  const afterIdx = parseInt($("#insertAfterPlayer").val());
+  const insertPosition = parseInt($("#insertAfterPlayer").val());
 
-  if (!name || isNaN(stack) || isNaN(afterIdx)) {
+  if (!name || !Number.isInteger(stack) || stack <= 0 || !Number.isInteger(insertPosition) || insertPosition > players.length) {
     alert("入力が不正です");
     return;
   }
 
-  const insertIdx = afterIdx + 1;
   const newPlayer = { name, stack };
-
-  players.splice(insertIdx, 0, newPlayer);
-
-  if (dealerIndex >= insertIdx) {
-    dealerIndex++;
-  }
-  if (currentPlayerIndex !== null && currentPlayerIndex >= insertIdx) {
-    currentPlayerIndex++;
-  }
-
-  if (currentHand) {
-    if (currentHand.streetStarter !== null && currentHand.streetStarter >= insertIdx) {
-      currentHand.streetStarter++;
-    }
-    if (currentHand.lastAggressor !== null && currentHand.lastAggressor >= insertIdx) {
-      currentHand.lastAggressor++;
-    }
-
-    currentHand.foldedPlayers = currentHand.foldedPlayers.map(idx => {
-      return idx >= insertIdx ? idx + 1 : idx;
-    });
-
-    if (currentHand.startStacks) {
-      currentHand.startStacks.splice(insertIdx, 0, stack);
-    }
-
-    if (currentHand.initialContributions) {
-      Object.keys(currentHand.initialContributions).forEach(street => {
-        if (Array.isArray(currentHand.initialContributions[street])) {
-          currentHand.initialContributions[street].splice(insertIdx, 0, 0);
-        }
-      });
-    }
-
-    if (currentHand.actions) {
-      currentHand.actions.forEach(action => {
-        if (action.player >= insertIdx) {
-          action.player++;
-        }
-      });
-    }
-  }
+  queuedPlayers.push({
+    player: newPlayer,
+    beforePlayer: players[insertPosition] || null
+  });
 
   $("#playerNameGameInProgress").val("");
   $("#playerStackGameInProgress").val("");
@@ -685,8 +678,45 @@ $("#savePlayerGameInProgress").click(() => {
   render();
 });
 
+$(document).on("click", ".remove-queued-player", function(){
+  const index = parseInt($(this).data("index"), 10);
+  if(!Number.isInteger(index) || index < 0 || index >= queuedPlayers.length) return;
+  queuedPlayers.splice(index, 1);
+  render();
+});
+
+function addQueuedPlayers(){
+  const additionsBeforePlayer = new Map();
+  const additionsAtEnd = [];
+
+  queuedPlayers.forEach(entry => {
+    if(entry.beforePlayer && players.includes(entry.beforePlayer)){
+      const additions = additionsBeforePlayer.get(entry.beforePlayer) || [];
+      additions.push(entry.player);
+      additionsBeforePlayer.set(entry.beforePlayer, additions);
+    } else {
+      additionsAtEnd.push(entry.player);
+    }
+  });
+
+  additionsBeforePlayer.forEach((additions, beforePlayer) => {
+    const insertIndex = players.indexOf(beforePlayer);
+    players.splice(insertIndex, 0, ...additions);
+  });
+  players.push(...additionsAtEnd);
+  queuedPlayers = [];
+}
+
 /* ===== Game Setting ===== */
 $("#settingBtn").click(()=>{
+  const settingToEdit = pendingGameSetting || gameSetting;
+  $("#sbValue").val(settingToEdit.sb);
+  $("#bbValue").val(settingToEdit.bb);
+  $("#anteValue").val(settingToEdit.ante);
+  $("#anteType").val(settingToEdit.anteType);
+  $("#settingTiming").text(currentHand && !currentHand.finished
+    ? "Changes made during a hand take effect from the next game."
+    : "Changes take effect from the next game.");
   $("#settingModal").show();
 });
 
@@ -701,7 +731,13 @@ $("#saveSetting").click(()=>{
     return;
   }
 
-  gameSetting = { sb, bb, ante, anteType };
+  const nextSetting = { sb, bb, ante, anteType };
+  if(currentHand && !currentHand.finished){
+    pendingGameSetting = nextSetting;
+  } else {
+    gameSetting = nextSetting;
+    pendingGameSetting = null;
+  }
   $("#settingModal").hide();
   render();
 });
@@ -713,7 +749,7 @@ $("#startGameBtn").on("click", function(){
     return;
   }
 
-  if(gameSetting.bb === 0){
+  if((pendingGameSetting || gameSetting).bb === 0){
     alert("先にGame Settingを行ってください。");
     $("#settingModal").show();
     return;
@@ -736,6 +772,7 @@ $("#startGame").click(function(){
     return;
   }
 
+  applyPendingGameSetting();
   dealerIndex = btn;
 
   currentHand = {
@@ -985,11 +1022,22 @@ $("#nextGameBtn").click(function(){
     }
   });
 
+  let nextDealerPlayer = null;
+  for(let offset = 1; offset <= players.length; offset++){
+    const candidate = players[(dealerIndex + offset) % players.length];
+    if(candidate.stack > 0){
+      nextDealerPlayer = candidate;
+      break;
+    }
+  }
+
   for (let i = players.length - 1; i >= 0; i--) {
     if (players[i].stack <= 0) {
       players.splice(i, 1);
     }
   }
+
+  addQueuedPlayers();
 
   if (players.length < 2) {
     alert("アクティブなプレイヤーが2人未満になったため、次のゲームを開始できません。");
@@ -999,7 +1047,8 @@ $("#nextGameBtn").click(function(){
     return;
   }
 
-  dealerIndex = (dealerIndex + 1) % players.length;
+  applyPendingGameSetting();
+  dealerIndex = nextDealerPlayer ? players.indexOf(nextDealerPlayer) : 0;
 
   currentHand = {
     street: "preflop",

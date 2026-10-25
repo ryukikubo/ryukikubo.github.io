@@ -31,10 +31,15 @@
     BB: <span id="bb">-</span> /
     Ante: <span id="ante">-</span>
     <div>Street: <span id="street">-</span></div>
+    <div id="pendingSettingNotice" class="pending-setting-notice" hidden></div>
   </div>
   <div class="pot">Pot: <span id="pot">0</span></div>
 
   <ul id="playerList"></ul>
+  <section id="queuedPlayersPanel" class="queued-players" hidden aria-live="polite">
+    <h2>Joining Next Game</h2>
+    <ul id="queuedPlayerList"></ul>
+  </section>
 </div>
 
 <div id="allInModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="allInTitle">
@@ -81,8 +86,8 @@
 
 <div id="playerModalGameInProgress" class="modal" style="display: none;">
   <div class="modal-content">
-    <span class="close">&times;</span>
-    <h3>Add Player (In Game)</h3>
+    <button type="button" class="close modal-close-button" aria-label="Close add player dialog">&times;</button>
+    <h3>Add Player (Next Game)</h3>
     
     <div class="form-group">
       <label>Player Name:</label>
@@ -95,13 +100,13 @@
     </div>
 
     <div class="form-group">
-      <label style="font-weight: bold; color: #ff7b00;">Who's next ?</label>
-      <small style="display:block; color:#6c757d; margin-bottom:5px;">※選択したプレイヤーの次（直後）の手番に挿入されます</small>
+      <label>Table position:</label>
+      <small class="queued-player-help">This player joins after the current game ends.</small>
       <select id="insertAfterPlayer">
         </select>
     </div>
     
-    <button id="savePlayerGameInProgress" class="btn">Add & Insert</button>
+    <button id="savePlayerGameInProgress" class="btn">Queue for Next Game</button>
   </div>
 </div>
 
@@ -149,6 +154,7 @@
 <div id="settingModal" class="modal">
   <div class="modal-content">
     <h2>Game Setting</h2>
+    <p id="settingTiming" class="setting-timing"></p>
 
     <div class="form-group">
       <label>Small Blind</label>
