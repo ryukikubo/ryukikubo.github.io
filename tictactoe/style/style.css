@@ -91,6 +91,16 @@ body{
   left: calc(50% - 40vw);
 }
 
+@media (orientation: landscape) and (max-height: 600px){
+  .table-container{
+    width: min(80vw, 65vh);
+    height: min(80vw, 65vh);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+}
+
 .bord-table{
   width: 100%;
   height: 100%;
@@ -152,75 +162,56 @@ body{
   box-sizing: border-box;
   font-family: "Dynalight", cursive;
   opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .button-fadeIn-anim{
   animation: fadeIn_2 1s linear forwards;
+  visibility: visible;
+  pointer-events: auto;
 }
 
 .background-content{
   position: fixed;
   z-index: 5;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
 }
-.s {
-  color: rgb(0, 0, 0);
-  font-size: 15px;
-}
-
-.s_1{
-  position: fixed;
-  top: -15%;
-  animation: anim_twink 7s linear infinite;
-  text-shadow:
-  5vw   -100px 0 #F00,
-  10vw  -400px 0 #FFF,
-  15vw  -200px 0 #FFF,
-  20vw  -500px 0 #FFF,
-  30vw  -280px 0 #FFF,
-  39vw  -250px 0 #0FF,
-  42vw  -340px 0 #FFF,
-  45vw  -350px 0 #FF0,
-  47vw  -450px 0 #FFF,
-  56vw  -150px 0 #F00,
-  72vw  -180px 0 #FFF,
-  78vw  -300px 0 #FFF,
-  85vw  -540px 0 #FFF,
-  90vw  -300px 0 #FFF
+.starfield {
+  position: absolute;
+  inset: 0;
+  perspective: 500px;
 }
 
-.s_2{
-  position: fixed;
-  top: -10%;
-  animation: anim_twink 10s ease-in infinite;
-  text-shadow:      
-  6vw   -300px 0  #FFF,
-  12vw  -570px 0 #FFF,
-  25vw  -300px 0 #FFF,
-  36vw  -600px 0 #FFF,
-  40vw  -30px 0 #FFF,
-  43vw  -120px 0 #FFF,
-  60vw  -350px 0 #FFF,
-  76vw  -200px 0 #0F0,
-  82vw  -180px 0 #FFF,
-  95vw  -600px 0 #F00,
-  98vw  -320px 0 #FFF
+.star {
+  position: absolute;
+  top: -12px;
+  width: var(--star-size);
+  height: var(--star-size);
+  border-radius: 50%;
+  background: var(--star-color);
+  box-shadow: 0 0 9px 2px color-mix(in srgb, var(--star-color) 76%, transparent);
+  opacity: 0;
+  animation: star-drift var(--star-duration) linear var(--star-delay) infinite;
+  will-change: transform, opacity;
 }
 
-.s_3{
-  position: fixed;
-  top: -5%;
-  animation: anim_twink 18s linear infinite;
-  text-shadow:
-  5vw   -100px 0 #F00,
-  20vw  -500px 0 #FFF,
-  39vw  -250px 0 #0FF,
-  42vw  -340px 0 #FFF,
-  45vw  -350px 0 #FF0,
-  47vw  -450px 0 #FFF,
-  56vw  -150px 0 #F00,
-  72vw  -180px 0 #FFF,
-  78vw  -300px 0 #FFF,
-  90vw  -300px 0 #FFF
+.star-streak {
+  width: 2.5px;
+  height: 2.5px;
+}
+
+.star-streak::after {
+  position: absolute;
+  top: calc(0px - var(--star-trail));
+  left: 0;
+  width: 1px;
+  height: var(--star-trail);
+  background: linear-gradient(to top, var(--star-color), transparent);
+  content: "";
+  opacity: 0.8;
 }
 
 .twink_token{
@@ -280,12 +271,17 @@ body{
   100%{top:-150%;}
 }
 
-@keyframes anim_twink {
-  0%{ top: 0%; opacity: 1;}
-  25%{ opacity: 0.5;}
-  50%{ opacity: 1;}
-  75%{ opacity: 0.4;}
-  100% {top:150%; opacity:0;}
+@keyframes star-drift {
+  0% {
+    transform: translate3d(0, -8vh, 0) scale(0.65);
+    opacity: 0;
+  }
+  12% { opacity: 1; }
+  70% { opacity: 0.82; }
+  100% {
+    transform: translate3d(var(--star-drift), 108vh, -80px) scale(1.35);
+    opacity: 0;
+  }
 }
 
 @keyframes anim_twink_2{
@@ -315,6 +311,18 @@ body{
   93%{opacity: 0.63;}
   98%{opacity: 0.85;}
   100% {opacity:1;}
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .star {
+    top: var(--star-y);
+    animation: none;
+    opacity: 0.55;
+  }
+
+  .star-streak::after {
+    display: none;
+  }
 }
 
 @keyframes win_bright {
