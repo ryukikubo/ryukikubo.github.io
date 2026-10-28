@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>モノポリー 8x8 (28マス)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body class="max-w-md mx-auto p-2 border-x border-slate-800">
+
+    <!-- ヘッダー -->
+    <header class="flex justify-between items-center bg-slate-800/90 p-2 rounded-xl border border-slate-700/80 mb-1 shadow-lg shrink-0">
+        <div class="flex items-center gap-1.5">
+            <i class="fa-solid fa-building-columns text-amber-400 text-sm"></i>
+            <span class="text-xs font-black tracking-wider text-amber-400">MONOPOLY 8x8</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <button onclick="requestReturnToTitle()" class="px-2 py-1 rounded-lg bg-slate-700 hover:bg-slate-600 border border-slate-600 text-slate-300 font-bold text-[10px] transition active:scale-95 flex items-center gap-1">
+                <i class="fa-solid fa-house"></i> タイトルへ
+            </button>
+            <div id="current-turn-badge" class="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-900 border border-slate-700 text-[11px] font-bold shadow-inner">
+                <span id="turn-indicator-dot" class="w-2 h-2 rounded-full bg-red-500"></span>
+                <span id="turn-player-name" class="text-slate-200">P1の番</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- ボードエリア (8x8 外周28マス) -->
+    <main class="flex-1 flex flex-col justify-center items-center w-full min-h-0">
+        <div id="board" class="board-grid"></div>
+    </main>
+
+    <!-- 下部：プレイヤー情報 & ログエリア -->
+    <footer class="flex flex-col gap-1.5 mt-1 shrink-0">
+        <div id="players-status" class="grid grid-cols-2 gap-1.5"></div>
+        <div class="bg-slate-800/80 border border-slate-700/80 rounded-xl p-2 flex flex-col gap-1 shadow-lg">
+            <div class="flex justify-between items-center">
+                <span id="action-prompt" class="text-[11px] font-bold text-amber-300 truncate">サイコロを振ってください</span>
+                <span class="text-[9px] text-slate-400 font-semibold"><i class="fa-solid fa-clock-rotate-left me-0.5"></i>ログ</span>
+            </div>
+            <div id="game-log" class="text-[9.5px] text-slate-300 h-9 overflow-y-auto space-y-0.5 leading-snug pr-1 border-t border-slate-700/50 pt-0.5">
+                <div>• ゲームを開始しました。</div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 設定・開始 モーダル -->
+    <div id="setup-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5 max-w-xs w-full shadow-2xl flex flex-col gap-4 text-center">
+            <div>
+                <h2 class="text-xl font-black text-amber-400 mb-0.5"><i class="fa-solid fa-chess-board me-2"></i>8x8 MONOPOLY</h2>
+                <p class="text-xs text-slate-400">スマホ最適化・28マスモノポリー</p>
+            </div>
+
+            <div class="space-y-3 text-left">
+                <div>
+                    <label class="text-xs font-bold text-slate-300 mb-1 block">対戦モード</label>
+                    <select id="game-mode" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs font-bold text-white focus:outline-none focus:border-amber-400">
+                        <option value="ai">VS CPU (AI対戦)</option>
+                        <option value="local">ローカルマルチ (1台で遊ぶ)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="text-xs font-bold text-slate-300 mb-1 block">プレイヤー人数</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button type="button" onclick="selectPlayerCount(2)" class="count-btn p-2 rounded-lg border border-amber-400 bg-amber-500 text-slate-950 font-black text-xs" data-count="2">2名</button>
+                        <button type="button" onclick="selectPlayerCount(3)" class="count-btn p-2 rounded-lg border border-slate-700 bg-slate-900 text-white font-bold text-xs" data-count="3">3名</button>
+                        <button type="button" onclick="selectPlayerCount(4)" class="count-btn p-2 rounded-lg border border-slate-700 bg-slate-900 text-white font-bold text-xs" data-count="4">4名</button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-xs font-bold text-slate-300 mb-1 block">初期所持金</label>
+                    <select id="start-money" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs font-bold text-emerald-400 focus:outline-none focus:border-amber-400">
+                        <option value="1200" selected>$1,200 (標準)</option>
+                        <option value="1800">$1,800 (多め)</option>
+                        <option value="800">$800 (ショート)</option>
+                    </select>
+                </div>
+            </div>
+
+            <button id="btn-start-game" onclick="startGame()" class="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black py-3 rounded-xl shadow-lg transition active:scale-95 text-sm">
+                ゲーム開始 <i class="fa-solid fa-play ms-1"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- マルチティア一括選択型 増築モーダル -->
+    <div id="build-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-slate-800 border border-sky-500/50 rounded-2xl p-4 max-w-sm w-full shadow-2xl flex flex-col gap-3">
+            <div class="text-center border-b border-slate-700 pb-2">
+                <div id="build-modal-color" class="h-2 w-full rounded-full mb-2"></div>
+                <h3 id="build-modal-title" class="text-sm font-black text-sky-400">物件の増築選択</h3>
+                <p id="build-modal-subtitle" class="text-[10px] text-slate-300 mt-0.5"></p>
+            </div>
+            
+            <div id="build-tiers-container" class="space-y-1.5 max-h-56 overflow-y-auto pr-1"></div>
+
+            <div class="flex gap-2 pt-1 border-t border-slate-700">
+                <button id="build-confirm-btn" onclick="confirmBuildSelection()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-black py-2 rounded-xl text-xs shadow transition active:scale-95">
+                    選択した段階へ増築
+                </button>
+                <button onclick="resolveBuildModal(false)" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-300 font-bold py-2 rounded-xl text-xs">
+                    キャンセル
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 資産売却・債務清算 モーダル (NEW) -->
+    <div id="liquidation-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-slate-800 border border-red-500/60 rounded-2xl p-4 max-w-sm w-full shadow-2xl flex flex-col gap-3">
+            <div class="text-center border-b border-slate-700 pb-2">
+                <h3 class="text-sm font-black text-red-400"><i class="fa-solid fa-triangle-exclamation me-1"></i>資金不足・資産の売却</h3>
+                <p class="text-[10px] text-slate-300 mt-0.5">支払い額に対してキャッシュが不足しています。建物や土地を売却して返済資金を作ってください。</p>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-700 rounded-xl p-2.5 space-y-1 text-xs">
+                <div class="flex justify-between">
+                    <span class="text-slate-400">必要支払い額 (負債):</span>
+                    <span id="liq-required-amount" class="font-bold text-red-400">$0</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400">現在の所持金:</span>
+                    <span id="liq-current-cash" class="font-bold text-white">$0</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400">売却で獲得する額:</span>
+                    <span id="liq-gained-cash" class="font-bold text-emerald-400">+$0</span>
+                </div>
+                <div class="flex justify-between pt-1 border-t border-slate-800 font-black">
+                    <span class="text-slate-300">売却後の残り不足額:</span>
+                    <span id="liq-remaining-deficit" class="text-amber-400">$0</span>
+                </div>
+            </div>
+
+            <div id="liq-items-list" class="space-y-1.5 max-h-48 overflow-y-auto pr-1"></div>
+
+            <div class="flex gap-2 pt-1 border-t border-slate-700">
+                <button id="liq-confirm-btn" onclick="confirmLiquidation()" class="flex-1 bg-emerald-600 disabled:opacity-30 text-white font-black py-2 rounded-xl text-xs shadow transition active:scale-95">
+                    売却して支払う
+                </button>
+                <button onclick="confirmBankruptcy()" class="bg-red-700 hover:bg-red-600 text-white font-bold px-3 py-2 rounded-xl text-xs">
+                    破産を確定
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 不動産取引所ダイアログ -->
+    <div id="exchange-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-slate-800 border border-amber-500/50 rounded-2xl p-4 max-w-xs w-full shadow-2xl flex flex-col gap-3">
+            <div class="text-center border-b border-slate-700 pb-2">
+                <h3 class="text-sm font-black text-amber-400"><i class="fa-solid fa-handshake-simple me-1"></i>不動産取引所</h3>
+                <p class="text-[10px] text-slate-300 mt-0.5"><b>手数料 $100</b> を支払い、所有物件1つの賃料を<b>次回3回分 2倍 (🔥2倍)</b>に倍増！</p>
+            </div>
+            <div id="exchange-fee-info" class="text-center text-xs font-bold text-emerald-400"></div>
+            <div id="exchange-property-list" class="max-h-48 overflow-y-auto space-y-1.5 pr-1"></div>
+            <button onclick="resolveExchangeModal(null)" class="w-full bg-slate-700 text-slate-300 font-bold py-1.5 rounded-lg text-xs">
+                キャンセル / スキップ
+            </button>
+        </div>
+    </div>
+
+    <!-- 汎用・チャンスカード通知モーダル -->
+    <div id="info-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4 max-w-xs w-full shadow-2xl flex flex-col gap-3">
+            <div id="modal-color-bar" class="h-1.5 w-full rounded-full bg-amber-400"></div>
+            <h3 id="modal-title" class="text-sm font-black text-amber-400 text-center"></h3>
+            <div id="modal-body" class="text-xs text-slate-200"></div>
+            <button id="modal-confirm-btn" onclick="resolveInfoModal()" class="w-full bg-amber-500 text-slate-950 font-black py-2 rounded-xl text-xs transition active:scale-95">
+                OK
+            </button>
+        </div>
+    </div>
+
+    <!-- タイトルへ戻る確認モーダル (NEW) -->
+    <div id="confirm-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4 max-w-xs w-full shadow-2xl flex flex-col gap-3 text-center">
+            <div class="text-amber-400 text-2xl mt-1">
+                <i class="fa-solid fa-arrow-rotate-left"></i>
+            </div>
+            <h3 class="text-sm font-black text-white">タイトルに戻りますか？</h3>
+            <p class="text-xs text-slate-300">現在のゲーム進行状況は失われます。よろしいですか？</p>
+            <div class="flex gap-2 pt-2 border-t border-slate-700">
+                <button onclick="confirmReturnToTitle()" class="flex-1 bg-red-600 hover:bg-red-500 text-white font-black py-2 rounded-xl text-xs shadow transition active:scale-95">
+                    はい / タイトルへ
+                </button>
+                <button onclick="cancelReturnToTitle()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-300 font-bold py-2 rounded-xl text-xs">
+                    キャンセル
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="./script.js"></script>
+</body>
+</html>
