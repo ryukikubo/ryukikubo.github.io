@@ -36,7 +36,8 @@ $(document).ready(function () {
         }, 100);
 
         var countValue = parseInt($countInput.val()) || 0;
-        $countInput.val(countValue + 1);
+        const val = parseInt($('input[name="switch"]:checked').val(), 10);
+        $countInput.val(countValue + val);
         
         updateProbCell($countInput);
     });
@@ -107,6 +108,16 @@ $(document).ready(function () {
         $(this).closest('.counter').fadeOut(150, function() {
             $(this).remove();
         });
+    });
+
+    $('input[name="switch"]').on('change', function () {
+        const val = parseInt($(this).val(), 10);
+
+        if (val === -1) {
+            $('body').css('background-color', '#fa5555');
+        } else {
+            $('body').css('background-color', '#404040');
+        }
     });
 
 });
