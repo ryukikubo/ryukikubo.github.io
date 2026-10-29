@@ -271,7 +271,6 @@ body{
 }
 
 .radio-group-switch label {
-  padding: 2px 20px;
   width: 50%;
   text-align: center;
   cursor: pointer;
