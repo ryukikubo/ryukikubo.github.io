@@ -268,7 +268,7 @@ $(function () {
             $("#next-level-display").text(`Next: ${next.sb} / ${next.bb} (${next.ante})`);
         }
 
-        if(remainingSeconds == 180 && level.type !== "break"){
+        if(remainingSeconds == 60 && level.type !== "break"){
             playSE("se-warn");
         }
 

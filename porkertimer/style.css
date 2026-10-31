@@ -100,7 +100,7 @@ button {
 =========================== */
 #timer-screen {
     background-size: 400% 400%;
-    padding: 40px 10px;
+    padding: 20px 10px 0 10px ;
     height: 100vh;
 }
 
@@ -214,50 +214,43 @@ button {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    background: #2b2b2b5e;
+    margin-bottom:6px;
 }
 
 /* タイトル（Level） */
 #level-title {
-    font-size: 25px;
+    font-size: 2.2rem;
     margin: 0;
     font-weight: bold;
     font-family: 'Orbitron', sans-serif;
-    background: linear-gradient(#FFF,#656565);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color:#fff;
 }
 
 /* 現在のブラインド */
 #blind-display {
-    font-size: 30px;
+    font-size: 2.5rem;
     font-weight: bold;
     margin: 0;
     font-family: 'Orbitron', sans-serif;
-    background: linear-gradient(#FFF,#656565);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color:#FFF
 }
 
 /* 次のレベル */
 #next-level-display {
-    font-size: 20px;
+    font-size: 1.25rem;
     margin: 0;
     font-family: 'Orbitron', sans-serif;
-    background: linear-gradient(#FFF,#656565);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: #FFF
 }
 
 /* タイマー数字 */
 #timer {
     font-family: 'Orbitron', sans-serif;
-    font-size: 70px;
+    font-size: 7rem;
     font-weight: 700;
-    margin: 6px 0;
     text-align: center;
-    background: linear-gradient(#FFF,#656565);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color:#FFF;
 }
 
 #paused-label {
@@ -279,6 +272,7 @@ button {
     display: flex;
     justify-content: space-between;
     gap: 8px;
+    margin-top:5px;
 }
 
 /* ボタン中央揃え */
@@ -301,14 +295,14 @@ button {
 =========================== */
 #timer-right {
     width: 20%;
-    background: rgba(0,0,0,0.35);
     padding: 10px;
-    border-radius: 12px;
-    border: 1px solid #7e7e7e;
     display: flex;
     flex-direction: column;
     gap: 12px;
     overflow: hidden;
+    background: #2b2b2b5e;
+    border: solid 1px #FFF;
+    border-radius: 15px;
 }
 
 .status-box {
@@ -364,7 +358,7 @@ button {
    トーナメントタイトル
 =========================== */
 #tournament-title {
-    font-size: 22px;
+    font-size: 30px;
     margin: 0 0 6px;
     font-family: 'Orbitron', sans-serif;
     color: #fff;
@@ -374,17 +368,19 @@ button {
 #chip-stats {
     width: 20%;
     text-align: left;
-    margin: 15px 0;
     font-size: 20px;
-    padding: 10px;
+    padding: 0 10px;
     box-sizing: border-box;
+    background: #2b2b2b5e;
+    border: solid 1px #FFF;
+    border-radius: 15px;
 }
 
 .chip-stats-label{
     display: block;
     width: 100%;
     font-weight: 600;
-    font-size:20px
+    font-size: 1.25rem;
 }
 
 .chip-line {
@@ -477,7 +473,7 @@ button {
 
 .fx-glitch {
   position: relative;
-  font-size: 22px;
+  font-size: 30px;
   font-family: 'Orbitron', sans-serif;
   letter-spacing: .06em;
   color: var(--ink);
