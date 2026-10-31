@@ -1015,6 +1015,15 @@ currentBGIndex = 0;
 
 $(function () {
 
+    // ブラインド一覧の折り畳み／展開
+    $("#toggle-blind-list").on("click", function () {
+        const isExpanded = $(this).attr("aria-expanded") === "true";
+        $("#blind-list").toggle(!isExpanded);
+        $(this)
+            .attr("aria-expanded", String(!isExpanded))
+            .text(isExpanded ? "レベル一覧を展開" : "レベル一覧を折りたたむ");
+    });
+
     // レベル追加
     $("#add-level").on("click", function () {
         $("#blind-list").append(`

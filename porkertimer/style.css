@@ -119,7 +119,7 @@ button {
 
 /* Neon Pink */
 .bg-neon {
-    background: linear-gradient(135deg, #ff0099, #9900ff, #ff33cc, #cc00ff);
+    background: linear-gradient(135deg, #ff0099, #b6096b, #ff33cc, #ff006f);
     background-size: 400% 400%;
     animation: bgFlow 10s ease infinite;
 }
@@ -506,4 +506,11 @@ button {
   18% { transform: translate(-4px, -1px); opacity: .9; }
   52% { transform: translate(3px, -2px);  opacity: .9; }
   56% { transform: translate(-2px, 1px);  opacity: .9; }
+}
+
+/* ブラインド一覧の折り畳みボタン */
+#toggle-blind-list {
+    width: 90%;
+    max-width: 320px;
+    margin: 4px auto 8px;
 }
