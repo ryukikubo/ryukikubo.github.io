@@ -477,7 +477,6 @@
                     const owner = gameState.players[propState.owner];
                     const currentRent = calculateRent(tile, propState.houses, propState.boostTurns);
 
-                    header.style.backgroundColor = owner.color.hex;
                     tileEl.style.borderColor = owner.color.hex;
 
                     let houseIcons = "";
