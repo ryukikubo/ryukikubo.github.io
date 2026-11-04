@@ -454,11 +454,32 @@
             return groupTiles.length > 0 && groupTiles.every(candidate => gameState.properties[candidate.id]?.owner === ownerId);
         }
 
-        function calculateRent(tile, houses, boostTurns = 0) {
+        function getActiveExchangeBoost() {
+            return BOARD_TILES
+                .map(tile => ({ tile, state: gameState.properties[tile.id] }))
+                .find(entry => entry.state && entry.state.boostMultiplier > 1) || null;
+        }
+
+        function applyExchangeBoost(target) {
+            const activeBoost = getActiveExchangeBoost();
+            const nextMultiplier = activeBoost
+                ? Math.min(activeBoost.state.boostMultiplier + 1, 5)
+                : 2;
+
+            if (activeBoost && activeBoost.tile.id !== target.tile.id) {
+                activeBoost.state.boostMultiplier = 1;
+                addLog(`${activeBoost.tile.name} の取引所倍率が解除されました。`);
+            }
+
+            target.state.boostMultiplier = nextMultiplier;
+            return nextMultiplier;
+        }
+
+        function calculateRent(tile, houses, boostMultiplier = 1) {
             let base = Math.floor(tile.rent * (1 + houses * 1.5));
             const propertyState = gameState.properties[tile.id];
             if (propertyState && hasPropertyMonopoly(propertyState.owner, tile.group)) base *= 2;
-            if (boostTurns > 0) base *= 2;
+            if (boostMultiplier > 1) base *= boostMultiplier;
             return base;
         }
 
@@ -475,7 +496,7 @@
 
                 if (propState) {
                     const owner = gameState.players[propState.owner];
-                    const currentRent = calculateRent(tile, propState.houses, propState.boostTurns);
+                    const currentRent = calculateRent(tile, propState.houses, propState.boostMultiplier);
 
                     tileEl.style.borderColor = owner.color.hex;
 
@@ -486,7 +507,7 @@
                         houseIcons = `<div class="text-[6px] text-amber-400 font-bold"><i class="fa-solid fa-house"></i>×${propState.houses}</div>`;
                     }
 
-                    let boostHtml = propState.boostTurns > 0 ? `<div class="boost-tag">🔥2倍 [${propState.boostTurns}]</div>` : "";
+                    let boostHtml = propState.boostMultiplier > 1 ? `<div class="boost-tag">🔥${propState.boostMultiplier}倍</div>` : "";
                     let monopolyHtml = hasPropertyMonopoly(owner.id, tile.group) ? `<div class="monopoly-tag">独占 ×2</div>` : "";
 
                     infoEl.innerHTML = `
@@ -675,7 +696,7 @@
                     const details = document.createElement("div");
                     details.className = "assets-property-details";
                     const rent = document.createElement("span");
-                    rent.textContent = `現在の賃料 $${calculateRent(tile, property.houses, property.boostTurns).toLocaleString()}`;
+                    rent.textContent = `現在の賃料 $${calculateRent(tile, property.houses, property.boostMultiplier).toLocaleString()}`;
                     const buildings = document.createElement("span");
                     buildings.textContent = property.houses === 4 ? "ホテル" : property.houses > 0 ? `家 ${property.houses}軒` : "未増築";
                     details.append(rent, buildings);
@@ -689,10 +710,10 @@
                         monopoly.textContent = "エリア独占 ×2";
                         badges.appendChild(monopoly);
                     }
-                    if (property.boostTurns > 0) {
+                    if (property.boostMultiplier > 1) {
                         const boost = document.createElement("span");
                         boost.className = "assets-boost-badge";
-                        boost.textContent = `取引所 ×2 (${property.boostTurns}回)`;
+                        boost.textContent = `取引所 ×${property.boostMultiplier}`;
                         badges.appendChild(boost);
                     }
                     if (badges.childElementCount > 0) item.appendChild(badges);
@@ -823,15 +844,22 @@
                 if (propState && propState.owner !== player.id) {
                     const owner = gameState.players[propState.owner];
                     if (!owner.isBankrupt) {
-                        const rent = calculateRent(tile, propState.houses, propState.boostTurns);
+                        const rent = calculateRent(tile, propState.houses, propState.boostMultiplier);
                         const rentFactors = [];
                         if (hasPropertyMonopoly(owner.id, tile.group)) rentFactors.push("独占2倍");
-                        if (propState.boostTurns > 0) rentFactors.push("取引所2倍");
+                        if (propState.boostMultiplier > 1) rentFactors.push(`取引所${propState.boostMultiplier}倍`);
                         addLog(`${player.name} は ${owner.name} に賃料 $${rent} の支払いが必要です。${rentFactors.length ? `(${rentFactors.join(" × ")})` : ''}`);
-                        if (propState.boostTurns > 0) propState.boostTurns -= 1;
                         await payMoney(player, owner, rent);
 
-                        if (!player.isBankrupt && gameState.properties[tile.id] === propState && player.money >= rent * 2) {
+                        if (propState.boostMultiplier > 1) {
+                            addLog(`${tile.name} の取引所倍率 ${propState.boostMultiplier}倍が消滅しました。`);
+                            propState.boostMultiplier = 1;
+                            renderTileProperties();
+                        }
+
+                        if (propState.houses >= 4) {
+                            addLog(`${tile.name} はビル建設済みのため買収できません。`);
+                        } else if (!player.isBankrupt && gameState.properties[tile.id] === propState && player.money >= rent * 2) {
                             await triggerBuyoutOffer(player, owner, tile, rent);
                         }
                     }
@@ -853,6 +881,8 @@
         }
 
         async function triggerBuyoutOffer(player, owner, tile, rent) {
+            const property = gameState.properties[tile.id];
+            if (!property || property.houses >= 4 || property.owner !== owner.id) return;
             const price = rent * 2;
             if (player.isAi) {
                                 if (player.money >= price) {
@@ -889,7 +919,7 @@
 
         function completeBuyout(player, owner, tile, price) {
             const property = gameState.properties[tile.id];
-            if (!property || property.owner !== owner.id || player.money < price) return false;
+            if (!property || property.houses >= 4 || property.owner !== owner.id || player.money < price) return false;
 
             player.money -= price;
             owner.money += price;
@@ -958,16 +988,22 @@
                     return;
                 }
 
+                const activeBoost = getActiveExchangeBoost();
+                const nextMultiplier = activeBoost
+                    ? Math.min(activeBoost.state.boostMultiplier + 1, 5)
+                    : 2;
+
                 if (player.isAi) {
-                    const target = myProperties.find(p => p.state.boostTurns === 0);
-                    if (target) {
-                        player.money -= FEE;
-                        target.state.boostTurns = 3;
-                        playSound('boost');
-                        addLog(`${player.name} は手数料$100を支払い、【${target.tile.name}】の賃料を🔥2倍(3回分)に強化！`);
-                        renderTileProperties();
-                        updatePlayerCards();
-                    }
+                    const activeOwnedTarget = activeBoost && myProperties.find(p => p.tile.id === activeBoost.tile.id);
+                    const target = activeOwnedTarget && activeBoost.state.boostMultiplier < 5
+                        ? activeOwnedTarget
+                        : myProperties.find(p => !activeBoost || p.tile.id !== activeBoost.tile.id) || activeOwnedTarget || myProperties[0];
+                    player.money -= FEE;
+                    const multiplier = applyExchangeBoost(target);
+                    playSound('boost');
+                    addLog(`${player.name} は手数料$100を支払い、【${target.tile.name}】の賃料を${multiplier}倍に強化！`);
+                    renderTileProperties();
+                    updatePlayerCards();
                     resolve();
                     return;
                 }
@@ -980,20 +1016,24 @@
                 myProperties.forEach(({ tile, state }) => {
                     const btn = document.createElement("button");
                     btn.className = "w-full bg-slate-900 border border-slate-700 hover:border-amber-400 p-2 rounded-lg flex justify-between items-center text-xs text-left transition";
+                    const isActiveTarget = activeBoost && activeBoost.tile.id === tile.id;
+                    const oldMultiplierText = activeBoost && !isActiveTarget
+                        ? ` / ${activeBoost.tile.name}の${activeBoost.state.boostMultiplier}倍は解除`
+                        : "";
                     btn.innerHTML = `
                         <div>
                             <span class="font-bold text-white">${tile.name}</span>
-                            <span class="text-[10px] text-slate-400 block">現在の賃料: $${calculateRent(tile, state.houses, state.boostTurns)}</span>
+                            <span class="text-[10px] text-slate-400 block">現在の賃料: $${calculateRent(tile, state.houses, state.boostMultiplier)}${oldMultiplierText}</span>
                         </div>
                         <span class="text-amber-400 font-bold text-[10px] bg-amber-950 px-2 py-1 rounded">
-                            ${state.boostTurns > 0 ? `🔥2倍中 (${state.boostTurns})` : '2倍に強化'}
+                            ${isActiveTarget && state.boostMultiplier >= 5 ? '🔥5倍 (MAX)' : `🔥${nextMultiplier}倍に強化`}
                         </span>
                     `;
                     btn.onclick = () => {
                         player.money -= FEE;
-                        state.boostTurns = 3;
+                        const multiplier = applyExchangeBoost({ tile, state });
                         playSound('boost');
-                        addLog(`${player.name} は手数料$100を支払い、【${tile.name}】の賃料を🔥2倍(3回分)に強化！`);
+                        addLog(`${player.name} は手数料$100を支払い、【${tile.name}】の賃料を${multiplier}倍に強化！`);
                         resolveExchangeModal(true);
                     };
                     listEl.appendChild(btn);
@@ -1057,7 +1097,7 @@
                     const isAlreadyBuilt = propState.houses >= level;
                     const isHotelLocked = (level === 4 && player.laps < 1);
                     const cost = tile.housePrice * (level - propState.houses);
-                    const rentVal = calculateRent(tile, level, propState.boostTurns);
+                    const rentVal = calculateRent(tile, level, propState.boostMultiplier);
 
                     let disabledReason = "";
                     let isDisabled = false;
@@ -1162,7 +1202,7 @@
             if (tile.type === "property" && !gameState.properties[tile.id]) {
                 if (curPlayer.money >= tile.price) {
                     curPlayer.money -= tile.price;
-                    gameState.properties[tile.id] = { owner: curPlayer.id, houses: 0, boostTurns: 0 };
+                    gameState.properties[tile.id] = { owner: curPlayer.id, houses: 0, boostMultiplier: 1 };
                     playSound('buy');
                     addLog(`${curPlayer.name} は ${tile.name} を $${tile.price} で購入！`);
                     updateUI();
@@ -1543,7 +1583,7 @@
 
             let bodyHtml = "";
             if (tile.type === "property") {
-                const rentCurr = propState ? calculateRent(tile, propState.houses, propState.boostTurns) : tile.rent;
+                const rentCurr = propState ? calculateRent(tile, propState.houses, propState.boostMultiplier) : tile.rent;
                 bodyHtml = `
                     <div class="space-y-1 text-xs">
                         <div class="flex justify-between"><span class="text-slate-400">購入価格:</span> <span class="font-bold text-amber-400">$${tile.price}</span></div>
@@ -1552,14 +1592,14 @@
                         <div class="flex justify-between"><span class="text-slate-400">増築費用:</span> <span class="font-bold text-white">$${tile.housePrice}</span></div>
                         <div class="flex justify-between pt-1 border-t border-slate-700"><span class="text-slate-400">所有者:</span> <span class="font-bold text-amber-300">${ownerName}</span></div>
                         <div class="flex justify-between"><span class="text-slate-400">増築状況:</span> <span class="font-bold text-white">${propState ? (propState.houses === 4 ? 'ホテル' : propState.houses + ' 軒') : 'なし'}</span></div>
-                        <div class="flex justify-between"><span class="text-slate-400">賃料2倍ブースト:</span> <span class="font-bold text-amber-400">${propState && propState.boostTurns > 0 ? `🔥適用中 (残り${propState.boostTurns}回)` : 'なし'}</span></div>
+                        <div class="flex justify-between"><span class="text-slate-400">取引所倍率:</span> <span class="font-bold text-amber-400">${propState && propState.boostMultiplier > 1 ? `🔥${propState.boostMultiplier}倍` : 'なし'}</span></div>
                     </div>
                 `;
             } else {
                 bodyHtml = `
                     <div class="text-center py-2 text-slate-300">
                         【${tile.name}】 マス<br>
-                        <span class="text-[10px] text-slate-400">${tile.type === 'exchange' ? '手数料$100で自分の所有土地を1つ「🔥2倍」に強化できます。' : '特殊イベントマスです。'}</span>
+                        <span class="text-[10px] text-slate-400">${tile.type === 'exchange' ? '手数料$100で所有物件1つの取引所倍率を上げます (2〜5倍)。別の物件を選ぶと旧倍率は解除され、賃料が徴収されると倍率は消滅します。' : '特殊イベントマスです。'}</span>
                     </div>
                 `;
             }
