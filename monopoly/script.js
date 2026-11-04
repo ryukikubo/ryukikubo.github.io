@@ -87,22 +87,40 @@
             { id: 17, gridCol: 4, gridRow: 1, name: "恵比寿", type: "property", group: 5, price: 240, rent: 48, housePrice: 110, color: "#ef4444" },
             { id: 18, gridCol: 5, gridRow: 1, name: "代官山", type: "property", group: 5, price: 260, rent: 52, housePrice: 110, color: "#ef4444" },
             { id: 19, gridCol: 6, gridRow: 1, name: "特別税", type: "tax", price: 0, rent: 100 },
-            { id: 20, gridCol: 7, gridRow: 1, name: "六本木", type: "property", group: 5, price: 280, rent: 56, housePrice: 110, color: "#ef4444" },
+            { id: 20, gridCol: 8, gridRow: 6, name: "六本木", type: "property", group: 8, price: 280, rent: 56, housePrice: 110, color: "#6366f1" },
             { id: 21, gridCol: 8, gridRow: 1, name: "即収監", type: "gotojail", price: 0, rent: 0 },
 
             { id: 22, gridCol: 8, gridRow: 2, name: "赤坂", type: "property", group: 6, price: 300, rent: 62, housePrice: 130, color: "#eab308" },
-            { id: 23, gridCol: 8, gridRow: 3, name: "麻布十番", type: "property", group: 6, price: 320, rent: 68, housePrice: 130, color: "#eab308" },
+            { id: 23, gridCol: 7, gridRow: 1, name: "麻布十番", type: "property", group: 6, price: 320, rent: 68, housePrice: 130, color: "#eab308" },
             { id: 24, gridCol: 8, gridRow: 4, name: "チャンス", type: "chance", price: 0, rent: 0 },
             { id: 25, gridCol: 8, gridRow: 5, name: "品川", type: "property", group: 7, price: 350, rent: 76, housePrice: 150, color: "#10b981" },
-            { id: 26, gridCol: 8, gridRow: 6, name: "丸の内", type: "property", group: 7, price: 380, rent: 84, housePrice: 150, color: "#10b981" },
+            { id: 26, gridCol: 8, gridRow: 3, name: "丸の内", type: "property", group: 7, price: 380, rent: 84, housePrice: 150, color: "#10b981" },
             { id: 27, gridCol: 8, gridRow: 7, name: "銀座", type: "property", group: 8, price: 420, rent: 100, housePrice: 180, color: "#6366f1" }
         ];
+
+        const BOARD_TRACK_COORDINATES = [
+            ...Array.from({ length: 8 }, (_, index) => ({ gridCol: 8 - index, gridRow: 8 })),
+            ...Array.from({ length: 7 }, (_, index) => ({ gridCol: 1, gridRow: 7 - index })),
+            ...Array.from({ length: 7 }, (_, index) => ({ gridCol: 2 + index, gridRow: 1 })),
+            ...Array.from({ length: 6 }, (_, index) => ({ gridCol: 8, gridRow: 2 + index }))
+        ];
+        const BOARD_TRACK_TILES = BOARD_TRACK_COORDINATES.map(({ gridCol, gridRow }) =>
+            BOARD_TILES.find(tile => tile.gridCol === gridCol && tile.gridRow === gridRow)
+        );
+        if (BOARD_TRACK_TILES.some(tile => !tile) || new Set(BOARD_TRACK_TILES.map(tile => tile.id)).size !== BOARD_TILES.length) {
+            throw new Error("盤面の外周タイル配置に重複または欠落があります。");
+        }
+        const NEXT_TRACK_TILE_ID = new Map(BOARD_TRACK_TILES.map((tile, index) => [
+            tile.id,
+            BOARD_TRACK_TILES[(index + 1) % BOARD_TRACK_TILES.length].id
+        ]));
+        const LAST_TILE_BEFORE_GO = BOARD_TRACK_TILES[BOARD_TRACK_TILES.length - 1].id;
 
         const CHANCE_CARDS = [
             { text: "臨時ボーナス！$120を獲得", money: 120 },
             { text: "スピード違反！$50を支払う", money: -50 },
             { text: "臨時収入！$80を獲得", money: 80 },
-            { text: "GOのマスへ直行！", moveTo: 0 }
+            { text: "GOのマスへ直行！サラリー$200を受け取る", moveTo: 0 }
         ];
 
         const PLAYER_COLORS = [
@@ -120,15 +138,19 @@
             properties: {},
             isRollPhase: true,
             hasExtraRoll: false,
-            isAiGame: true,
             selectedCount: 2,
+            humanCount: 1,
             isBusy: false
         };
+        let setupPlayerNames = {};
+        let setupPlayerOrder = [];
 
         let infoModalResolver = null;
         let exchangeModalResolver = null;
         let buildModalResolver = null;
         let liquidationModalResolver = null;
+        let buyoutModalResolver = null;
+        let pendingBuyout = null;
 
         let selectedBuildTier = null;
         let liquidationState = {
@@ -162,7 +184,9 @@
         }
 
         function selectPlayerCount(count) {
+            if (gameState.selectedCount !== count) setupPlayerOrder = [];
             gameState.selectedCount = count;
+            gameState.humanCount = Math.min(gameState.humanCount, count);
             document.querySelectorAll('.count-btn').forEach(btn => {
                 if (parseInt(btn.dataset.count) === count) {
                     btn.className = 'count-btn p-2 rounded-lg border border-amber-400 bg-amber-500 text-slate-950 font-black text-xs';
@@ -170,34 +194,152 @@
                     btn.className = 'count-btn p-2 rounded-lg border border-slate-700 bg-slate-900 text-white font-bold text-xs';
                 }
             });
+            renderHumanCountOptions();
+            renderPlayerSetup();
+        }
+
+        function renderHumanCountOptions() {
+            const container = document.getElementById("human-count-options");
+            container.innerHTML = "";
+
+            for (let humanCount = 1; humanCount <= gameState.selectedCount; humanCount++) {
+                const cpuCount = gameState.selectedCount - humanCount;
+                const button = document.createElement("button");
+                const isSelected = humanCount === gameState.humanCount;
+                button.type = "button";
+                button.className = isSelected
+                    ? "mix-btn p-2 rounded-lg border border-emerald-400 bg-emerald-500 text-slate-950 font-black text-[10px]"
+                    : "mix-btn p-2 rounded-lg border border-slate-700 bg-slate-900 text-slate-300 font-bold text-[10px]";
+                button.setAttribute("aria-pressed", String(isSelected));
+                button.textContent = cpuCount === 0
+                    ? `人間 ${humanCount}人 · CPUなし`
+                    : `人間 ${humanCount}人 · CPU ${cpuCount}人`;
+                button.addEventListener("click", () => {
+                    if (gameState.humanCount !== humanCount) setupPlayerOrder = [];
+                    gameState.humanCount = humanCount;
+                    renderHumanCountOptions();
+                    renderPlayerSetup();
+                });
+                container.appendChild(button);
+            }
+        }
+
+        function getSetupPlayerSpecs() {
+            const specs = [];
+            for (let index = 0; index < gameState.selectedCount; index++) {
+                const isAi = index >= gameState.humanCount;
+                const roleIndex = isAi ? index - gameState.humanCount : index;
+                specs.push({
+                    key: isAi ? `cpu-${roleIndex + 1}` : `human-${roleIndex + 1}`,
+                    role: isAi ? `CPU ${roleIndex + 1}` : `人間 ${roleIndex + 1}`,
+                    defaultName: isAi ? `CPU ${roleIndex + 1}` : `P${roleIndex + 1}`,
+                    isAi
+                });
+            }
+            return specs;
+        }
+
+        function renderPlayerSetup() {
+            const specs = getSetupPlayerSpecs();
+            const validKeys = new Set(specs.map(spec => spec.key));
+            setupPlayerOrder = setupPlayerOrder.filter(key => validKeys.has(key));
+            specs.forEach(spec => {
+                if (!setupPlayerOrder.includes(spec.key)) setupPlayerOrder.push(spec.key);
+                if (setupPlayerNames[spec.key] === undefined) setupPlayerNames[spec.key] = spec.defaultName;
+            });
+
+            const nameFields = document.getElementById("player-name-fields");
+            nameFields.innerHTML = "";
+            specs.forEach(spec => {
+                const field = document.createElement("label");
+                field.className = "setup-name-field";
+                const role = document.createElement("span");
+                role.textContent = spec.role;
+                const input = document.createElement("input");
+                input.type = "text";
+                input.maxLength = 16;
+                input.value = setupPlayerNames[spec.key];
+                input.setAttribute("aria-label", `${spec.role}の名前`);
+                input.addEventListener("input", () => {
+                    setupPlayerNames[spec.key] = input.value;
+                    renderPlayerOrder(specs);
+                });
+                field.append(role, input);
+                nameFields.appendChild(field);
+            });
+            renderPlayerOrder(specs);
+        }
+
+        function renderPlayerOrder(specs = getSetupPlayerSpecs()) {
+            const orderList = document.getElementById("player-order-list");
+            const specsByKey = new Map(specs.map(spec => [spec.key, spec]));
+            orderList.innerHTML = "";
+
+            setupPlayerOrder.forEach((key, index) => {
+                const spec = specsByKey.get(key);
+                if (!spec) return;
+
+                const row = document.createElement("div");
+                row.className = "setup-order-row";
+                const number = document.createElement("span");
+                number.className = "setup-order-number";
+                number.textContent = String(index + 1);
+                const name = document.createElement("span");
+                name.className = "setup-order-name";
+                name.textContent = setupPlayerNames[key] || spec.defaultName;
+                const role = document.createElement("span");
+                role.className = "setup-order-role";
+                role.textContent = spec.isAi ? "CPU" : "人間";
+                const controls = document.createElement("span");
+                controls.className = "setup-order-controls";
+
+                [-1, 1].forEach(direction => {
+                    const button = document.createElement("button");
+                    button.type = "button";
+                    button.disabled = index + direction < 0 || index + direction >= setupPlayerOrder.length;
+                    button.setAttribute("aria-label", `${name.textContent}を${direction < 0 ? "前" : "後ろ"}へ移動`);
+                    button.textContent = direction < 0 ? "↑" : "↓";
+                    button.addEventListener("click", () => moveSetupPlayer(key, direction));
+                    controls.appendChild(button);
+                });
+
+                row.append(number, name, role, controls);
+                orderList.appendChild(row);
+            });
+        }
+
+        function moveSetupPlayer(key, direction) {
+            const index = setupPlayerOrder.indexOf(key);
+            const target = index + direction;
+            if (index < 0 || target < 0 || target >= setupPlayerOrder.length) return;
+            [setupPlayerOrder[index], setupPlayerOrder[target]] = [setupPlayerOrder[target], setupPlayerOrder[index]];
+            renderPlayerOrder();
         }
 
         function startGame() {
-            const mode = document.getElementById("game-mode").value;
             const startMoney = parseInt(document.getElementById("start-money").value);
 
-            gameState.isAiGame = (mode === "ai");
-            gameState.players = [];
-            gameState.properties = {};
-            gameState.currentPlayerIdx = 0;
-            gameState.isRollPhase = true;
-            gameState.hasExtraRoll = false;
-            gameState.isBusy = false;
-
-            for (let i = 0; i < gameState.selectedCount; i++) {
-                gameState.players.push({
-                    id: i,
-                    name: (i === 0) ? "あなた (P1)" : (gameState.isAiGame ? `CPU ${i}` : `P${i+1}`),
-                    isAi: (i > 0 && gameState.isAiGame),
+            const specsByKey = new Map(getSetupPlayerSpecs().map(spec => [spec.key, spec]));
+            gameState.players = setupPlayerOrder.map((key, index) => {
+                const spec = specsByKey.get(key);
+                return {
+                    id: index,
+                    name: setupPlayerNames[key].trim() || spec.defaultName,
+                    isAi: spec.isAi,
                     money: startMoney,
                     position: 0,
                     laps: 0,
                     inJail: false,
                     jailTurns: 0,
                     isBankrupt: false,
-                    color: PLAYER_COLORS[i]
-                });
-            }
+                    color: PLAYER_COLORS[index]
+                };
+            });
+            gameState.properties = {};
+            gameState.currentPlayerIdx = 0;
+            gameState.isRollPhase = true;
+            gameState.hasExtraRoll = false;
+            gameState.isBusy = false;
 
             document.getElementById("setup-modal").classList.add("hidden");
             buildBoardDOM();
@@ -307,8 +449,15 @@
             board.appendChild(centerArea);
         }
 
+        function hasPropertyMonopoly(ownerId, group) {
+            const groupTiles = BOARD_TILES.filter(candidate => candidate.type === "property" && candidate.group === group);
+            return groupTiles.length > 0 && groupTiles.every(candidate => gameState.properties[candidate.id]?.owner === ownerId);
+        }
+
         function calculateRent(tile, houses, boostTurns = 0) {
             let base = Math.floor(tile.rent * (1 + houses * 1.5));
+            const propertyState = gameState.properties[tile.id];
+            if (propertyState && hasPropertyMonopoly(propertyState.owner, tile.group)) base *= 2;
             if (boostTurns > 0) base *= 2;
             return base;
         }
@@ -339,10 +488,12 @@
                     }
 
                     let boostHtml = propState.boostTurns > 0 ? `<div class="boost-tag">🔥2倍 [${propState.boostTurns}]</div>` : "";
+                    let monopolyHtml = hasPropertyMonopoly(owner.id, tile.group) ? `<div class="monopoly-tag">独占 ×2</div>` : "";
 
                     infoEl.innerHTML = `
                         <div class="owner-badge ${owner.color.bg} mb-0.5">P${owner.id + 1}</div>
                         ${houseIcons}
+                        ${monopolyHtml}
                         ${boostHtml}
                         <div class="rent-tag">賃料:$${currentRent}</div>
                     `;
@@ -446,7 +597,17 @@
             gameState.players.forEach((p, idx) => {
                 const isCurrent = (idx === gameState.currentPlayerIdx);
                 const card = document.createElement("div");
-                card.className = `p-1.5 rounded-xl border ${isCurrent ? 'bg-slate-800 ' + p.color.border : 'bg-slate-900/60 border-slate-800'} ${p.isBankrupt ? 'opacity-30' : ''} transition-all shadow`;
+                card.className = `p-1.5 rounded-xl border cursor-pointer ${isCurrent ? 'bg-slate-800 ' + p.color.border : 'bg-slate-900/60 border-slate-800'} ${p.isBankrupt ? 'opacity-30' : ''} transition-all shadow hover:border-amber-400`;
+                card.setAttribute("role", "button");
+                card.setAttribute("tabindex", "0");
+                card.setAttribute("aria-label", `${p.name}の現金と保有物件を表示`);
+                card.addEventListener("click", () => showPlayerAssets(p.id));
+                card.addEventListener("keydown", event => {
+                    if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        showPlayerAssets(p.id);
+                    }
+                });
 
                 const ownedCount = Object.values(gameState.properties).filter(prop => prop.owner === p.id).length;
 
@@ -461,12 +622,100 @@
                     </div>
                     <div class="flex justify-between items-baseline">
                         <span class="text-xs font-black ${p.money < 100 ? 'text-red-400' : 'text-emerald-400'}">$${p.money}</span>
-                        <span class="text-[9px] text-slate-400 font-bold"><i class="fa-solid fa-city me-0.5"></i>${ownedCount}件</span>
+                        <span class="text-[9px] text-slate-400 font-bold"><i class="fa-solid fa-city me-0.5"></i>${ownedCount}件 <i class="fa-solid fa-chevron-right ms-1 text-[7px]"></i></span>
                     </div>
                 `;
                 container.appendChild(card);
             });
         }
+
+        function showPlayerAssets(playerId) {
+            const player = gameState.players[playerId];
+            if (!player) return;
+
+            document.getElementById("assets-modal-title").textContent = `${player.name} の資産`;
+            const summary = document.getElementById("assets-player-summary");
+            summary.innerHTML = "";
+
+            const cashRow = document.createElement("div");
+            cashRow.className = "assets-cash-row";
+            const cashLabel = document.createElement("span");
+            cashLabel.textContent = "現金";
+            const cashValue = document.createElement("strong");
+            cashValue.textContent = `$${player.money.toLocaleString()}`;
+            cashRow.append(cashLabel, cashValue);
+            summary.appendChild(cashRow);
+
+            const ownedProperties = BOARD_TILES.filter(tile => {
+                const property = gameState.properties[tile.id];
+                return tile.type === "property" && property?.owner === player.id;
+            });
+            const propertyList = document.getElementById("assets-property-list");
+            propertyList.innerHTML = "";
+
+            if (ownedProperties.length === 0) {
+                const emptyMessage = document.createElement("p");
+                emptyMessage.className = "assets-empty";
+                emptyMessage.textContent = "保有物件はありません。";
+                propertyList.appendChild(emptyMessage);
+            } else {
+                ownedProperties.forEach(tile => {
+                    const property = gameState.properties[tile.id];
+                    const item = document.createElement("div");
+                    item.className = "assets-property";
+
+                    const topRow = document.createElement("div");
+                    topRow.className = "assets-property-top";
+                    const name = document.createElement("strong");
+                    name.textContent = tile.name;
+                    name.style.borderLeft = `4px solid ${tile.color}`;
+                    const group = document.createElement("span");
+                    group.textContent = `エリア ${tile.group}`;
+                    topRow.append(name, group);
+
+                    const details = document.createElement("div");
+                    details.className = "assets-property-details";
+                    const rent = document.createElement("span");
+                    rent.textContent = `現在の賃料 $${calculateRent(tile, property.houses, property.boostTurns).toLocaleString()}`;
+                    const buildings = document.createElement("span");
+                    buildings.textContent = property.houses === 4 ? "ホテル" : property.houses > 0 ? `家 ${property.houses}軒` : "未増築";
+                    details.append(rent, buildings);
+                    item.append(topRow, details);
+
+                    const badges = document.createElement("div");
+                    badges.className = "assets-badges";
+                    if (hasPropertyMonopoly(player.id, tile.group)) {
+                        const monopoly = document.createElement("span");
+                        monopoly.className = "assets-monopoly-badge";
+                        monopoly.textContent = "エリア独占 ×2";
+                        badges.appendChild(monopoly);
+                    }
+                    if (property.boostTurns > 0) {
+                        const boost = document.createElement("span");
+                        boost.className = "assets-boost-badge";
+                        boost.textContent = `取引所 ×2 (${property.boostTurns}回)`;
+                        badges.appendChild(boost);
+                    }
+                    if (badges.childElementCount > 0) item.appendChild(badges);
+                    propertyList.appendChild(item);
+                });
+            }
+
+            document.getElementById("assets-modal").classList.remove("hidden");
+        }
+
+        function closePlayerAssets() {
+            document.getElementById("assets-modal").classList.add("hidden");
+        }
+
+        document.getElementById("assets-close-icon").addEventListener("click", closePlayerAssets);
+        document.getElementById("assets-close-button").addEventListener("click", closePlayerAssets);
+        document.getElementById("assets-modal").addEventListener("click", event => {
+            if (event.target.id === "assets-modal") closePlayerAssets();
+        });
+        document.addEventListener("keydown", event => {
+            if (event.key === "Escape") closePlayerAssets();
+        });
 
         async function handleRollDice() {
             if (!gameState.isRollPhase || gameState.isBusy) return;
@@ -546,11 +795,11 @@
         async function movePlayerStepByStep(player, steps) {
             for (let i = 0; i < steps; i++) {
                 const oldPos = player.position;
-                player.position = (player.position + 1) % BOARD_TILES.length;
+                player.position = NEXT_TRACK_TILE_ID.get(oldPos);
 
                 playSound('dice');
 
-                if (player.position === 0 && oldPos === (BOARD_TILES.length - 1)) {
+                if (player.position === 0 && oldPos === LAST_TILE_BEFORE_GO) {
                     player.laps += 1;
                     player.money += 200;
                     playSound('go');
@@ -576,9 +825,16 @@
                     const owner = gameState.players[propState.owner];
                     if (!owner.isBankrupt) {
                         const rent = calculateRent(tile, propState.houses, propState.boostTurns);
-                        addLog(`${player.name} は ${owner.name} に賃料 $${rent} の支払いが必要です。${propState.boostTurns > 0 ? '(🔥2倍)' : ''}`);
+                        const rentFactors = [];
+                        if (hasPropertyMonopoly(owner.id, tile.group)) rentFactors.push("独占2倍");
+                        if (propState.boostTurns > 0) rentFactors.push("取引所2倍");
+                        addLog(`${player.name} は ${owner.name} に賃料 $${rent} の支払いが必要です。${rentFactors.length ? `(${rentFactors.join(" × ")})` : ''}`);
                         if (propState.boostTurns > 0) propState.boostTurns -= 1;
                         await payMoney(player, owner, rent);
+
+                        if (!player.isBankrupt && gameState.properties[tile.id] === propState && player.money >= rent * 2) {
+                            await triggerBuyoutOffer(player, owner, tile, rent);
+                        }
                     }
                 }
             } else if (tile.type === "exchange") {
@@ -597,6 +853,55 @@
             }
         }
 
+        async function triggerBuyoutOffer(player, owner, tile, rent) {
+            const price = rent * 2;
+            if (player.isAi) {
+                                if (player.money >= price) {
+                    completeBuyout(player, owner, tile, price);
+                }
+                return;
+            }
+
+            return new Promise(resolve => {
+                buyoutModalResolver = resolve;
+                pendingBuyout = { player, owner, tile, price };
+                document.getElementById("buyout-description").textContent = `賃料 $${rent} を支払いました。【${tile.name}】を所有者 ${owner.name} から買収できます。`;
+                document.getElementById("buyout-price").textContent = `$${price}`;
+                document.getElementById("buyout-confirm-btn").disabled = player.money < price;
+                document.getElementById("buyout-modal").classList.remove("hidden");
+            });
+        }
+
+        function resolveBuyoutModal(accept) {
+            document.getElementById("buyout-modal").classList.add("hidden");
+            const offer = pendingBuyout;
+            pendingBuyout = null;
+            let purchased = false;
+            if (accept && offer) {
+                purchased = completeBuyout(offer.player, offer.owner, offer.tile, offer.price);
+            } else if (offer) {
+                addLog(`${offer.player.name} は 【${offer.tile.name}】 の買収を見送りました。`);
+            }
+
+            const resolver = buyoutModalResolver;
+            buyoutModalResolver = null;
+            if (resolver) resolver(purchased);
+        }
+
+        function completeBuyout(player, owner, tile, price) {
+            const property = gameState.properties[tile.id];
+            if (!property || property.owner !== owner.id || player.money < price) return false;
+
+            player.money -= price;
+            owner.money += price;
+            property.owner = player.id;
+            playSound('buy');
+            addLog(`${player.name} は ${owner.name} に $${price} を支払い、【${tile.name}】を買収しました！`);
+            renderTileProperties();
+            updatePlayerCards();
+            return true;
+        }
+
         function triggerChanceCard(player) {
             return new Promise((resolve) => {
                 const card = CHANCE_CARDS[Math.floor(Math.random() * CHANCE_CARDS.length)];
@@ -612,6 +917,13 @@
                         }
                     } else if (card.moveTo !== undefined) {
                         player.position = card.moveTo;
+                        if (card.moveTo === 0) {
+                            player.money += 200;
+                            player.laps += 1;
+                            playSound('go');
+                            addLog(`${player.name} はGOのマスへ直行し、サラリー $200 を獲得！`);
+                            updatePlayerCards();
+                        }
                         renderTokens();
                         addLog(`${player.name} はGOマスへワープしました。`);
                     }
@@ -825,6 +1137,10 @@
                 res(built);
             }
         }
+
+        document.getElementById("buyout-confirm-btn").addEventListener("click", () => resolveBuyoutModal(true));
+
+        document.getElementById("buyout-decline-btn").addEventListener("click", () => resolveBuyoutModal(false));
 
         async function handleBuildHouse() {
             if (gameState.isBusy) return;

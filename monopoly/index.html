@@ -42,7 +42,7 @@
                 <span id="action-prompt" class="text-[11px] font-bold text-amber-300 truncate">サイコロを振ってください</span>
                 <span class="text-[9px] text-slate-400 font-semibold"><i class="fa-solid fa-clock-rotate-left me-0.5"></i>ログ</span>
             </div>
-            <div id="game-log" class="text-[9.5px] text-slate-300 h-9 overflow-y-auto space-y-0.5 leading-snug pr-1 border-t border-slate-700/50 pt-0.5">
+            <div id="game-log" class="text-[10px] text-slate-300 h-14 overflow-y-auto space-y-0.5 leading-snug pr-1 border-t border-slate-700/50 pt-1">
                 <div>• ゲームを開始しました。</div>
             </div>
         </div>
@@ -50,7 +50,7 @@
 
     <!-- 設定・開始 モーダル -->
     <div id="setup-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50">
-        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5 max-w-xs w-full shadow-2xl flex flex-col gap-4 text-center">
+        <div id="setup-modal-panel" class="bg-slate-800 border border-slate-700 rounded-2xl p-5 max-w-xs w-full shadow-2xl flex flex-col gap-4 text-center">
             <div>
                 <h2 class="text-xl font-black text-amber-400 mb-0.5"><i class="fa-solid fa-chess-board me-2"></i>8x8 MONOPOLY</h2>
                 <p class="text-xs text-slate-400">スマホ最適化・28マスモノポリー</p>
@@ -58,20 +58,29 @@
 
             <div class="space-y-3 text-left">
                 <div>
-                    <label class="text-xs font-bold text-slate-300 mb-1 block">対戦モード</label>
-                    <select id="game-mode" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs font-bold text-white focus:outline-none focus:border-amber-400">
-                        <option value="ai">VS CPU (AI対戦)</option>
-                        <option value="local">ローカルマルチ (1台で遊ぶ)</option>
-                    </select>
-                </div>
-
-                <div>
                     <label class="text-xs font-bold text-slate-300 mb-1 block">プレイヤー人数</label>
                     <div class="grid grid-cols-3 gap-2">
                         <button type="button" onclick="selectPlayerCount(2)" class="count-btn p-2 rounded-lg border border-amber-400 bg-amber-500 text-slate-950 font-black text-xs" data-count="2">2名</button>
                         <button type="button" onclick="selectPlayerCount(3)" class="count-btn p-2 rounded-lg border border-slate-700 bg-slate-900 text-white font-bold text-xs" data-count="3">3名</button>
                         <button type="button" onclick="selectPlayerCount(4)" class="count-btn p-2 rounded-lg border border-slate-700 bg-slate-900 text-white font-bold text-xs" data-count="4">4名</button>
                     </div>
+                </div>
+
+                <div>
+                    <label class="text-xs font-bold text-slate-300 mb-1 block">参加メンバー</label>
+                    <div id="human-count-options" class="grid grid-cols-2 gap-2" role="group" aria-label="人間プレイヤーとCPUの人数"></div>
+                    <p class="text-[9px] text-slate-500 mt-1">スマホ1台で遊ぶ人数に合わせて選択してください。</p>
+                </div>
+
+                <div>
+                    <label class="text-xs font-bold text-slate-300 mb-1 block">プレイヤー名</label>
+                    <div id="player-name-fields" class="setup-name-list"></div>
+                </div>
+
+                <div>
+                    <label class="text-xs font-bold text-slate-300 mb-1 block">ダイスを振る順番</label>
+                    <div id="player-order-list" class="setup-order-list"></div>
+                    <p class="text-[9px] text-slate-500 mt-1">一番上の人から順に進みます。</p>
                 </div>
 
                 <div>
@@ -149,6 +158,41 @@
                     破産を確定
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- 賃料支払い後の買収確認 -->
+    <div id="buyout-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-slate-800 border border-emerald-500/50 rounded-2xl p-4 max-w-xs w-full shadow-2xl flex flex-col gap-3">
+            <div class="text-center border-b border-slate-700 pb-2">
+                <div class="text-emerald-400 text-2xl mb-1"><i class="fa-solid fa-handshake"></i></div>
+                <h3 class="text-sm font-black text-emerald-300">物件を買収しますか？</h3>
+                <p id="buyout-description" class="text-[10px] text-slate-300 mt-1"></p>
+            </div>
+            <div class="flex justify-between items-center px-1 text-xs">
+                <span class="text-slate-400">買収額 (賃料の2倍)</span>
+                <strong id="buyout-price" class="text-amber-300">$0</strong>
+            </div>
+            <div class="flex gap-2 pt-1 border-t border-slate-700">
+                <button id="buyout-confirm-btn" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-black py-2 rounded-xl text-xs shadow transition active:scale-95">買収する</button>
+                <button id="buyout-decline-btn" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-300 font-bold py-2 rounded-xl text-xs">見送る</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- プレイヤー資産ダイアログ -->
+    <div id="assets-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden" role="dialog" aria-modal="true" aria-labelledby="assets-modal-title">
+        <div class="bg-slate-800 border border-amber-500/40 rounded-2xl p-4 max-w-sm w-full shadow-2xl flex flex-col gap-3">
+            <div class="flex justify-between items-start border-b border-slate-700 pb-2">
+                <div>
+                    <p class="text-[9px] text-slate-400 font-bold tracking-wider">PLAYER ASSETS</p>
+                    <h3 id="assets-modal-title" class="text-sm font-black text-amber-300">プレイヤーの資産</h3>
+                </div>
+                <button id="assets-close-icon" type="button" class="w-7 h-7 rounded-lg bg-slate-700 text-slate-300 text-lg leading-none" aria-label="閉じる">&times;</button>
+            </div>
+            <div id="assets-player-summary" class="assets-player-summary"></div>
+            <div id="assets-property-list" class="assets-property-list"></div>
+            <button id="assets-close-button" type="button" class="w-full bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold py-2 rounded-xl text-xs">閉じる</button>
         </div>
     </div>
 
