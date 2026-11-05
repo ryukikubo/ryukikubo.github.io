@@ -30,7 +30,7 @@
     </header>
 
     <!-- ボードエリア (8x8 外周28マス) -->
-    <main class="flex-1 flex flex-col justify-center items-center w-full min-h-0">
+    <main class="board-area flex-1 flex flex-col justify-center items-center w-full min-h-0">
         <div id="board" class="board-grid"></div>
     </main>
 
@@ -211,6 +211,13 @@
         </div>
     </div>
 
+    <div id="city-effect-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden" role="dialog" aria-modal="true" aria-labelledby="city-effect-title">
+        <div class="bg-slate-800 border border-cyan-500/50 rounded-2xl p-4 max-w-xs w-full shadow-2xl flex flex-col gap-3 max-h-[85vh]">
+            <h3 id="city-effect-title" class="text-sm font-black text-cyan-300 text-center">都市を選択</h3>
+            <div id="city-effect-list" class="overflow-y-auto space-y-1.5 min-h-0"></div>
+        </div>
+    </div>
+
     <!-- 汎用・チャンスカード通知モーダル -->
     <div id="info-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4 max-w-xs w-full shadow-2xl flex flex-col gap-3">
@@ -220,6 +227,21 @@
             <button id="modal-confirm-btn" onclick="resolveInfoModal()" class="w-full bg-amber-500 text-slate-950 font-black py-2 rounded-xl text-xs transition active:scale-95">
                 OK
             </button>
+        </div>
+    </div>
+
+    <!-- 保持カード使用確認 -->
+    <div id="card-choice-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden" role="dialog" aria-modal="true" aria-labelledby="card-choice-title">
+        <div class="bg-slate-800 border border-violet-500/50 rounded-2xl p-4 max-w-xs w-full shadow-2xl flex flex-col gap-3">
+            <div class="text-center border-b border-slate-700 pb-2">
+                <p class="text-[9px] text-violet-300 font-bold tracking-wider">HELD CARD</p>
+                <h3 id="card-choice-title" class="text-sm font-black text-white"></h3>
+                <p id="card-choice-description" class="text-[10px] text-slate-300 mt-1"></p>
+            </div>
+            <div class="flex gap-2 pt-1">
+                <button id="card-use-button" type="button" class="flex-1 bg-violet-600 hover:bg-violet-500 text-white font-black py-2 rounded-xl text-xs shadow transition active:scale-95">使う</button>
+                <button id="card-keep-button" type="button" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-300 font-bold py-2 rounded-xl text-xs">温存する</button>
+            </div>
         </div>
     </div>
 

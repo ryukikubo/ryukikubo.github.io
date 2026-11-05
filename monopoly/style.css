@@ -20,17 +20,52 @@
         /* 8x8 グリッド盤面 */
         .board-grid {
             display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            grid-template-rows: repeat(8, 1fr);
+            grid-template-columns: repeat(8, minmax(0, 1fr));
+            grid-template-rows: repeat(8, minmax(0, 1fr));
             gap: 2px;
             aspect-ratio: 1 / 1;
-            width: 100%;
-            max-width: 480px;
+            width: min(100cqw, 100cqh, 480px);
+            height: min(100cqw, 100cqh, 480px);
+            min-width: 0;
+            min-height: 0;
             background-color: #1e293b;
             padding: 3px;
             border-radius: 16px;
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.7), inset 0 0 12px rgba(255, 255, 255, 0.05);
             position: relative;
+        }
+
+        .board-area {
+            container-type: size;
+        }
+
+        .die-pips {
+            width: 100%;
+            height: 100%;
+            display: grid;
+            grid-template-columns: repeat(3, 6px);
+            grid-template-rows: repeat(3, 6px);
+            gap: 3px;
+            align-content: center;
+            justify-content: center;
+        }
+
+        .die-pip {
+            width: 6px;
+            height: 6px;
+            visibility: hidden;
+            border-radius: 50%;
+        }
+
+        .die-pip.is-visible {
+            visibility: visible;
+            background: radial-gradient(circle at 35% 30%, #475569, #0f172a 75%);
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, .45), 0 1px 1px rgba(255, 255, 255, .55);
+        }
+
+        .die-face-1 .die-pip.is-visible {
+            background: radial-gradient(circle at 35% 30%, #fca5a5, #dc2626 75%);
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, .5), 0 0 4px rgba(220, 38, 38, .45);
         }
 
         /* 個別マス */
@@ -49,6 +84,16 @@
             border: 1px solid #334155;
             transition: all 0.2s ease;
             cursor: pointer;
+        }
+
+        .tile.has-sandstorm::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: rgba(239, 68, 68, 0.3);
+            border-radius: inherit;
+            z-index: 20;
+            pointer-events: none;
         }
 
         /* カラーバー */

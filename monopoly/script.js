@@ -117,11 +117,28 @@
         const LAST_TILE_BEFORE_GO = BOARD_TRACK_TILES[BOARD_TRACK_TILES.length - 1].id;
 
         const CHANCE_CARDS = [
-            { text: "臨時ボーナス！$120を獲得", money: 120 },
-            { text: "スピード違反！$50を支払う", money: -50 },
-            { text: "臨時収入！$80を獲得", money: 80 },
-            { text: "GOのマスへ直行！サラリー$200を受け取る", moveTo: 0 }
+            { weight: 3, text: "臨時ボーナス！$120を獲得", money: 120 },
+            { weight: 3, text: "スピード違反！$50を支払う", money: -50 },
+            { weight: 3, text: "臨時収入！$80を獲得", money: 80 },
+            { weight: 2, text: "GOのマスへ直行！サラリー$200を受け取る", moveTo: 0 },
+            { weight: 1.55, text: "保釈カードを獲得！収監時に使用できます。", heldCard: "bailPass" },
+            { weight: 1, text: "ブラックカードを獲得！敵の賃料を1回免除できます。", heldCard: "black" },
+            { weight: 1, text: "砂嵐！都市を1つ選び、3ターンの間、賃料を半額にする", effect: "sandstorm" },
+            { weight: 0.45, text: "地震！都市を1つ選び、建築物を1段階崩壊させる", effect: "earthquake" }
         ];
+
+        function drawChanceCard() {
+            const availableCards = CHANCE_CARDS.filter(card => Number.isFinite(card.weight) && card.weight > 0);
+            const totalWeight = availableCards.reduce((total, card) => total + card.weight, 0);
+            if (totalWeight === 0) return null;
+
+            let remainingWeight = Math.random() * totalWeight;
+            for (const card of availableCards) {
+                remainingWeight -= card.weight;
+                if (remainingWeight < 0) return card;
+            }
+            return availableCards[availableCards.length - 1];
+        }
 
         const PLAYER_COLORS = [
             { bg: "bg-red-500", border: "border-red-500", hex: "#ef4444", icon: "fa-user" },
@@ -130,12 +147,28 @@
             { bg: "bg-amber-500", border: "border-amber-500", hex: "#f59e0b", icon: "fa-cat" }
         ];
 
-        const DICE_ICONS = ["", "fa-dice-one", "fa-dice-two", "fa-dice-three", "fa-dice-four", "fa-dice-five", "fa-dice-six"];
+        const DICE_PIP_POSITIONS = {
+            1: [4],
+            2: [0, 8],
+            3: [0, 4, 8],
+            4: [0, 2, 6, 8],
+            5: [0, 2, 4, 6, 8],
+            6: [0, 2, 3, 5, 6, 8]
+        };
+
+        function createDiceFaceMarkup(value) {
+            const visiblePips = new Set(DICE_PIP_POSITIONS[value] || []);
+            const pips = Array.from({ length: 9 }, (_, index) =>
+                `<span class="die-pip${visiblePips.has(index) ? ' is-visible' : ''}"></span>`
+            ).join("");
+            return `<span class="die-pips die-face-${value}" role="img" aria-label="サイコロ ${value} の目">${pips}</span>`;
+        }
 
         let gameState = {
             players: [],
             currentPlayerIdx: 0,
             properties: {},
+            sandstorms: {},
             isRollPhase: true,
             hasExtraRoll: false,
             selectedCount: 2,
@@ -331,11 +364,13 @@
                     laps: 0,
                     inJail: false,
                     jailTurns: 0,
+                    cards: { bailPass: 0, black: 0 },
                     isBankrupt: false,
                     color: PLAYER_COLORS[index]
                 };
             });
             gameState.properties = {};
+            gameState.sandstorms = {};
             gameState.currentPlayerIdx = 0;
             gameState.isRollPhase = true;
             gameState.hasExtraRoll = false;
@@ -420,14 +455,14 @@
             centerArea.className = "col-start-2 col-end-8 row-start-2 row-end-8 bg-slate-900/95 rounded-xl p-2 flex flex-col justify-between items-center text-center border border-slate-700/80 relative overflow-hidden my-auto h-full gap-1 shadow-inner";
             centerArea.innerHTML = `
                 <div class="flex gap-2 items-center justify-center pt-1">
-                    <div id="dice-1" class="w-8 h-8 bg-slate-100 rounded-lg text-slate-900 font-black text-base flex items-center justify-center shadow-md border border-slate-300">
-                        <i class="fa-solid fa-dice-one"></i>
+                    <div id="dice-1" class="w-10 h-10 bg-slate-100 rounded-lg text-slate-900 font-black text-lg flex items-center justify-center shadow-md border border-slate-300">
+                        ${createDiceFaceMarkup(1)}
                     </div>
-                    <div id="dice-2" class="w-8 h-8 bg-slate-100 rounded-lg text-slate-900 font-black text-base flex items-center justify-center shadow-md border border-slate-300">
-                        <i class="fa-solid fa-dice-one"></i>
+                    <div id="dice-2" class="w-10 h-10 bg-slate-100 rounded-lg text-slate-900 font-black text-lg flex items-center justify-center shadow-md border border-slate-300">
+                        ${createDiceFaceMarkup(1)}
                     </div>
                 </div>
-                <div id="dice-total" class="text-[10px] font-bold text-amber-400">ダイスを振ってください</div>
+                <div id="dice-total" class="min-h-8 px-2 py-1 rounded-lg bg-slate-950/80 border border-slate-700 text-xs font-extrabold text-amber-300 shadow-inner flex items-center justify-center">ダイスを振ってください</div>
 
                 <div class="w-full flex flex-col gap-1">
                     <button id="btn-roll" onclick="handleRollDice()" class="w-full bg-gradient-to-r from-amber-500 to-amber-600 disabled:opacity-40 text-slate-950 font-extrabold py-2 rounded-lg text-xs shadow transition active:scale-95 flex items-center justify-center gap-1">
@@ -480,6 +515,7 @@
             const propertyState = gameState.properties[tile.id];
             if (propertyState && hasPropertyMonopoly(propertyState.owner, tile.group)) base *= 2;
             if (boostMultiplier > 1) base *= boostMultiplier;
+            if (gameState.sandstorms[tile.id] > 0) base = Math.floor(base / 2);
             return base;
         }
 
@@ -494,6 +530,7 @@
 
                 const propState = gameState.properties[tile.id];
 
+                tileEl.classList.toggle("has-sandstorm", Boolean(propState) && gameState.sandstorms[tile.id] > 0);
                 if (propState) {
                     const owner = gameState.players[propState.owner];
                     const currentRent = calculateRent(tile, propState.houses, propState.boostMultiplier);
@@ -509,7 +546,6 @@
 
                     let boostHtml = propState.boostMultiplier > 1 ? `<div class="boost-tag">🔥${propState.boostMultiplier}倍</div>` : "";
                     let monopolyHtml = hasPropertyMonopoly(owner.id, tile.group) ? `<div class="monopoly-tag">独占 ×2</div>` : "";
-
                     infoEl.innerHTML = `
                         <div class="owner-badge ${owner.color.bg} mb-0.5">P${owner.id + 1}</div>
                         ${houseIcons}
@@ -582,7 +618,8 @@
                     promptEl.textContent = curPlayer.inJail ? "刑務所中 (ゾロ目で釈放)" : "サイコロを振ってください";
                 }
             } else {
-                btnEnd.disabled = false;
+                btnRoll.disabled = !gameState.hasExtraRoll;
+                btnEnd.disabled = gameState.hasExtraRoll;
                 const currentTile = BOARD_TILES[curPlayer.position];
 
                 if (currentTile.type === "property") {
@@ -630,6 +667,10 @@
                 });
 
                 const ownedCount = Object.values(gameState.properties).filter(prop => prop.owner === p.id).length;
+                const heldCards = [
+                    p.cards.bailPass ? `保釈 ×${p.cards.bailPass}` : "",
+                    p.cards.black ? `ブラック ×${p.cards.black}` : ""
+                ].filter(Boolean);
 
                 card.innerHTML = `
                     <div class="flex items-center justify-between mb-0.5">
@@ -644,6 +685,7 @@
                         <span class="text-xs font-black ${p.money < 100 ? 'text-red-400' : 'text-emerald-400'}">$${p.money}</span>
                         <span class="text-[9px] text-slate-400 font-bold"><i class="fa-solid fa-city me-0.5"></i>${ownedCount}件 <i class="fa-solid fa-chevron-right ms-1 text-[7px]"></i></span>
                     </div>
+                    ${heldCards.length ? `<div class="mt-0.5 text-[8px] font-bold text-violet-300">${heldCards.join(" / ")}</div>` : ""}
                 `;
                 container.appendChild(card);
             });
@@ -665,6 +707,15 @@
             cashValue.textContent = `$${player.money.toLocaleString()}`;
             cashRow.append(cashLabel, cashValue);
             summary.appendChild(cashRow);
+
+            const heldCardsRow = document.createElement("div");
+            heldCardsRow.className = "assets-cash-row";
+            const heldCardsLabel = document.createElement("span");
+            heldCardsLabel.textContent = "保持カード";
+            const heldCardsValue = document.createElement("strong");
+            heldCardsValue.textContent = `保釈 ${player.cards.bailPass}枚 / ブラック ${player.cards.black}枚`;
+            heldCardsRow.append(heldCardsLabel, heldCardsValue);
+            summary.appendChild(heldCardsRow);
 
             const ownedProperties = BOARD_TILES.filter(tile => {
                 const property = gameState.properties[tile.id];
@@ -716,6 +767,12 @@
                         boost.textContent = `取引所 ×${property.boostMultiplier}`;
                         badges.appendChild(boost);
                     }
+                    if (gameState.sandstorms[tile.id] > 0) {
+                        const storm = document.createElement("span");
+                        storm.className = "assets-boost-badge";
+                        storm.textContent = `砂嵐 半額 / 残り${gameState.sandstorms[tile.id]}ターン`;
+                        badges.appendChild(storm);
+                    }
                     if (badges.childElementCount > 0) item.appendChild(badges);
                     propertyList.appendChild(item);
                 });
@@ -738,7 +795,7 @@
         });
 
         async function handleRollDice() {
-            if (!gameState.isRollPhase || gameState.isBusy) return;
+            if ((!gameState.isRollPhase && !gameState.hasExtraRoll) || gameState.isBusy) return;
 
             gameState.isBusy = true;
             gameState.hasExtraRoll = false;
@@ -762,8 +819,8 @@
 
             dice1El.classList.remove("rolling");
             dice2El.classList.remove("rolling");
-            dice1El.innerHTML = `<i class="fa-solid ${DICE_ICONS[d1]}"></i>`;
-            dice2El.innerHTML = `<i class="fa-solid ${DICE_ICONS[d2]}"></i>`;
+            dice1El.innerHTML = createDiceFaceMarkup(d1);
+            dice2El.innerHTML = createDiceFaceMarkup(d2);
             totalEl.textContent = `出目: ${d1} + ${d2} = ${total} ${isDouble ? '(🎲ゾロ目!)' : ''}`;
 
             const curPlayer = gameState.players[gameState.currentPlayerIdx];
@@ -848,29 +905,59 @@
                         const rentFactors = [];
                         if (hasPropertyMonopoly(owner.id, tile.group)) rentFactors.push("独占2倍");
                         if (propState.boostMultiplier > 1) rentFactors.push(`取引所${propState.boostMultiplier}倍`);
+                        if (gameState.sandstorms[tile.id] > 0) rentFactors.push("砂嵐で半額");
                         addLog(`${player.name} は ${owner.name} に賃料 $${rent} の支払いが必要です。${rentFactors.length ? `(${rentFactors.join(" × ")})` : ''}`);
-                        await payMoney(player, owner, rent);
+                        const rentPaid = !(player.cards.black > 0 && await askToUseHeldCard(
+                            player,
+                            "black",
+                            "ブラックカードを使いますか？",
+                            `【${tile.name}】の賃料 $${rent} を免除します。`
+                        ));
 
-                        if (propState.boostMultiplier > 1) {
+                        if (rentPaid) {
+                            await payMoney(player, owner, rent);
+                        } else {
+                            player.cards.black -= 1;
+                            addLog(`${player.name} はブラックカードを使い、【${tile.name}】の賃料 $${rent} を免除されました。`);
+                            playSound('buy');
+                            updatePlayerCards();
+                        }
+
+                        if (rentPaid && propState.boostMultiplier > 1) {
                             addLog(`${tile.name} の取引所倍率 ${propState.boostMultiplier}倍が消滅しました。`);
                             propState.boostMultiplier = 1;
                             renderTileProperties();
                         }
 
-                        if (propState.houses >= 4) {
-                            addLog(`${tile.name} はビル建設済みのため買収できません。`);
-                        } else if (!player.isBankrupt && gameState.properties[tile.id] === propState && player.money >= rent * 2) {
-                            await triggerBuyoutOffer(player, owner, tile, rent);
+                        if (rentPaid) {
+                            if (propState.houses >= 4) {
+                                addLog(`${tile.name} はビル建設済みのため買収できません。`);
+                            } else if (!player.isBankrupt && gameState.properties[tile.id] === propState && player.money >= rent * 2) {
+                                await triggerBuyoutOffer(player, owner, tile, rent);
+                            }
                         }
                     }
                 }
             } else if (tile.type === "exchange") {
                 await triggerExchangeModal(player);
             } else if (tile.type === "gotojail") {
-                addLog(`${player.name} は即逮捕され刑務所へ！`);
-                player.position = 7;
-                player.inJail = true;
-                player.jailTurns = 0;
+                const useBailPass = player.cards.bailPass > 0 && await askToUseHeldCard(
+                    player,
+                    "bailPass",
+                    "保釈カードを使いますか？",
+                    "刑務所への移動を免れ、このマスにとどまります。"
+                );
+                if (useBailPass) {
+                    player.cards.bailPass -= 1;
+                    addLog(`${player.name} は保釈カードを使い、刑務所への移送を免れました。`);
+                    playSound('buy');
+                    updatePlayerCards();
+                } else {
+                    addLog(`${player.name} は即逮捕され刑務所へ！`);
+                    player.position = 7;
+                    player.inJail = true;
+                    player.jailTurns = 0;
+                }
                 renderTokens();
             } else if (tile.type === "tax") {
                 addLog(`${player.name} は税金 $${tile.rent} の支払いが必要です。`);
@@ -931,9 +1018,36 @@
             return true;
         }
 
+        function askToUseHeldCard(player, cardType, title, description) {
+            if (player.isAi) return Promise.resolve(true);
+
+            return new Promise(resolve => {
+                const modal = document.getElementById("card-choice-modal");
+                const useButton = document.getElementById("card-use-button");
+                const keepButton = document.getElementById("card-keep-button");
+                const finish = useCard => {
+                    modal.classList.add("hidden");
+                    useButton.onclick = null;
+                    keepButton.onclick = null;
+                    resolve(useCard);
+                };
+
+                document.getElementById("card-choice-title").textContent = title;
+                document.getElementById("card-choice-description").textContent = description;
+                useButton.onclick = () => finish(true);
+                keepButton.onclick = () => finish(false);
+                modal.classList.remove("hidden");
+            });
+        }
+
         function triggerChanceCard(player) {
             return new Promise((resolve) => {
-                const card = CHANCE_CARDS[Math.floor(Math.random() * CHANCE_CARDS.length)];
+                const card = drawChanceCard();
+                if (!card) {
+                    addLog("出現可能なチャンスカードが設定されていません。");
+                    resolve();
+                    return;
+                }
                 addLog(`チャンス: ${card.text}`);
 
                 infoModalResolver = async () => {
@@ -944,17 +1058,21 @@
                         } else {
                             await payTax(player, Math.abs(card.money));
                         }
+                    } else if (card.heldCard) {
+                        player.cards[card.heldCard] += 1;
+                        addLog(`${player.name} は${card.heldCard === "bailPass" ? "保釈カード" : "ブラックカード"}を獲得しました。`);
+                        playSound('buy');
+                        updatePlayerCards();
+                    } else if (card.effect === "sandstorm") {
+                        await triggerSandstorm(player);
+                    } else if (card.effect === "earthquake") {
+                        await triggerEarthquake(player);
                     } else if (card.moveTo !== undefined) {
-                        player.position = card.moveTo;
-                        if (card.moveTo === 0) {
-                            player.money += 200;
-                            player.laps += 1;
-                            playSound('go');
-                            addLog(`${player.name} はGOのマスへ直行し、サラリー $200 を獲得！`);
-                            updatePlayerCards();
-                        }
-                        renderTokens();
-                        addLog(`${player.name} はGOマスへワープしました。`);
+                        const currentTrackIndex = BOARD_TRACK_TILES.findIndex(tile => tile.id === player.position);
+                        const targetTrackIndex = BOARD_TRACK_TILES.findIndex(tile => tile.id === card.moveTo);
+                        const steps = (targetTrackIndex - currentTrackIndex + BOARD_TRACK_TILES.length) % BOARD_TRACK_TILES.length;
+                        await movePlayerStepByStep(player, steps);
+                        addLog(`${player.name} は【${BOARD_TILES[card.moveTo].name}】へ移動しました。`);
                     }
                     resolve();
                 };
@@ -966,6 +1084,115 @@
                         <div class="font-bold text-sm text-white">${card.text}</div>
                     </div>
                 `);
+            });
+        }
+
+        function applySandstorm(tile) {
+            const property = gameState.properties[tile.id];
+            if (!property || !gameState.players[property.owner] || gameState.players[property.owner].isBankrupt) return;
+            gameState.sandstorms[tile.id] = 3;
+            addLog(`【${tile.name}】に砂嵐が発生！賃料が3ターンの間、半額になります。`);
+            renderTileProperties();
+        }
+
+        function triggerSandstorm(player) {
+            const cities = BOARD_TILES.filter(tile => {
+                const property = gameState.properties[tile.id];
+                return tile.type === "property" && property && gameState.players[property.owner] && !gameState.players[property.owner].isBankrupt;
+            });
+            if (cities.length === 0) {
+                addLog("所有者のいる都市がないため、砂嵐は発生しませんでした。");
+                return Promise.resolve();
+            }
+            if (player.isAi) {
+                const opponents = cities.filter(tile => {
+                    const property = gameState.properties[tile.id];
+                    return property && property.owner !== player.id && !gameState.players[property.owner].isBankrupt;
+                });
+                const candidates = opponents.length ? opponents : cities;
+                const rentForCity = tile => {
+                    const property = gameState.properties[tile.id];
+                    return calculateRent(tile, property?.houses || 0, property?.boostMultiplier || 1);
+                };
+                candidates.sort((first, second) => opponents.length
+                    ? rentForCity(second) - rentForCity(first)
+                    : rentForCity(first) - rentForCity(second));
+                applySandstorm(candidates[0]);
+                return Promise.resolve();
+            }
+
+            return chooseCityForEffect(cities, "砂嵐", tile => {
+                const property = gameState.properties[tile.id];
+                const rent = calculateRent(tile, property.houses, property.boostMultiplier);
+                return `${gameState.players[property.owner].name} / 現在の賃料 $${rent}`;
+            }, applySandstorm);
+        }
+
+        function applyEarthquake(tile) {
+            const property = gameState.properties[tile.id];
+            if (!property || property.houses <= 0 || !gameState.players[property.owner] || gameState.players[property.owner].isBankrupt) return;
+            const previousBuildings = property.houses === 4 ? "ホテル" : `家${property.houses}軒`;
+            property.houses -= 1;
+            const remainingBuildings = property.houses > 0 ? `家${property.houses}軒` : "建築物なし";
+            addLog(`【${tile.name}】で地震が発生！${previousBuildings}から${remainingBuildings}になりました。`);
+            renderTileProperties();
+        }
+
+        function triggerEarthquake(player) {
+            const cities = BOARD_TILES.filter(tile => {
+                const property = gameState.properties[tile.id];
+                return tile.type === "property" && property?.houses > 0 && gameState.players[property.owner] && !gameState.players[property.owner].isBankrupt;
+            });
+            if (cities.length === 0) {
+                addLog("建築物のある都市がないため、地震の被害はありませんでした。");
+                return Promise.resolve();
+            }
+            if (player.isAi) {
+                const opponents = cities.filter(tile => gameState.properties[tile.id].owner !== player.id);
+                const candidates = opponents.length ? opponents : cities;
+                const rentLoss = tile => {
+                    const property = gameState.properties[tile.id];
+                    return calculateRent(tile, property.houses, property.boostMultiplier)
+                        - calculateRent(tile, property.houses - 1, property.boostMultiplier);
+                };
+                candidates.sort((first, second) => opponents.length
+                    ? rentLoss(second) - rentLoss(first)
+                    : rentLoss(first) - rentLoss(second));
+                applyEarthquake(candidates[0]);
+                return Promise.resolve();
+            }
+            return chooseCityForEffect(cities, "地震", tile => {
+                const property = gameState.properties[tile.id];
+                const buildings = property.houses === 4 ? "ホテル → 家3軒" : `家${property.houses}軒 → ${property.houses === 1 ? "建築物なし" : `家${property.houses - 1}軒`}`;
+                return `${gameState.players[property.owner].name} / ${buildings}`;
+            }, applyEarthquake);
+        }
+
+        function chooseCityForEffect(cities, effectName, describeCity, applyEffect) {
+            return new Promise(resolve => {
+                const modal = document.getElementById("city-effect-modal");
+                const list = document.getElementById("city-effect-list");
+                document.getElementById("city-effect-title").textContent = `${effectName}：都市を選択`;
+                list.innerHTML = "";
+                cities.forEach(tile => {
+                    const button = document.createElement("button");
+                    button.type = "button";
+                    button.className = "w-full bg-slate-900 border border-slate-700 hover:border-cyan-400 p-2 rounded-lg text-xs text-left";
+                    const name = document.createElement("strong");
+                    name.className = "block text-white";
+                    name.textContent = tile.name;
+                    const details = document.createElement("span");
+                    details.className = "block text-[10px] text-slate-300";
+                    details.textContent = describeCity(tile);
+                    button.append(name, details);
+                    button.onclick = () => {
+                        modal.classList.add("hidden");
+                        applyEffect(tile);
+                        resolve();
+                    };
+                    list.appendChild(button);
+                });
+                modal.classList.remove("hidden");
             });
         }
 
@@ -1219,6 +1446,14 @@
                 updateUI();
                 return;
             }
+
+            Object.keys(gameState.sandstorms).forEach(tileId => {
+                gameState.sandstorms[tileId] -= 1;
+                if (gameState.sandstorms[tileId] === 0) {
+                    delete gameState.sandstorms[tileId];
+                    addLog(`【${BOARD_TILES[tileId].name}】の砂嵐が収まり、賃料が元に戻りました。`);
+                }
+            });
 
             let nextIdx = (gameState.currentPlayerIdx + 1) % gameState.players.length;
             while (gameState.players[nextIdx].isBankrupt) {
