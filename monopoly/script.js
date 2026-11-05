@@ -567,7 +567,7 @@
                     headerHtml = `<div class="tile-header" id="tile-header-${tile.id}" style="background-color: ${tile.color};"></div>`;
                     bodyHtml = `
                         <div class="tile-property-name">${tile.name}</div>
-                        <div id="tile-info-${tile.id}" class="flex flex-col items-center w-full my-auto">
+                        <div id="tile-info-${tile.id}" class="tile-info flex flex-col items-center w-full my-auto">
                             <span class="text-[6px] text-slate-400 font-bold">$${tile.price}</span>
                         </div>
                     `;
@@ -721,9 +721,9 @@
 
                     let houseIcons = "";
                     if (propState.houses === 4) {
-                        houseIcons = `<div class="text-[6px] leading-none font-black" style="color: ${owner.color.hex}"><i class="fa-solid fa-hotel"></i></div>`;
+                        houseIcons = `<div class="tile-building-icons is-hotel font-black" style="color: ${owner.color.hex}"><i class="fa-solid fa-hotel"></i></div>`;
                     } else if (propState.houses > 0) {
-                        houseIcons = `<div class="flex justify-center gap-0.5 text-[6px] leading-none font-bold" style="color: ${owner.color.hex}" role="img" aria-label="家${propState.houses}軒">${'<i class="fa-solid fa-house" aria-hidden="true"></i>'.repeat(propState.houses)}</div>`;
+                        houseIcons = `<div class="tile-building-icons font-bold" style="color: ${owner.color.hex}" role="img" aria-label="家${propState.houses}軒">${'<i class="fa-solid fa-house" aria-hidden="true"></i>'.repeat(propState.houses)}</div>`;
                     }
 
                     header.innerHTML = "";

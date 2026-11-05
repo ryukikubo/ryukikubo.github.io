@@ -123,6 +123,29 @@
             color: #e2e8f0;
         }
 
+        @media (max-width: 379px) {
+            .tile {
+                padding-top: 0;
+            }
+
+            .tile-property-name {
+                height: 8px;
+                line-height: 8px;
+            }
+        }
+
+        .tile-info {
+            gap: 0;
+        }
+
+        .tile-building-icons {
+            display: flex;
+            justify-content: center;
+            gap: 1px;
+            font-size: 6px;
+            line-height: 1;
+        }
+
         /* カラーバー */
         .tile-header {
             display: flex;
@@ -172,6 +195,34 @@
             font-weight: 800;
             line-height: 5px;
             white-space: nowrap;
+        }
+
+        @media (min-width: 400px) and (min-height: 700px) {
+            .tile-info {
+                gap: 1px;
+            }
+
+            .tile-building-icons {
+                gap: 0.5px;
+                font-size: 9px;
+            }
+
+            .tile-building-icons.is-hotel {
+                font-size: 10px;
+            }
+
+            .tile .rent-multiplier {
+                height: auto;
+                padding: 1px 3px;
+                font-size: 8px;
+                line-height: 1.15;
+            }
+
+            .tile .rent-tag {
+                padding: 1px 3px;
+                font-size: 9px;
+                line-height: 1.15;
+            }
         }
 
         /* 2倍ブースト表示タグ */
