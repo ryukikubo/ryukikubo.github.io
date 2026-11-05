@@ -221,10 +221,13 @@
             { weight: 3, text: "臨時ボーナス！$120を獲得", money: 120 },
             { weight: 3, text: "スピード違反！$50を支払う", money: -50 },
             { weight: 3, text: "臨時収入！$80を獲得", money: 80 },
+            { weight: 1, text: "コンテストの賞金！$100を獲得", money: 100 },
+            { weight: 1, text: "手続きの還付金！$90を獲得", money: 90 },
+            { weight: 1, text: "地域活動への協力金！$20を支払う", money: -20 },
             { weight: 2, text: "GOのマスへ直行！サラリー$200を受け取る", moveTo: 0 },
             { weight: 1.55, text: "保釈カードを獲得！収監時に使用できます。", heldCard: "bailPass" },
             { weight: 1, text: "ブラックカードを獲得！敵の賃料を1回免除できます。", heldCard: "black" },
-            { weight: 1, text: "砂嵐！都市を1つ選び、3ターンの間、賃料を半額にする", effect: "sandstorm" },
+            { weight: 1, text: "砂嵐！都市を1つ選び、全員が1回ずつサイコロを振るまでを1ターンとして、3ターンの間賃料を半額にする", effect: "sandstorm" },
             { weight: 0.45, text: "地震！都市を1つ選び、建築物を1段階崩壊させる", effect: "earthquake" }
         ];
 
@@ -270,6 +273,7 @@
             currentPlayerIdx: 0,
             properties: {},
             sandstorms: {},
+            sandstormTurnPlayers: {},
             bankruptcyOrder: [],
             isRollPhase: true,
             hasExtraRoll: false,
@@ -513,6 +517,7 @@
             });
             gameState.properties = {};
             gameState.sandstorms = {};
+            gameState.sandstormTurnPlayers = {};
             gameState.bankruptcyOrder = [];
             gameState.currentPlayerIdx = 0;
             gameState.isRollPhase = true;
@@ -680,13 +685,18 @@
             return nextMultiplier;
         }
 
-        function calculateRent(tile, houses, boostMultiplier = 1) {
-            let base = Math.floor(tile.rent * (1 + houses * 1.5));
+        function getRentMultiplier(tile, boostMultiplier = 1) {
+            let multiplier = 1;
             const propertyState = gameState.properties[tile.id];
-            if (propertyState && hasPropertyMonopoly(propertyState.owner, tile.group)) base *= 2;
-            if (boostMultiplier > 1) base *= boostMultiplier;
-            if (gameState.sandstorms[tile.id] > 0) base = Math.floor(base / 2);
-            return base;
+            if (propertyState && hasPropertyMonopoly(propertyState.owner, tile.group)) multiplier *= 2;
+            if (boostMultiplier > 1) multiplier *= boostMultiplier;
+            if (gameState.sandstorms[tile.id] > 0) multiplier *= 0.5;
+            return multiplier;
+        }
+
+        function calculateRent(tile, houses, boostMultiplier = 1) {
+            const base = Math.floor(tile.rent * (1 + houses * 1.5));
+            return Math.floor(base * getRentMultiplier(tile, boostMultiplier));
         }
 
         function renderTileProperties() {
@@ -704,21 +714,26 @@
                 if (propState) {
                     const owner = gameState.players[propState.owner];
                     const currentRent = calculateRent(tile, propState.houses, propState.boostMultiplier);
+                    const multiplier = getRentMultiplier(tile, propState.boostMultiplier);
+                    const hasMultiplier = multiplier !== 1 || gameState.sandstorms[tile.id] > 0;
 
                     tileEl.style.borderColor = owner.color.hex;
 
                     let houseIcons = "";
                     if (propState.houses === 4) {
-                        houseIcons = `<div class="text-[6px] font-black" style="color: ${owner.color.hex}"><i class="fa-solid fa-hotel"></i></div>`;
+                        houseIcons = `<div class="text-[6px] leading-none font-black" style="color: ${owner.color.hex}"><i class="fa-solid fa-hotel"></i></div>`;
                     } else if (propState.houses > 0) {
-                        houseIcons = `<div class="flex justify-center gap-0.5 text-[6px] font-bold" style="color: ${owner.color.hex}" role="img" aria-label="家${propState.houses}軒">${'<i class="fa-solid fa-house" aria-hidden="true"></i>'.repeat(propState.houses)}</div>`;
+                        houseIcons = `<div class="flex justify-center gap-0.5 text-[6px] leading-none font-bold" style="color: ${owner.color.hex}" role="img" aria-label="家${propState.houses}軒">${'<i class="fa-solid fa-house" aria-hidden="true"></i>'.repeat(propState.houses)}</div>`;
                     }
 
+                    header.innerHTML = "";
                     infoEl.innerHTML = `
                         ${houseIcons}
-                        <div class="rent-tag">賃料:$${currentRent}</div>
+                        ${hasMultiplier ? `<span class="rent-multiplier" title="賃料倍率 ×${multiplier}">×${multiplier}</span>` : ""}
+                        <div class="rent-tag" aria-label="賃料 $${currentRent}">$${currentRent}</div>
                     `;
                 } else {
+                    header.innerHTML = "";
                     header.style.backgroundColor = tile.color;
                     tileEl.style.borderColor = "#334155";
                     infoEl.innerHTML = `<span class="text-[6px] text-slate-400 font-bold">$${tile.price}</span>`;
@@ -1420,12 +1435,35 @@
             });
         }
 
-        function applySandstorm(tile) {
+        function applySandstorm(tile, player) {
             const property = gameState.properties[tile.id];
             if (!property || !gameState.players[property.owner] || gameState.players[property.owner].isBankrupt) return;
             gameState.sandstorms[tile.id] = 3;
-            addLog(`【${tile.name}】に砂嵐が発生！賃料が3ターンの間、半額になります。`);
+            gameState.sandstormTurnPlayers[tile.id] = new Set([player.id]);
+            addLog(`【${tile.name}】に砂嵐が発生！全員が1回ずつサイコロを振るまでを1ターンとして、3ターンの間賃料が半額になります。`);
             renderTileProperties();
+        }
+
+        function completeSandstormTurn(player) {
+            const activePlayerIds = gameState.players.filter(activePlayer => !activePlayer.isBankrupt).map(activePlayer => activePlayer.id);
+            Object.keys(gameState.sandstorms).forEach(tileId => {
+                const rolledPlayers = gameState.sandstormTurnPlayers[tileId] || new Set();
+                rolledPlayers.add(player.id);
+
+                if (!activePlayerIds.every(playerId => rolledPlayers.has(playerId))) {
+                    gameState.sandstormTurnPlayers[tileId] = rolledPlayers;
+                    return;
+                }
+
+                gameState.sandstorms[tileId] -= 1;
+                if (gameState.sandstorms[tileId] <= 0) {
+                    delete gameState.sandstorms[tileId];
+                    delete gameState.sandstormTurnPlayers[tileId];
+                    addLog(`【${BOARD_TILES[tileId].name}】の砂嵐が収まり、賃料が元に戻りました。`);
+                } else {
+                    gameState.sandstormTurnPlayers[tileId] = new Set();
+                }
+            });
         }
 
         function triggerSandstorm(player) {
@@ -1450,7 +1488,7 @@
                 candidates.sort((first, second) => opponents.length
                     ? rentForCity(second) - rentForCity(first)
                     : rentForCity(first) - rentForCity(second));
-                applySandstorm(candidates[0]);
+                applySandstorm(candidates[0], player);
                 return Promise.resolve();
             }
 
@@ -1458,7 +1496,7 @@
                 const property = gameState.properties[tile.id];
                 const rent = calculateRent(tile, property.houses, property.boostMultiplier);
                 return `${gameState.players[property.owner].name} / 現在の賃料 $${rent}`;
-            }, applySandstorm);
+            }, tile => applySandstorm(tile, player));
         }
 
         function applyEarthquake(tile) {
@@ -1794,13 +1832,8 @@
                 return;
             }
 
-            Object.keys(gameState.sandstorms).forEach(tileId => {
-                gameState.sandstorms[tileId] -= 1;
-                if (gameState.sandstorms[tileId] === 0) {
-                    delete gameState.sandstorms[tileId];
-                    addLog(`【${BOARD_TILES[tileId].name}】の砂嵐が収まり、賃料が元に戻りました。`);
-                }
-            });
+            const endingPlayer = gameState.players[gameState.currentPlayerIdx];
+            if (!endingPlayer.isBankrupt) completeSandstormTurn(endingPlayer);
 
             let nextIdx = (gameState.currentPlayerIdx + 1) % gameState.players.length;
             while (gameState.players[nextIdx].isBankrupt) {
