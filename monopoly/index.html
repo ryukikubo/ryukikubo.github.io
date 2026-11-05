@@ -13,12 +13,15 @@
 <body class="max-w-md mx-auto p-2 border-x border-slate-800">
 
     <!-- ヘッダー -->
-    <header class="flex justify-between items-center bg-slate-800/90 p-2 rounded-xl border border-slate-700/80 mb-1 shadow-lg shrink-0">
+    <header class="flex flex-wrap gap-1 justify-between items-center bg-slate-800/90 p-2 rounded-xl border border-slate-700/80 mb-1 shadow-lg shrink-0">
         <div class="flex items-center gap-1.5">
             <i class="fa-solid fa-building-columns text-amber-400 text-sm"></i>
             <span class="text-xs font-black tracking-wider text-amber-400">MONOPOLY 8x8</span>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex min-w-0 flex-wrap items-center justify-end gap-1">
+            <button id="btn-bgm" type="button" onclick="toggleBgmMute()" class="w-7 h-7 shrink-0 flex items-center justify-center rounded-lg bg-slate-700 hover:bg-slate-600 border border-slate-600 text-teal-300 text-xs" title="BGMをミュート" aria-label="BGMをミュート" aria-pressed="false">
+                <i class="fa-solid fa-volume-high" aria-hidden="true"></i>
+            </button>
             <button onclick="requestReturnToTitle()" class="px-2 py-1 rounded-lg bg-slate-700 hover:bg-slate-600 border border-slate-600 text-slate-300 font-bold text-[10px] transition active:scale-95 flex items-center gap-1">
                 <i class="fa-solid fa-house"></i> タイトルへ
             </button>
@@ -57,6 +60,15 @@
             </div>
 
             <div class="space-y-3 text-left">
+                <div>
+                    <label for="map-theme" class="text-xs font-bold text-slate-300 mb-1 block">マップ</label>
+                    <select id="map-theme" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs font-bold text-amber-300 focus:outline-none focus:border-amber-400">
+                        <option value="world">世界マップ</option>
+                        <option value="japan" selected>日本マップ</option>
+                        <option value="space">宇宙マップ</option>
+                    </select>
+                </div>
+
                 <div>
                     <label class="text-xs font-bold text-slate-300 mb-1 block">プレイヤー人数</label>
                     <div class="grid grid-cols-3 gap-2">
@@ -100,19 +112,19 @@
     </div>
 
     <!-- マルチティア一括選択型 増築モーダル -->
-    <div id="build-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden">
-        <div class="bg-slate-800 border border-sky-500/50 rounded-2xl p-4 max-w-sm w-full shadow-2xl flex flex-col gap-3">
+    <div id="build-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden" role="dialog" aria-modal="true" aria-labelledby="build-modal-title">
+        <div class="bg-slate-800 border border-sky-500/50 rounded-2xl p-4 max-w-sm w-full shadow-2xl flex flex-col gap-3 max-h-[85vh]">
             <div class="text-center border-b border-slate-700 pb-2">
                 <div id="build-modal-color" class="h-2 w-full rounded-full mb-2"></div>
-                <h3 id="build-modal-title" class="text-sm font-black text-sky-400">物件の増築選択</h3>
+                <h3 id="build-modal-title" class="text-sm font-black text-sky-400">物件の購入・増築</h3>
                 <p id="build-modal-subtitle" class="text-[10px] text-slate-300 mt-0.5"></p>
             </div>
             
-            <div id="build-tiers-container" class="space-y-1.5 max-h-56 overflow-y-auto pr-1"></div>
+            <div id="build-tiers-container" class="space-y-1.5 max-h-80 min-h-0 overflow-y-auto pr-1"></div>
 
             <div class="flex gap-2 pt-1 border-t border-slate-700">
-                <button id="build-confirm-btn" onclick="confirmBuildSelection()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-black py-2 rounded-xl text-xs shadow transition active:scale-95">
-                    選択した段階へ増築
+                <button id="build-confirm-btn" onclick="confirmBuildSelection()" disabled class="flex-1 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white font-black py-2 rounded-xl text-xs shadow transition active:scale-95">
+                    確定する
                 </button>
                 <button onclick="resolveBuildModal(false)" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-300 font-bold py-2 rounded-xl text-xs">
                     キャンセル
@@ -208,6 +220,45 @@
             <button onclick="resolveExchangeModal(null)" class="w-full bg-slate-700 text-slate-300 font-bold py-1.5 rounded-lg text-xs">
                 キャンセル / スキップ
             </button>
+        </div>
+    </div>
+
+    <div id="casino-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden" role="dialog" aria-modal="true" aria-labelledby="casino-title">
+        <div class="bg-slate-800 border border-rose-400/50 rounded-lg p-4 max-w-xs w-full shadow-2xl flex flex-col gap-3 max-h-[85vh] overflow-y-auto">
+            <h3 id="casino-title" class="text-sm font-black text-rose-300 text-center"><i class="fa-solid fa-dice me-1"></i>ハイ＆ロー</h3>
+            <div id="casino-player" class="text-xs font-bold text-center text-white break-words"></div>
+            <div class="flex justify-between items-baseline gap-2 text-xs">
+                <span class="text-slate-400">所持金</span>
+                <strong id="casino-cash" class="text-emerald-400 tabular-nums" aria-live="polite"></strong>
+            </div>
+            <fieldset id="casino-stakes" class="min-w-0">
+                <legend class="text-xs font-bold text-slate-300 mb-1">ベット額</legend>
+                <div class="grid grid-cols-3 gap-2">
+                    <label class="min-w-0 cursor-pointer">
+                        <input type="radio" name="casino-stake" value="100" class="peer sr-only" checked>
+                        <span class="block text-center text-xs font-bold border border-slate-600 rounded-lg py-2 text-slate-300 bg-slate-900 peer-checked:border-amber-400 peer-checked:bg-amber-500 peer-checked:text-slate-950 peer-disabled:opacity-40 peer-disabled:cursor-not-allowed peer-focus-visible:ring-2 peer-focus-visible:ring-white">$100</span>
+                    </label>
+                    <label class="min-w-0 cursor-pointer">
+                        <input type="radio" name="casino-stake" value="200" class="peer sr-only">
+                        <span class="block text-center text-xs font-bold border border-slate-600 rounded-lg py-2 text-slate-300 bg-slate-900 peer-checked:border-amber-400 peer-checked:bg-amber-500 peer-checked:text-slate-950 peer-disabled:opacity-40 peer-disabled:cursor-not-allowed peer-focus-visible:ring-2 peer-focus-visible:ring-white">$200</span>
+                    </label>
+                    <label class="min-w-0 cursor-pointer">
+                        <input type="radio" name="casino-stake" value="500" class="peer sr-only">
+                        <span class="block text-center text-xs font-bold border border-slate-600 rounded-lg py-2 text-slate-300 bg-slate-900 peer-checked:border-amber-400 peer-checked:bg-amber-500 peer-checked:text-slate-950 peer-disabled:opacity-40 peer-disabled:cursor-not-allowed peer-focus-visible:ring-2 peer-focus-visible:ring-white">$500</span>
+                    </label>
+                </div>
+            </fieldset>
+            <div class="flex justify-between gap-3 border-y border-slate-700 py-2 text-xs">
+                <div><span class="text-slate-400">賭け金・配当</span><strong id="casino-payout" class="block text-lg text-emerald-400">$100</strong></div>
+                <div class="text-right"><span class="text-slate-400">連勝</span><strong id="casino-streak" class="block text-lg text-amber-300">0 / 3</strong></div>
+            </div>
+            <div id="casino-die" class="w-12 h-12 shrink-0 self-center bg-slate-100 text-slate-900 rounded-lg border border-slate-300 flex items-center justify-center" aria-live="polite"></div>
+            <div id="casino-status" class="min-h-8 text-xs font-bold text-center text-slate-200" role="status"></div>
+            <div class="grid grid-cols-2 gap-2">
+                <button id="casino-low" type="button" class="bg-teal-700 hover:bg-teal-600 disabled:opacity-40 text-white font-bold py-3 rounded-lg text-xs"><i class="fa-solid fa-arrow-down me-1"></i>ロー (1・2・3)</button>
+                <button id="casino-high" type="button" class="bg-rose-700 hover:bg-rose-600 disabled:opacity-40 text-white font-bold py-3 rounded-lg text-xs"><i class="fa-solid fa-arrow-up me-1"></i>ハイ (4・5・6)</button>
+            </div>
+            <button id="casino-claim" type="button" disabled class="bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-slate-950 font-black py-2 rounded-lg text-xs">配当を受け取る</button>
         </div>
     </div>
 

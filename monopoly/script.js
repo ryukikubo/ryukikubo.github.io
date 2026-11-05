@@ -1,5 +1,204 @@
 // --- Web Audio API ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let bgmBuffer = null;
+        let bgmSource = null;
+        let bgmGain = null;
+        let bgmActive = false;
+        let bgmMuted = false;
+        let bgmTheme = "city";
+        const bgmBuffers = {};
+
+        function createBgmBuffer(theme = "city") {
+            const casino = theme === "casino";
+            const beatDuration = 60 / (casino ? 138 : 118);
+            const buffer = audioCtx.createBuffer(2, Math.ceil(audioCtx.sampleRate * beatDuration * 32), audioCtx.sampleRate);
+            const left = buffer.getChannelData(0);
+            const right = buffer.getChannelData(1);
+            const chords = casino
+                ? [{ root: 41, notes: [57, 60, 64, 67] }, { root: 38, notes: [54, 57, 60, 64] }, { root: 43, notes: [58, 62, 65, 69] }, { root: 36, notes: [58, 62, 64, 69] }]
+                : [{ root: 36, notes: [52, 55, 57, 62] }, { root: 45, notes: [55, 60, 64, 67] }, { root: 38, notes: [53, 57, 60, 64] }, { root: 43, notes: [53, 57, 59, 64] }];
+            const melody = casino
+                ? [77, 81, 79, 77, 78, 81, 84, 81, 79, 82, 81, 79, 76, 79, 81, 79]
+                : [76, 79, 81, 79, 76, 72, 76, 79, 77, 76, 74, 72, 74, 77, 76, 74];
+            const stringWave = new Float32Array(4096);
+            for (let index = 0; index < stringWave.length; index++) {
+                const phase = 2 * Math.PI * index / stringWave.length;
+                for (let harmonic = 1; harmonic <= 10; harmonic++) {
+                    stringWave[index] += Math.sin(phase * harmonic) * Math.exp(-harmonic / 7) / harmonic ** 1.3;
+                }
+            }
+            const sampleString = cycles => {
+                const position = (cycles % 1) * stringWave.length;
+                const index = Math.floor(position);
+                const fraction = position - index;
+                return stringWave[index] * (1 - fraction) + stringWave[(index + 1) % stringWave.length] * fraction;
+            };
+            const addNote = (note, start, duration, volume, voice, pan = 0) => {
+                const frequency = 440 * 2 ** ((note - 69) / 12);
+                const firstSample = Math.floor(start * audioCtx.sampleRate);
+                const length = Math.min(Math.floor(duration * audioCtx.sampleRate), left.length - firstSample);
+                const leftVolume = volume * Math.sqrt((1 - pan) / 2);
+                const rightVolume = volume * Math.sqrt((1 + pan) / 2);
+                const attack = voice === "strings" ? 0.22 : voice === "lead" ? 0.035 : 0.008;
+                const release = voice === "strings" ? 0.22 : 0.06;
+                const vibratoRate = 5.1 + (note % 3) * 0.15;
+                const vibratoDepth = voice === "lead" ? 0.002 : voice === "bass" ? 0 : 0.0008;
+                for (let index = 0; index < length; index++) {
+                    const time = index / audioCtx.sampleRate;
+                    const envelope = Math.sin(Math.min(1, time / attack) * Math.PI / 2) ** 2
+                        * Math.min(1, (length - 1 - index) / (audioCtx.sampleRate * release));
+                    const vibrato = frequency * vibratoDepth * Math.sin(2 * Math.PI * vibratoRate * time) / (2 * Math.PI * vibratoRate);
+                    const phase = frequency * time + vibrato;
+                    const tone = voice === "bass"
+                        ? (sampleString(phase) * 0.25 + Math.sin(2 * Math.PI * phase) * 0.75) * Math.exp(-time * 4)
+                        : sampleString(phase * 0.9988) * 0.55 + sampleString(phase * 1.0012 + 0.17) * 0.45;
+                    const swell = 0.82 + Math.sin(Math.PI * index / length) * 0.18;
+                    const articulation = voice === "comp" ? Math.exp(-time * 12) : 1;
+                    left[firstSample + index] += tone * envelope * swell * articulation * leftVolume;
+                    right[firstSample + index] += tone * envelope * swell * articulation * rightVolume;
+                }
+            };
+            for (let bar = 0; bar < 8; bar++) {
+                const chord = chords[bar % chords.length];
+                const nextChord = chords[(bar + 1) % chords.length];
+                const minor = casino ? bar % 4 === 2 : bar % 4 === 1 || bar % 4 === 2;
+                const bassNotes = [chord.root, chord.root + (minor ? 3 : 4), chord.root + 7, nextChord.root - 1];
+                bassNotes.forEach((note, beat) => addNote(note, (bar * 4 + beat) * beatDuration, beatDuration * 0.8, 0.16, "bass", 0.1));
+                chord.notes.forEach((note, index) => addNote(note, bar * 4 * beatDuration, beatDuration * 3.98, 0.018, "strings", (index - 1.5) * 0.4));
+                const compBeats = casino ? [0, 0.666, 1.666, 2.666, 3.666] : [0, 1.666, 2.666];
+                compBeats.forEach(beat => chord.notes.forEach((note, index) => addNote(note, (bar * 4 + beat) * beatDuration, beatDuration * 0.35, 0.035, "comp", (index - 1.5) * 0.3)));
+                for (let beat = 0; beat < 4; beat++) {
+                    const absoluteBeat = bar * 4 + beat;
+                    const start = absoluteBeat * beatDuration;
+                    const note = melody[absoluteBeat % melody.length];
+                    if (note) addNote(note, start + beatDuration * 0.03, beatDuration * 0.7, 0.075, "lead", -0.25);
+                    if (beat % 2 === 1) addNote(chord.notes[(beat + bar) % chord.notes.length] + 12, start + beatDuration * 0.666, beatDuration * 0.28, 0.025, "comp", 0.35);
+                }
+            }
+            const dryLeft = left.slice();
+            const dryRight = right.slice();
+            const roomTaps = [{ seconds: 0.043, gain: 0.16 }, { seconds: 0.097, gain: 0.12 }, { seconds: 0.173, gain: 0.08 }, { seconds: 0.281, gain: 0.05 }]
+                .map(tap => ({ offset: Math.floor(audioCtx.sampleRate * tap.seconds), gain: tap.gain }));
+            const fadeLength = Math.ceil(audioCtx.sampleRate * 0.008);
+            let peak = 0;
+            for (let index = 0; index < left.length; index++) {
+                let reflectedLeft = dryLeft[index];
+                let reflectedRight = dryRight[index];
+                roomTaps.forEach(tap => {
+                    const delayedIndex = (index - tap.offset + left.length) % left.length;
+                    reflectedLeft += dryRight[delayedIndex] * tap.gain;
+                    reflectedRight += dryLeft[delayedIndex] * tap.gain;
+                });
+                const fade = Math.min(1, index / fadeLength, (left.length - 1 - index) / fadeLength);
+                left[index] = reflectedLeft * fade;
+                right[index] = reflectedRight * fade;
+                peak = Math.max(peak, Math.abs(left[index]), Math.abs(right[index]));
+            }
+            if (peak > 0.85) {
+                for (let index = 0; index < left.length; index++) {
+                    left[index] *= 0.85 / peak;
+                    right[index] *= 0.85 / peak;
+                }
+            }
+            return buffer;
+        }
+
+        function updateBgmButton() {
+            const button = document.getElementById("btn-bgm");
+            button.setAttribute("aria-pressed", String(bgmMuted));
+            const label = bgmMuted ? "BGMのミュートを解除" : "BGMをミュート";
+            button.setAttribute("aria-label", label);
+            button.title = label;
+            button.innerHTML = `<i class="fa-solid ${bgmMuted ? 'fa-volume-xmark' : 'fa-volume-high'}" aria-hidden="true"></i>`;
+        }
+
+        function startBgm(theme = "city") {
+            const sameTheme = bgmTheme === theme;
+            bgmActive = true;
+            bgmTheme = theme;
+            updateBgmButton();
+            if (bgmSource && sameTheme) return;
+            if (bgmMuted) {
+                if (bgmSource) {
+                    bgmSource.stop();
+                    bgmSource.disconnect();
+                    bgmSource = null;
+                    bgmGain.disconnect();
+                    bgmGain = null;
+                }
+                return;
+            }
+            try {
+                if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+                if (!bgmBuffers[theme]) bgmBuffers[theme] = createBgmBuffer(theme);
+                bgmBuffer = bgmBuffers[theme];
+                const previousSource = bgmSource;
+                const previousGain = bgmGain;
+                const now = audioCtx.currentTime;
+                bgmGain = audioCtx.createGain();
+                bgmGain.connect(audioCtx.destination);
+                bgmGain.gain.setValueAtTime(0, now);
+                bgmGain.gain.linearRampToValueAtTime(0.18, now + 0.25);
+                if (previousSource) {
+                    previousGain.gain.cancelScheduledValues(now);
+                    previousGain.gain.setValueAtTime(previousGain.gain.value, now);
+                    previousGain.gain.linearRampToValueAtTime(0, now + 0.25);
+                    previousSource.onended = () => {
+                        previousSource.disconnect();
+                        previousGain.disconnect();
+                    };
+                    previousSource.stop(now + 0.26);
+                } else if (previousGain) {
+                    previousGain.disconnect();
+                }
+                bgmSource = audioCtx.createBufferSource();
+                bgmSource.buffer = bgmBuffer;
+                bgmSource.loop = true;
+                bgmSource.connect(bgmGain);
+                bgmSource.start(now);
+            } catch(e){}
+        }
+
+        function stopBgm() {
+            bgmActive = false;
+            if (bgmSource) {
+                bgmSource.stop();
+                bgmSource.disconnect();
+                bgmSource = null;
+            }
+            if (bgmGain) {
+                bgmGain.disconnect();
+                bgmGain = null;
+            }
+        }
+
+        function toggleBgmMute() {
+            bgmMuted = !bgmMuted;
+            if (bgmGain) {
+                const now = audioCtx.currentTime;
+                const currentVolume = bgmGain.gain.value;
+                bgmGain.gain.cancelScheduledValues(now);
+                bgmGain.gain.setValueAtTime(currentVolume, now);
+                bgmGain.gain.setTargetAtTime(bgmMuted ? 0 : 0.18, now, 0.04);
+            }
+            if (!bgmMuted && bgmActive) startBgm(bgmTheme);
+            updateBgmButton();
+        }
+
+        const diceRollAudio = new Audio("./dice_roll.mp3");
+        diceRollAudio.preload = "auto";
+        diceRollAudio.volume = 0.75;
+
+        function playDiceRollSound() {
+            const duration = Number.isFinite(diceRollAudio.duration) ? diceRollAudio.duration * 1000 : 915;
+            try {
+                diceRollAudio.pause();
+                diceRollAudio.currentTime = 0;
+                diceRollAudio.play().catch(() => {});
+            } catch(e){}
+            return new Promise(resolve => setTimeout(resolve, duration));
+        }
+
         function playSound(type) {
             try {
                 if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -23,6 +222,31 @@
                     gain.gain.setValueAtTime(0.2, now);
                     gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
                     osc.start(now); osc.stop(now + 0.2);
+                } else if (type === 'buyout') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(392, now);
+                    osc.frequency.setValueAtTime(523.25, now + 0.09);
+                    osc.frequency.setValueAtTime(659.25, now + 0.18);
+                    osc.frequency.setValueAtTime(1046.5, now + 0.27);
+                    gain.gain.setValueAtTime(0.22, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.48);
+                    osc.start(now); osc.stop(now + 0.48);
+                } else if (type === 'casino-win') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(659.25, now);
+                    osc.frequency.setValueAtTime(987.77, now + 0.07);
+                    osc.frequency.setValueAtTime(1318.51, now + 0.14);
+                    gain.gain.setValueAtTime(0.22, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    osc.start(now); osc.stop(now + 0.3);
+                } else if (type === 'casino-lose') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(329.63, now);
+                    osc.frequency.setValueAtTime(246.94, now + 0.1);
+                    osc.frequency.setValueAtTime(164.81, now + 0.2);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.36);
+                    osc.start(now); osc.stop(now + 0.36);
                 } else if (type === 'boost') {
                     osc.type = 'triangle';
                     osc.frequency.setValueAtTime(300, now);
@@ -52,6 +276,14 @@
                     gain.gain.setValueAtTime(0.3, now);
                     gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
                     osc.start(now); osc.stop(now + 0.3);
+                } else if (type === 'jail') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.setValueAtTime(220, now + 0.12);
+                    osc.frequency.setValueAtTime(110, now + 0.24);
+                    gain.gain.setValueAtTime(0.22, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                    osc.start(now); osc.stop(now + 0.4);
                 } else if (type === 'sell') {
                     osc.type = 'square';
                     osc.frequency.setValueAtTime(200, now);
@@ -67,7 +299,7 @@
         const BOARD_TILES = [
             { id: 0, gridCol: 8, gridRow: 8, name: "START", type: "go", price: 0, rent: 0 },
             { id: 1, gridCol: 7, gridRow: 8, name: "浅草", type: "property", group: 1, price: 60, rent: 10, housePrice: 50, color: "#955251" },
-            { id: 2, gridCol: 6, gridRow: 8, name: "チャンス", type: "chance", price: 0, rent: 0 },
+            { id: 2, gridCol: 6, gridRow: 8, name: "カジノ", type: "casino", price: 0, rent: 0 },
             { id: 3, gridCol: 5, gridRow: 8, name: "上野", type: "property", group: 1, price: 80, rent: 14, housePrice: 50, color: "#955251" },
             { id: 4, gridCol: 4, gridRow: 8, name: "所得税", type: "tax", price: 0, rent: 60 },
             { id: 5, gridCol: 3, gridRow: 8, name: "秋葉原", type: "property", group: 2, price: 100, rent: 18, housePrice: 60, color: "#38bdf8" },
@@ -97,6 +329,21 @@
             { id: 26, gridCol: 8, gridRow: 3, name: "丸の内", type: "property", group: 7, price: 380, rent: 84, housePrice: 150, color: "#10b981" },
             { id: 27, gridCol: 8, gridRow: 7, name: "銀座", type: "property", group: 8, price: 420, rent: 100, housePrice: 180, color: "#6366f1" }
         ];
+
+        const MAP_PROPERTY_NAMES = {
+            world: ["リオ", "ローマ", "カイロ", "バンコク", "ドバイ", "ベルリン", "台北", "マドリード", "シドニー", "イスタンブール", "ムンバイ", "トロント", "シンガポール", "北京", "ソウル", "パリ", "ロンドン", "ニューヨーク"],
+            japan: ["函館", "那覇", "岡山", "新潟", "北九州", "千葉", "さいたま", "仙台", "広島", "川崎", "京都", "神戸", "福岡", "札幌", "名古屋", "横浜", "大阪", "東京"],
+            space: ["水星", "金星", "地球", "火星", "木星", "土星", "天王星", "海王星", "ケレス", "冥王星", "ハウメア", "マケマケ", "エリス", "ケプラー22b", "ケプラー62f", "ケプラー186f", "プロキシマb", "トラピスト1e"]
+        };
+
+        function applyMapTheme(theme) {
+            const names = MAP_PROPERTY_NAMES[theme] || MAP_PROPERTY_NAMES.japan;
+            const properties = BOARD_TILES.filter(tile => tile.type === "property");
+            if (theme !== "space") properties.sort((first, second) => first.rent - second.rent || first.id - second.id);
+            properties.forEach((tile, index) => {
+                tile.name = names[index];
+            });
+        }
 
         const BOARD_TRACK_COORDINATES = [
             ...Array.from({ length: 8 }, (_, index) => ({ gridCol: 8 - index, gridRow: 8 })),
@@ -169,6 +416,7 @@
             currentPlayerIdx: 0,
             properties: {},
             sandstorms: {},
+            bankruptcyOrder: [],
             isRollPhase: true,
             hasExtraRoll: false,
             selectedCount: 2,
@@ -186,6 +434,7 @@
         let pendingBuyout = null;
 
         let selectedBuildTier = null;
+        let pendingBuild = null;
         let liquidationState = {
             debtAmount: 0,
             creditor: null, // null for tax/bank
@@ -205,6 +454,7 @@
         }
 
         function confirmReturnToTitle() {
+            stopBgm();
             document.getElementById("confirm-modal").classList.add("hidden");
             // 設定モーダル（タイトル画面）を表示
             document.getElementById("setup-modal").classList.remove("hidden");
@@ -272,6 +522,18 @@
             return specs;
         }
 
+        function limitPlayerName(value) {
+            let remainingWidth = 12;
+            let name = "";
+            for (const character of value) {
+                const width = /^[\u0020-\u007e\uff61-\uff9f]$/.test(character) ? 1 : 2;
+                if (width > remainingWidth) break;
+                name += character;
+                remainingWidth -= width;
+            }
+            return name;
+        }
+
         function renderPlayerSetup() {
             const specs = getSetupPlayerSpecs();
             const validKeys = new Set(specs.map(spec => spec.key));
@@ -279,6 +541,7 @@
             specs.forEach(spec => {
                 if (!setupPlayerOrder.includes(spec.key)) setupPlayerOrder.push(spec.key);
                 if (setupPlayerNames[spec.key] === undefined) setupPlayerNames[spec.key] = spec.defaultName;
+                setupPlayerNames[spec.key] = limitPlayerName(setupPlayerNames[spec.key]);
             });
 
             const nameFields = document.getElementById("player-name-fields");
@@ -290,13 +553,18 @@
                 role.textContent = spec.role;
                 const input = document.createElement("input");
                 input.type = "text";
-                input.maxLength = 16;
+                input.maxLength = 12;
                 input.value = setupPlayerNames[spec.key];
                 input.setAttribute("aria-label", `${spec.role}の名前`);
-                input.addEventListener("input", () => {
+                const updateName = () => {
+                    input.value = limitPlayerName(input.value);
                     setupPlayerNames[spec.key] = input.value;
                     renderPlayerOrder(specs);
+                };
+                input.addEventListener("input", event => {
+                    if (!event.isComposing) updateName();
                 });
+                input.addEventListener("compositionend", updateName);
                 field.append(role, input);
                 nameFields.appendChild(field);
             });
@@ -351,13 +619,14 @@
 
         function startGame() {
             const startMoney = parseInt(document.getElementById("start-money").value);
+            applyMapTheme(document.getElementById("map-theme").value);
 
             const specsByKey = new Map(getSetupPlayerSpecs().map(spec => [spec.key, spec]));
             gameState.players = setupPlayerOrder.map((key, index) => {
                 const spec = specsByKey.get(key);
                 return {
                     id: index,
-                    name: setupPlayerNames[key].trim() || spec.defaultName,
+                    name: limitPlayerName(setupPlayerNames[key].trim()) || spec.defaultName,
                     isAi: spec.isAi,
                     money: startMoney,
                     position: 0,
@@ -371,6 +640,7 @@
             });
             gameState.properties = {};
             gameState.sandstorms = {};
+            gameState.bankruptcyOrder = [];
             gameState.currentPlayerIdx = 0;
             gameState.isRollPhase = true;
             gameState.hasExtraRoll = false;
@@ -379,8 +649,26 @@
             document.getElementById("setup-modal").classList.add("hidden");
             buildBoardDOM();
             updateUI();
+            startBgm();
             addLog("ゲームを開始しました。ダイスを振ってください。");
         }
+
+        function fitPropertyNames() {
+            const range = document.createRange();
+            document.querySelectorAll(".tile-property-name").forEach(label => {
+                label.style.fontSize = "7px";
+                const availableWidth = label.clientWidth;
+                if (!availableWidth) return;
+                range.selectNodeContents(label);
+                const textWidth = range.getBoundingClientRect().width;
+                if (textWidth > availableWidth) {
+                    const fontSize = Math.max(1, Math.floor(7 * (availableWidth - 0.75) / textWidth * 100) / 100);
+                    label.style.fontSize = `${fontSize}px`;
+                }
+            });
+        }
+
+        const propertyNameResizeObserver = new ResizeObserver(fitPropertyNames);
 
         function buildBoardDOM() {
             const board = document.getElementById("board");
@@ -400,7 +688,7 @@
                 if (tile.type === "property") {
                     headerHtml = `<div class="tile-header" id="tile-header-${tile.id}" style="background-color: ${tile.color};"></div>`;
                     bodyHtml = `
-                        <div class="text-[7px] font-bold truncate w-full leading-tight text-slate-200">${tile.name}</div>
+                        <div class="tile-property-name">${tile.name}</div>
                         <div id="tile-info-${tile.id}" class="flex flex-col items-center w-full my-auto">
                             <span class="text-[6px] text-slate-400 font-bold">$${tile.price}</span>
                         </div>
@@ -428,6 +716,12 @@
                         <div class="text-[6px] font-black text-red-500 mt-0.5">GOTO JAIL</div>
                         <div class="my-auto text-red-500 text-[9px]"><i class="fa-solid fa-handcuffs"></i></div>
                         <div class="text-[6px] text-red-400 font-bold">即収監</div>
+                    `;
+                } else if (tile.type === "casino") {
+                    bodyHtml = `
+                        <div class="text-[6px] font-black text-rose-400 mt-0.5">CASINO</div>
+                        <div class="my-auto text-rose-400 text-[9px]"><i class="fa-solid fa-dice"></i></div>
+                        <div class="text-[6px] text-rose-300 font-bold">H &amp; L</div>
                     `;
                 } else if (tile.type === "chance") {
                     bodyHtml = `
@@ -482,6 +776,9 @@
                 </div>
             `;
             board.appendChild(centerArea);
+            fitPropertyNames();
+            propertyNameResizeObserver.observe(board);
+            document.fonts.ready.then(fitPropertyNames);
         }
 
         function hasPropertyMonopoly(ownerId, group) {
@@ -539,18 +836,13 @@
 
                     let houseIcons = "";
                     if (propState.houses === 4) {
-                        houseIcons = `<div class="text-[6px] text-amber-400 font-black"><i class="fa-solid fa-hotel"></i></div>`;
+                        houseIcons = `<div class="text-[6px] font-black" style="color: ${owner.color.hex}"><i class="fa-solid fa-hotel"></i></div>`;
                     } else if (propState.houses > 0) {
-                        houseIcons = `<div class="text-[6px] text-amber-400 font-bold"><i class="fa-solid fa-house"></i>×${propState.houses}</div>`;
+                        houseIcons = `<div class="flex justify-center gap-0.5 text-[6px] font-bold" style="color: ${owner.color.hex}" role="img" aria-label="家${propState.houses}軒">${'<i class="fa-solid fa-house" aria-hidden="true"></i>'.repeat(propState.houses)}</div>`;
                     }
 
-                    let boostHtml = propState.boostMultiplier > 1 ? `<div class="boost-tag">🔥${propState.boostMultiplier}倍</div>` : "";
-                    let monopolyHtml = hasPropertyMonopoly(owner.id, tile.group) ? `<div class="monopoly-tag">独占 ×2</div>` : "";
                     infoEl.innerHTML = `
-                        <div class="owner-badge ${owner.color.bg} mb-0.5">P${owner.id + 1}</div>
                         ${houseIcons}
-                        ${monopolyHtml}
-                        ${boostHtml}
                         <div class="rent-tag">賃料:$${currentRent}</div>
                     `;
                 } else {
@@ -601,6 +893,18 @@
 
             if (gameState.isBusy) {
                 promptEl.textContent = "処理中...";
+                return;
+            }
+
+            const activePlayers = gameState.players.filter(player => !player.isBankrupt);
+            if (activePlayers.length <= 1) {
+                promptEl.textContent = activePlayers.length === 1 ? `${activePlayers[0].name} の勝利！` : "ゲーム終了";
+                return;
+            }
+
+            if (curPlayer.isBankrupt) {
+                gameState.hasExtraRoll = false;
+                handleEndTurn();
                 return;
             }
 
@@ -800,7 +1104,6 @@
             gameState.isBusy = true;
             gameState.hasExtraRoll = false;
             document.getElementById("btn-roll").disabled = true;
-            playSound('dice');
 
             const d1 = Math.floor(Math.random() * 6) + 1;
             const d2 = Math.floor(Math.random() * 6) + 1;
@@ -813,9 +1116,10 @@
 
             dice1El.classList.add("rolling");
             dice2El.classList.add("rolling");
+            const rollSound = playDiceRollSound();
             totalEl.textContent = "コロコロ...";
 
-            await new Promise(res => setTimeout(res, 400));
+            await rollSound;
 
             dice1El.classList.remove("rolling");
             dice2El.classList.remove("rolling");
@@ -954,6 +1258,7 @@
                     updatePlayerCards();
                 } else {
                     addLog(`${player.name} は即逮捕され刑務所へ！`);
+                    playSound('jail');
                     player.position = 7;
                     player.inJail = true;
                     player.jailTurns = 0;
@@ -964,7 +1269,164 @@
                 await payTax(player, tile.rent);
             } else if (tile.type === "chance") {
                 await triggerChanceCard(player);
+            } else if (tile.type === "casino") {
+                await triggerCasino(player);
             }
+        }
+
+        async function triggerCasino(player) {
+            if (player.money < 100) {
+                addLog(`${player.name} は所持金が$100未満のため、カジノに参加できません。`);
+                return;
+            }
+            let stake = 100;
+            let payout = 100;
+            let wins = 0;
+            let settled = false;
+            let entered = false;
+            const updateCash = () => {
+                document.getElementById("casino-cash").textContent = `$${player.money.toLocaleString()}`;
+            };
+            updateCash();
+            const enter = () => {
+                if (entered) return true;
+                if (player.money < stake) return false;
+                entered = true;
+                player.money -= stake;
+                updateCash();
+                updatePlayerCards();
+                addLog(`${player.name} はカジノに$${stake}を賭けて参加しました。`);
+                return true;
+            };
+            const bet = side => {
+                const value = Math.floor(Math.random() * 6) + 1;
+                const won = side === "low" ? value <= 3 : value >= 4;
+                if (won) {
+                    wins += 1;
+                    payout *= 2;
+                } else {
+                    payout = 0;
+                }
+                addLog(`${player.name} のカジノ：${side === "low" ? "ロー" : "ハイ"}、出目${value}で${won ? `成功！${wins}連勝、配当$${payout}` : "失敗。配当は$0です。"}`);
+                return { value, won };
+            };
+            const settle = (playPayoutSound = true) => {
+                if (settled) return;
+                settled = true;
+                player.money += payout;
+                updateCash();
+                if (payout > 0) {
+                    addLog(`${player.name} はカジノの配当$${payout}を受け取りました。`);
+                    if (playPayoutSound) playSound('buy');
+                }
+                updatePlayerCards();
+            };
+
+            return new Promise(resolve => {
+                const modal = document.getElementById("casino-modal");
+                const lowButton = document.getElementById("casino-low");
+                const highButton = document.getElementById("casino-high");
+                const claimButton = document.getElementById("casino-claim");
+                const die = document.getElementById("casino-die");
+                const status = document.getElementById("casino-status");
+                const pot = document.getElementById("casino-payout");
+                const streak = document.getElementById("casino-streak");
+                const stakeOptions = document.getElementById("casino-stakes");
+                const stakeInputs = [...stakeOptions.querySelectorAll("input")];
+                let rolling = false;
+                let finished = false;
+                if (player.isAi) {
+                    const affordableStakes = [100, 200, 500].filter(amount => amount <= player.money);
+                    stake = affordableStakes[Math.floor(Math.random() * affordableStakes.length)];
+                    payout = stake;
+                }
+                document.getElementById("casino-player").textContent = player.name;
+                pot.textContent = `$${payout}`;
+                streak.textContent = "0 / 3";
+                status.textContent = player.isAi ? "CPUがベットを選択中..." : "ローかハイを選択";
+                die.innerHTML = createDiceFaceMarkup(1);
+                lowButton.disabled = player.isAi;
+                highButton.disabled = player.isAi;
+                claimButton.disabled = true;
+                claimButton.textContent = "配当を受け取る";
+                stakeOptions.disabled = player.isAi;
+                stakeInputs.forEach(input => {
+                    const amount = Number(input.value);
+                    input.disabled = amount > player.money;
+                    input.checked = amount === stake;
+                    input.onchange = () => {
+                        if (player.isAi || entered || !input.checked || amount > player.money) return;
+                        stake = amount;
+                        payout = amount;
+                        pot.textContent = `$${payout}`;
+                    };
+                });
+
+                const roll = async side => {
+                    if (rolling || finished || !enter()) return;
+                    stakeOptions.disabled = true;
+                    rolling = true;
+                    lowButton.disabled = true;
+                    highButton.disabled = true;
+                    claimButton.disabled = true;
+                    const sideName = side === "low" ? "ロー" : "ハイ";
+                    status.textContent = `${sideName}で判定中...`;
+                    die.classList.add("rolling");
+                    const rollSound = playDiceRollSound();
+                    const outcome = bet(side);
+                    await rollSound;
+                    die.classList.remove("rolling");
+                    die.innerHTML = createDiceFaceMarkup(outcome.value);
+                    playSound(outcome.won ? 'casino-win' : 'casino-lose');
+                    rolling = false;
+                    pot.textContent = `$${payout}`;
+                    streak.textContent = `${wins} / 3`;
+                    finished = !outcome.won || wins === 3;
+                    status.textContent = `${sideName}：${!outcome.won ? "失敗：配当 $0" : wins === 3 ? `3連勝！$${payout}を獲得` : player.isAi ? "成功！CPUが続行を判断中..." : "成功！受け取りか、もう一度挑戦"}`;
+                    claimButton.disabled = player.isAi && !finished;
+                    if (finished) {
+                        settle(false);
+                        claimButton.textContent = "閉じる";
+                    } else {
+                        lowButton.disabled = player.isAi;
+                        highButton.disabled = player.isAi;
+                        claimButton.textContent = `$${payout}を受け取る`;
+                    }
+                };
+                lowButton.onclick = () => { if (!player.isAi) return roll("low"); };
+                highButton.onclick = () => { if (!player.isAi) return roll("high"); };
+                claimButton.onclick = () => {
+                    if (rolling || (!finished && (wins === 0 || player.isAi))) return;
+                    settle();
+                    modal.classList.add("hidden");
+                    if (bgmActive) startBgm("city");
+                    lowButton.onclick = null;
+                    highButton.onclick = null;
+                    claimButton.onclick = null;
+                    stakeInputs.forEach(input => input.onchange = null);
+                    resolve();
+                };
+                modal.classList.remove("hidden");
+                if (bgmActive) startBgm("casino");
+                if (player.isAi) {
+                    const runAiCasino = async () => {
+                        await new Promise(done => setTimeout(done, 600));
+                        while (!finished) {
+                            await roll(Math.random() < 0.5 ? "low" : "high");
+                            if (finished) return;
+                            await new Promise(done => setTimeout(done, 700));
+                            if (Math.random() < 0.5) {
+                                finished = true;
+                                settle();
+                                status.textContent = `CPUは$${payout}の配当を確定しました。`;
+                                claimButton.textContent = "閉じる";
+                                claimButton.disabled = false;
+                            }
+                        }
+                    };
+                    runAiCasino();
+                }
+            });
         }
 
         async function triggerBuyoutOffer(player, owner, tile, rent) {
@@ -1011,7 +1473,7 @@
             player.money -= price;
             owner.money += price;
             property.owner = player.id;
-            playSound('buy');
+            playSound('buyout');
             addLog(`${player.name} は ${owner.name} に $${price} を支払い、【${tile.name}】を買収しました！`);
             renderTileProperties();
             updatePlayerCards();
@@ -1281,26 +1743,41 @@
             }
         }
 
+        function completePropertyDevelopment(player, tile, targetLevel) {
+            const property = gameState.properties[tile.id];
+            if (player.isBankrupt || tile.type !== "property" || !Number.isInteger(targetLevel) || targetLevel < 0 || targetLevel > 4) return false;
+            if (property && (property.owner !== player.id || targetLevel <= property.houses)) return false;
+            if (targetLevel === 4 && player.laps < 1) return false;
+            const currentLevel = property?.houses || 0;
+            const totalCost = (property ? 0 : tile.price) + tile.housePrice * (targetLevel - currentLevel);
+            if (player.money < totalCost) return false;
+
+            player.money -= totalCost;
+            if (property) property.houses = targetLevel;
+            else gameState.properties[tile.id] = { owner: player.id, houses: targetLevel, boostMultiplier: 1 };
+            const tierName = targetLevel === 0 ? "土地権利書" : targetLevel === 4 ? "ホテル" : `家${targetLevel}軒`;
+            playSound('buy');
+            addLog(`${player.name} は【${tile.name}】の${tierName}を $${totalCost} で${property ? "増築" : "購入"}しました！`);
+            renderTileProperties();
+            updatePlayerCards();
+            return true;
+        }
+
         function triggerBuildModal(player, tile) {
             return new Promise((resolve) => {
                 const propState = gameState.properties[tile.id];
-                if (!propState || propState.owner !== player.id || propState.houses >= 4) {
+                if (player.isBankrupt || tile.type !== "property" || (propState && (propState.owner !== player.id || propState.houses >= 4))) {
                     resolve(false);
                     return;
                 }
 
                 if (player.isAi) {
-                    for (let targetLevel = 4; targetLevel > propState.houses; targetLevel--) {
+                    const minimumLevel = propState ? propState.houses + 1 : 0;
+                    for (let targetLevel = 4; targetLevel >= minimumLevel; targetLevel--) {
                         if (targetLevel === 4 && player.laps < 1) continue;
-                        const cost = tile.housePrice * (targetLevel - propState.houses);
+                        const cost = (propState ? 0 : tile.price) + tile.housePrice * (targetLevel - (propState?.houses || 0));
                         if (player.money >= cost + 80) {
-                            player.money -= cost;
-                            propState.houses = targetLevel;
-                            playSound('buy');
-                            addLog(`${player.name} は 【${tile.name}】 を ${targetLevel === 4 ? 'ホテル' : '家' + targetLevel + '軒'} に一括増築！`);
-                            renderTileProperties();
-                            updatePlayerCards();
-                            resolve(true);
+                            resolve(completePropertyDevelopment(player, tile, targetLevel));
                             return;
                         }
                     }
@@ -1310,28 +1787,36 @@
 
                 buildModalResolver = resolve;
                 selectedBuildTier = null;
+                pendingBuild = { player, tile };
+                const confirmButton = document.getElementById("build-confirm-btn");
+                confirmButton.disabled = true;
+                confirmButton.textContent = propState ? "増築する" : "購入する";
 
                 document.getElementById("build-modal-color").style.backgroundColor = tile.color;
-                document.getElementById("build-modal-title").textContent = `【${tile.name}】 の増築選択`;
-                document.getElementById("build-modal-subtitle").textContent = `現在: ${propState.houses === 0 ? '未建築' : propState.houses + '軒'} | 所持金: $${player.money}`;
+                document.getElementById("build-modal-title").textContent = `【${tile.name}】の${propState ? "増築" : "購入・建築"}`;
+                document.getElementById("build-modal-subtitle").textContent = `${propState ? `現在: ${propState.houses === 0 ? "土地権利書のみ" : `家${propState.houses}軒`} / 追加費用` : `土地代 $${tile.price} 込みの総額`} | 所持金: $${player.money.toLocaleString()}`;
 
                 const container = document.getElementById("build-tiers-container");
                 container.innerHTML = "";
 
-                const tierNames = ["家 1軒目", "家 2軒目", "家 3軒目", "🏨 ビル (ホテル)"];
+                const tierNames = ["土地権利書", "家 1軒", "家 2軒", "家 3軒", "ホテル"];
+                const willCompleteMonopoly = !propState && BOARD_TILES
+                    .filter(candidate => candidate.type === "property" && candidate.group === tile.group)
+                    .every(candidate => candidate.id === tile.id || gameState.properties[candidate.id]?.owner === player.id);
                 
-                for (let level = 1; level <= 4; level++) {
-                    const isAlreadyBuilt = propState.houses >= level;
+                for (let level = 0; level <= 4; level++) {
+                    const isAlreadyBuilt = propState && propState.houses >= level;
                     const isHotelLocked = (level === 4 && player.laps < 1);
-                    const cost = tile.housePrice * (level - propState.houses);
-                    const rentVal = calculateRent(tile, level, propState.boostMultiplier);
+                    const cost = (propState ? 0 : tile.price) + tile.housePrice * (level - (propState?.houses || 0));
+                    let rentVal = propState ? calculateRent(tile, level, propState.boostMultiplier) : Math.floor(tile.rent * (1 + level * 1.5)) * (willCompleteMonopoly ? 2 : 1);
+                    if (!propState && gameState.sandstorms[tile.id] > 0) rentVal = Math.floor(rentVal / 2);
 
                     let disabledReason = "";
                     let isDisabled = false;
 
                     if (isAlreadyBuilt) {
                         isDisabled = true;
-                        disabledReason = "建築済み";
+                        disabledReason = level === 0 ? "所有済み" : "建築済み";
                     } else if (isHotelLocked) {
                         isDisabled = true;
                         disabledReason = "1周目は建設不可";
@@ -1341,27 +1826,30 @@
                     }
 
                     const row = document.createElement("div");
-                    row.className = `p-2 rounded-xl border flex items-center justify-between transition ${isDisabled ? 'bg-slate-900/40 border-slate-800 opacity-50 cursor-not-allowed' : 'bg-slate-900 border-slate-700 hover:border-sky-400 cursor-pointer'}`;
+                    row.className = `p-2 rounded-lg border flex items-center justify-between gap-2 transition ${isDisabled ? 'bg-slate-900/40 border-slate-800 opacity-50 cursor-not-allowed' : 'bg-slate-900 border-slate-700 hover:border-sky-400 cursor-pointer'}`;
                     
                     row.innerHTML = `
-                        <div class="flex items-center gap-2">
-                            <input type="radio" name="build-tier" value="${level}" ${isDisabled ? 'disabled' : ''} class="accent-sky-500">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <input type="radio" name="build-tier" value="${level}" aria-label="${tierNames[level]}" ${isDisabled ? 'disabled' : ''} class="accent-sky-500">
                             <div>
-                                <span class="font-bold text-xs text-white block">${tierNames[level-1]}</span>
+                                <span class="font-bold text-xs text-white block"><i class="fa-solid ${level === 0 ? 'fa-file-contract' : level === 4 ? 'fa-hotel' : 'fa-house'} me-1" aria-hidden="true"></i>${tierNames[level]}</span>
                                 <span class="text-[9px] text-slate-400">賃料: <b class="text-emerald-400">$${rentVal}</b></span>
                             </div>
                         </div>
-                        <div class="text-right">
+                        <div class="text-right shrink-0">
                             <span class="text-xs font-black ${isDisabled ? 'text-slate-500' : 'text-amber-400'}">${isDisabled ? disabledReason : '$' + cost}</span>
                         </div>
                     `;
 
                     if (!isDisabled) {
-                        row.onclick = () => {
+                        const selectTier = () => {
                             const radio = row.querySelector("input");
                             radio.checked = true;
                             selectedBuildTier = level;
+                            confirmButton.disabled = false;
                         };
+                        row.onclick = selectTier;
+                        row.querySelector("input").addEventListener("change", selectTier);
                     }
 
                     container.appendChild(row);
@@ -1372,28 +1860,15 @@
         }
 
         function confirmBuildSelection() {
-            if (!selectedBuildTier) return;
-
-            const curPlayer = gameState.players[gameState.currentPlayerIdx];
-            const tile = BOARD_TILES[curPlayer.position];
-            const propState = gameState.properties[tile.id];
-
-            const diffLevels = selectedBuildTier - propState.houses;
-            const totalCost = tile.housePrice * diffLevels;
-
-            if (curPlayer.money >= totalCost) {
-                curPlayer.money -= totalCost;
-                propState.houses = selectedBuildTier;
-                playSound('buy');
-                const tierName = selectedBuildTier === 4 ? 'ビル (ホテル)' : `家${selectedBuildTier}軒`;
-                addLog(`${curPlayer.name} は 【${tile.name}】 を ${tierName} まで一括増築しました！`);
-            }
-
-            resolveBuildModal(true);
+            if (selectedBuildTier === null || !pendingBuild) return;
+            const { player, tile } = pendingBuild;
+            if (completePropertyDevelopment(player, tile, selectedBuildTier)) resolveBuildModal(true);
         }
 
         function resolveBuildModal(built) {
             document.getElementById("build-modal").classList.add("hidden");
+            pendingBuild = null;
+            selectedBuildTier = null;
             renderTileProperties();
             updatePlayerCards();
             updateUI();
@@ -1422,23 +1897,24 @@
             }
         }
 
-        function handleBuyProperty() {
+        async function handleBuyProperty() {
+            if (gameState.isBusy) return;
             const curPlayer = gameState.players[gameState.currentPlayerIdx];
             const tile = BOARD_TILES[curPlayer.position];
 
             if (tile.type === "property" && !gameState.properties[tile.id]) {
                 if (curPlayer.money >= tile.price) {
-                    curPlayer.money -= tile.price;
-                    gameState.properties[tile.id] = { owner: curPlayer.id, houses: 0, boostMultiplier: 1 };
-                    playSound('buy');
-                    addLog(`${curPlayer.name} は ${tile.name} を $${tile.price} で購入！`);
+                    gameState.isBusy = true;
+                    updateUI();
+                    await triggerBuildModal(curPlayer, tile);
+                    gameState.isBusy = false;
                     updateUI();
                 }
             }
         }
 
         function handleEndTurn() {
-            if (gameState.isBusy) return;
+            if (gameState.isBusy || gameState.players.filter(player => !player.isBankrupt).length <= 1) return;
 
             if (gameState.hasExtraRoll) {
                 gameState.isRollPhase = true;
@@ -1761,7 +2237,9 @@
         }
 
         function handleBankruptcy(player) {
+            if (player.isBankrupt) return;
             player.isBankrupt = true;
+            gameState.bankruptcyOrder.push(player.id);
             addLog(`【破産】${player.name} は資金切れで破産しました！`);
 
             Object.keys(gameState.properties).forEach(tileId => {
@@ -1775,16 +2253,83 @@
 
             const activePlayers = gameState.players.filter(p => !p.isBankrupt);
             if (activePlayers.length === 1) {
+                stopBgm();
+                const finishedPlayers = gameState.players;
                 setTimeout(() => {
-                    showModal("🏆 ゲームセット！", `
-                        <div class="text-center py-2 space-y-2">
-                            <div class="text-3xl text-amber-400"><i class="fa-solid fa-trophy"></i></div>
-                            <div class="font-extrabold text-sm text-white">${activePlayers[0].name} の勝利！</div>
-                            <p class="text-[11px] text-slate-400">破産せずに最後まで残りました！</p>
-                        </div>
-                    `);
+                    if (gameState.players === finishedPlayers) showGameResults();
                 }, 400);
             }
+        }
+
+        function getGameResults() {
+            return [...gameState.players].sort((first, second) => {
+                if (first.isBankrupt !== second.isBankrupt) return first.isBankrupt ? 1 : -1;
+                return gameState.bankruptcyOrder.indexOf(second.id) - gameState.bankruptcyOrder.indexOf(first.id);
+            }).map((player, index) => {
+                const properties = Object.entries(gameState.properties)
+                    .filter(([, property]) => property.owner === player.id);
+                return {
+                    player,
+                    rank: index + 1,
+                    cash: player.money,
+                    totalAssets: calculateTotalAssets(player),
+                    propertyCount: properties.length,
+                    houses: properties.reduce((total, [, property]) => total + (property.houses < 4 ? property.houses : 0), 0),
+                    hotels: properties.filter(([, property]) => property.houses === 4).length
+                };
+            });
+        }
+
+        function showGameResults() {
+            const results = getGameResults();
+            if (!results.length) return;
+            showModal("🏆 ゲームセット！", "");
+            document.getElementById("info-modal").classList.add("is-game-results");
+            document.getElementById("modal-confirm-btn").textContent = "タイトルに戻る";
+            document.getElementById("modal-color-bar").style.backgroundColor = results[0].player.color.hex;
+            const body = document.getElementById("modal-body");
+            const winner = document.createElement("p");
+            winner.className = "text-center text-sm font-extrabold text-amber-300 mb-3 break-words";
+            winner.textContent = `${results[0].player.name} の勝利！`;
+            body.appendChild(winner);
+
+            const list = document.createElement("ol");
+            list.className = "space-y-3";
+            results.forEach(result => {
+                const item = document.createElement("li");
+                item.className = "border-b border-slate-700 pb-3 last:border-0";
+                const heading = document.createElement("div");
+                heading.className = "flex items-start gap-2 mb-1";
+                const rank = document.createElement("strong");
+                rank.className = "shrink-0 text-amber-300";
+                rank.textContent = `${result.rank}位`;
+                const name = document.createElement("strong");
+                name.className = "min-w-0 flex-1 break-words";
+                name.style.color = result.player.color.hex;
+                name.textContent = result.player.name;
+                const status = document.createElement("span");
+                status.className = "shrink-0 text-[10px] text-slate-400";
+                status.textContent = result.player.isBankrupt ? "破産" : "生存";
+                heading.append(rank, name, status);
+
+                const assets = document.createElement("div");
+                assets.className = "flex flex-wrap justify-between gap-x-3 gap-y-1 text-[11px]";
+                const total = document.createElement("strong");
+                total.className = "text-emerald-400";
+                total.textContent = `総資産（売却評価） $${result.totalAssets.toLocaleString()}`;
+                const cash = document.createElement("span");
+                cash.textContent = `現金 $${result.cash.toLocaleString()}`;
+                assets.append(total, cash);
+                const buildings = document.createElement("p");
+                buildings.className = "text-[10px] text-slate-300 mt-1";
+                buildings.textContent = `物件 ${result.propertyCount}件 / 家 ${result.houses}軒 / ホテル ${result.hotels}棟`;
+                const cards = document.createElement("p");
+                cards.className = "text-[10px] text-slate-400 mt-1";
+                cards.textContent = `保釈カード ${result.player.cards.bailPass}枚 / ブラックカード ${result.player.cards.black}枚`;
+                item.append(heading, assets, buildings, cards);
+                list.appendChild(item);
+            });
+            body.appendChild(list);
         }
 
         async function handleAiTurn() {
@@ -1799,7 +2344,7 @@
                 if (currentTile.type === "property") {
                     const propState = gameState.properties[currentTile.id];
                     if (!propState && curPlayer.money - currentTile.price > 80) {
-                        handleBuyProperty();
+                        await handleBuyProperty();
                     } else if (propState && propState.owner === curPlayer.id) {
                         await triggerBuildModal(curPlayer, currentTile);
                     }
@@ -1819,22 +2364,26 @@
             let bodyHtml = "";
             if (tile.type === "property") {
                 const rentCurr = propState ? calculateRent(tile, propState.houses, propState.boostMultiplier) : tile.rent;
+                const rentFactors = [];
+                if (propState && hasPropertyMonopoly(propState.owner, tile.group)) rentFactors.push("独占 ×2");
+                if (propState && propState.boostMultiplier > 1) rentFactors.push(`取引所 ×${propState.boostMultiplier}`);
+                if (propState && gameState.sandstorms[tileId] > 0) rentFactors.push("砂嵐 ×0.5");
                 bodyHtml = `
                     <div class="space-y-1 text-xs">
                         <div class="flex justify-between"><span class="text-slate-400">購入価格:</span> <span class="font-bold text-amber-400">$${tile.price}</span></div>
                         <div class="flex justify-between"><span class="text-slate-400">基本賃料:</span> <span class="font-bold text-white">$${tile.rent}</span></div>
+                        <div class="flex justify-between items-start gap-2"><span class="text-slate-400 shrink-0">適用倍率:</span> <span class="font-bold text-amber-400 min-w-0 text-right break-words">${rentFactors.length ? rentFactors.join(" / ") : "なし（×1）"}</span></div>
                         <div class="flex justify-between"><span class="text-slate-400">現在の賃料:</span> <span class="font-bold text-emerald-400">$${rentCurr}</span></div>
                         <div class="flex justify-between"><span class="text-slate-400">増築費用:</span> <span class="font-bold text-white">$${tile.housePrice}</span></div>
                         <div class="flex justify-between pt-1 border-t border-slate-700"><span class="text-slate-400">所有者:</span> <span class="font-bold text-amber-300">${ownerName}</span></div>
                         <div class="flex justify-between"><span class="text-slate-400">増築状況:</span> <span class="font-bold text-white">${propState ? (propState.houses === 4 ? 'ホテル' : propState.houses + ' 軒') : 'なし'}</span></div>
-                        <div class="flex justify-between"><span class="text-slate-400">取引所倍率:</span> <span class="font-bold text-amber-400">${propState && propState.boostMultiplier > 1 ? `🔥${propState.boostMultiplier}倍` : 'なし'}</span></div>
                     </div>
                 `;
             } else {
                 bodyHtml = `
                     <div class="text-center py-2 text-slate-300">
                         【${tile.name}】 マス<br>
-                        <span class="text-[10px] text-slate-400">${tile.type === 'exchange' ? '手数料$100で所有物件1つの取引所倍率を上げます (2〜5倍)。別の物件を選ぶと旧倍率は解除され、賃料が徴収されると倍率は消滅します。' : '特殊イベントマスです。'}</span>
+                        <span class="text-[10px] text-slate-400">${tile.type === 'exchange' ? '手数料$100で所有物件1つの取引所倍率を上げます (2〜5倍)。別の物件を選ぶと旧倍率は解除され、賃料が徴収されると倍率は消滅します。' : tile.type === 'casino' ? '$100・$200・$500からベット額を選んで強制参加。所持金を超える額は選べません。ロー(1〜3)かハイ(4〜6)に賭け、成功ごとに配当が2倍になります。最大3連勝でベット額の8倍。成功後は受け取りか続行を選択でき、失敗すると配当は$0です。所持金$100未満では参加できません。' : '特殊イベントマスです。'}</span>
                     </div>
                 `;
             }
@@ -1844,13 +2393,22 @@
         }
 
         function showModal(title, contentHtml) {
+            document.getElementById("info-modal").classList.remove("is-game-results");
+            document.getElementById("modal-confirm-btn").textContent = "OK";
             document.getElementById("modal-title").textContent = title;
             document.getElementById("modal-body").innerHTML = contentHtml;
             document.getElementById("info-modal").classList.remove("hidden");
         }
 
         function resolveInfoModal() {
-            document.getElementById("info-modal").classList.add("hidden");
+            const modal = document.getElementById("info-modal");
+            modal.classList.add("hidden");
+            if (modal.classList.contains("is-game-results")) {
+                modal.classList.remove("is-game-results");
+                infoModalResolver = null;
+                confirmReturnToTitle();
+                return;
+            }
             if (infoModalResolver) {
                 const res = infoModalResolver;
                 infoModalResolver = null;
