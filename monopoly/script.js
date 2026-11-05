@@ -227,7 +227,7 @@
             { weight: 2, text: "GOのマスへ直行！サラリー$200を受け取る", moveTo: 0 },
             { weight: 1.55, text: "保釈カードを獲得！収監時に使用できます。", heldCard: "bailPass" },
             { weight: 1, text: "ブラックカードを獲得！敵の賃料を1回免除できます。", heldCard: "black" },
-            { weight: 1, text: "砂嵐！都市を1つ選び、全員が1回ずつサイコロを振るまでを1ターンとして、3ターンの間賃料を半額にする", effect: "sandstorm" },
+            { weight: 1, text: "砂嵐！都市を1つ選び、3ターンの間賃料を半額にする", effect: "sandstorm" },
             { weight: 0.45, text: "地震！都市を1つ選び、建築物を1段階崩壊させる", effect: "earthquake" }
         ];
 
