@@ -1,187 +1,41 @@
 // --- Web Audio API ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        let bgmBuffer = null;
-        let bgmSource = null;
-        let bgmGain = null;
+        const gameBgmAudio = new Audio("./game_bgm.mp3");
+        gameBgmAudio.preload = "auto";
+        gameBgmAudio.loop = true;
+        gameBgmAudio.volume = 0.25;
         let bgmActive = false;
         let bgmMuted = false;
-        let bgmTheme = "city";
-        const bgmBuffers = {};
-
-        function createBgmBuffer(theme = "city") {
-            const casino = theme === "casino";
-            const beatDuration = 60 / (casino ? 138 : 118);
-            const buffer = audioCtx.createBuffer(2, Math.ceil(audioCtx.sampleRate * beatDuration * 32), audioCtx.sampleRate);
-            const left = buffer.getChannelData(0);
-            const right = buffer.getChannelData(1);
-            const chords = casino
-                ? [{ root: 41, notes: [57, 60, 64, 67] }, { root: 38, notes: [54, 57, 60, 64] }, { root: 43, notes: [58, 62, 65, 69] }, { root: 36, notes: [58, 62, 64, 69] }]
-                : [{ root: 36, notes: [52, 55, 57, 62] }, { root: 45, notes: [55, 60, 64, 67] }, { root: 38, notes: [53, 57, 60, 64] }, { root: 43, notes: [53, 57, 59, 64] }];
-            const melody = casino
-                ? [77, 81, 79, 77, 78, 81, 84, 81, 79, 82, 81, 79, 76, 79, 81, 79]
-                : [76, 79, 81, 79, 76, 72, 76, 79, 77, 76, 74, 72, 74, 77, 76, 74];
-            const stringWave = new Float32Array(4096);
-            for (let index = 0; index < stringWave.length; index++) {
-                const phase = 2 * Math.PI * index / stringWave.length;
-                for (let harmonic = 1; harmonic <= 10; harmonic++) {
-                    stringWave[index] += Math.sin(phase * harmonic) * Math.exp(-harmonic / 7) / harmonic ** 1.3;
-                }
-            }
-            const sampleString = cycles => {
-                const position = (cycles % 1) * stringWave.length;
-                const index = Math.floor(position);
-                const fraction = position - index;
-                return stringWave[index] * (1 - fraction) + stringWave[(index + 1) % stringWave.length] * fraction;
-            };
-            const addNote = (note, start, duration, volume, voice, pan = 0) => {
-                const frequency = 440 * 2 ** ((note - 69) / 12);
-                const firstSample = Math.floor(start * audioCtx.sampleRate);
-                const length = Math.min(Math.floor(duration * audioCtx.sampleRate), left.length - firstSample);
-                const leftVolume = volume * Math.sqrt((1 - pan) / 2);
-                const rightVolume = volume * Math.sqrt((1 + pan) / 2);
-                const attack = voice === "strings" ? 0.22 : voice === "lead" ? 0.035 : 0.008;
-                const release = voice === "strings" ? 0.22 : 0.06;
-                const vibratoRate = 5.1 + (note % 3) * 0.15;
-                const vibratoDepth = voice === "lead" ? 0.002 : voice === "bass" ? 0 : 0.0008;
-                for (let index = 0; index < length; index++) {
-                    const time = index / audioCtx.sampleRate;
-                    const envelope = Math.sin(Math.min(1, time / attack) * Math.PI / 2) ** 2
-                        * Math.min(1, (length - 1 - index) / (audioCtx.sampleRate * release));
-                    const vibrato = frequency * vibratoDepth * Math.sin(2 * Math.PI * vibratoRate * time) / (2 * Math.PI * vibratoRate);
-                    const phase = frequency * time + vibrato;
-                    const tone = voice === "bass"
-                        ? (sampleString(phase) * 0.25 + Math.sin(2 * Math.PI * phase) * 0.75) * Math.exp(-time * 4)
-                        : sampleString(phase * 0.9988) * 0.55 + sampleString(phase * 1.0012 + 0.17) * 0.45;
-                    const swell = 0.82 + Math.sin(Math.PI * index / length) * 0.18;
-                    const articulation = voice === "comp" ? Math.exp(-time * 12) : 1;
-                    left[firstSample + index] += tone * envelope * swell * articulation * leftVolume;
-                    right[firstSample + index] += tone * envelope * swell * articulation * rightVolume;
-                }
-            };
-            for (let bar = 0; bar < 8; bar++) {
-                const chord = chords[bar % chords.length];
-                const nextChord = chords[(bar + 1) % chords.length];
-                const minor = casino ? bar % 4 === 2 : bar % 4 === 1 || bar % 4 === 2;
-                const bassNotes = [chord.root, chord.root + (minor ? 3 : 4), chord.root + 7, nextChord.root - 1];
-                bassNotes.forEach((note, beat) => addNote(note, (bar * 4 + beat) * beatDuration, beatDuration * 0.8, 0.16, "bass", 0.1));
-                chord.notes.forEach((note, index) => addNote(note, bar * 4 * beatDuration, beatDuration * 3.98, 0.018, "strings", (index - 1.5) * 0.4));
-                const compBeats = casino ? [0, 0.666, 1.666, 2.666, 3.666] : [0, 1.666, 2.666];
-                compBeats.forEach(beat => chord.notes.forEach((note, index) => addNote(note, (bar * 4 + beat) * beatDuration, beatDuration * 0.35, 0.035, "comp", (index - 1.5) * 0.3)));
-                for (let beat = 0; beat < 4; beat++) {
-                    const absoluteBeat = bar * 4 + beat;
-                    const start = absoluteBeat * beatDuration;
-                    const note = melody[absoluteBeat % melody.length];
-                    if (note) addNote(note, start + beatDuration * 0.03, beatDuration * 0.7, 0.075, "lead", -0.25);
-                    if (beat % 2 === 1) addNote(chord.notes[(beat + bar) % chord.notes.length] + 12, start + beatDuration * 0.666, beatDuration * 0.28, 0.025, "comp", 0.35);
-                }
-            }
-            const dryLeft = left.slice();
-            const dryRight = right.slice();
-            const roomTaps = [{ seconds: 0.043, gain: 0.16 }, { seconds: 0.097, gain: 0.12 }, { seconds: 0.173, gain: 0.08 }, { seconds: 0.281, gain: 0.05 }]
-                .map(tap => ({ offset: Math.floor(audioCtx.sampleRate * tap.seconds), gain: tap.gain }));
-            const fadeLength = Math.ceil(audioCtx.sampleRate * 0.008);
-            let peak = 0;
-            for (let index = 0; index < left.length; index++) {
-                let reflectedLeft = dryLeft[index];
-                let reflectedRight = dryRight[index];
-                roomTaps.forEach(tap => {
-                    const delayedIndex = (index - tap.offset + left.length) % left.length;
-                    reflectedLeft += dryRight[delayedIndex] * tap.gain;
-                    reflectedRight += dryLeft[delayedIndex] * tap.gain;
-                });
-                const fade = Math.min(1, index / fadeLength, (left.length - 1 - index) / fadeLength);
-                left[index] = reflectedLeft * fade;
-                right[index] = reflectedRight * fade;
-                peak = Math.max(peak, Math.abs(left[index]), Math.abs(right[index]));
-            }
-            if (peak > 0.85) {
-                for (let index = 0; index < left.length; index++) {
-                    left[index] *= 0.85 / peak;
-                    right[index] *= 0.85 / peak;
-                }
-            }
-            return buffer;
-        }
 
         function updateBgmButton() {
-            const button = document.getElementById("btn-bgm");
-            button.setAttribute("aria-pressed", String(bgmMuted));
             const label = bgmMuted ? "BGMのミュートを解除" : "BGMをミュート";
-            button.setAttribute("aria-label", label);
-            button.title = label;
-            button.innerHTML = `<i class="fa-solid ${bgmMuted ? 'fa-volume-xmark' : 'fa-volume-high'}" aria-hidden="true"></i>`;
+            document.querySelectorAll("#btn-bgm, #setup-bgm").forEach(button => {
+                button.setAttribute("aria-pressed", String(bgmMuted));
+                button.setAttribute("aria-label", label);
+                button.title = label;
+                button.innerHTML = `<i class="fa-solid ${bgmMuted ? 'fa-volume-xmark' : 'fa-volume-high'}" aria-hidden="true"></i>`;
+            });
         }
 
-        function startBgm(theme = "city") {
-            const sameTheme = bgmTheme === theme;
+        function startBgm() {
             bgmActive = true;
-            bgmTheme = theme;
+            gameBgmAudio.muted = bgmMuted;
             updateBgmButton();
-            if (bgmSource && sameTheme) return;
-            if (bgmMuted) {
-                if (bgmSource) {
-                    bgmSource.stop();
-                    bgmSource.disconnect();
-                    bgmSource = null;
-                    bgmGain.disconnect();
-                    bgmGain = null;
-                }
-                return;
-            }
             try {
-                if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
-                if (!bgmBuffers[theme]) bgmBuffers[theme] = createBgmBuffer(theme);
-                bgmBuffer = bgmBuffers[theme];
-                const previousSource = bgmSource;
-                const previousGain = bgmGain;
-                const now = audioCtx.currentTime;
-                bgmGain = audioCtx.createGain();
-                bgmGain.connect(audioCtx.destination);
-                bgmGain.gain.setValueAtTime(0, now);
-                bgmGain.gain.linearRampToValueAtTime(0.18, now + 0.25);
-                if (previousSource) {
-                    previousGain.gain.cancelScheduledValues(now);
-                    previousGain.gain.setValueAtTime(previousGain.gain.value, now);
-                    previousGain.gain.linearRampToValueAtTime(0, now + 0.25);
-                    previousSource.onended = () => {
-                        previousSource.disconnect();
-                        previousGain.disconnect();
-                    };
-                    previousSource.stop(now + 0.26);
-                } else if (previousGain) {
-                    previousGain.disconnect();
-                }
-                bgmSource = audioCtx.createBufferSource();
-                bgmSource.buffer = bgmBuffer;
-                bgmSource.loop = true;
-                bgmSource.connect(bgmGain);
-                bgmSource.start(now);
+                if (gameBgmAudio.paused) gameBgmAudio.play().catch(() => {});
             } catch(e){}
         }
 
         function stopBgm() {
             bgmActive = false;
-            if (bgmSource) {
-                bgmSource.stop();
-                bgmSource.disconnect();
-                bgmSource = null;
-            }
-            if (bgmGain) {
-                bgmGain.disconnect();
-                bgmGain = null;
-            }
+            gameBgmAudio.pause();
+            gameBgmAudio.currentTime = 0;
         }
 
         function toggleBgmMute() {
             bgmMuted = !bgmMuted;
-            if (bgmGain) {
-                const now = audioCtx.currentTime;
-                const currentVolume = bgmGain.gain.value;
-                bgmGain.gain.cancelScheduledValues(now);
-                bgmGain.gain.setValueAtTime(currentVolume, now);
-                bgmGain.gain.setTargetAtTime(bgmMuted ? 0 : 0.18, now, 0.04);
-            }
-            if (!bgmMuted && bgmActive) startBgm(bgmTheme);
+            gameBgmAudio.muted = bgmMuted;
+            if (!bgmMuted && bgmActive) startBgm();
             updateBgmButton();
         }
 
@@ -1399,7 +1253,6 @@
                     if (rolling || (!finished && (wins === 0 || player.isAi))) return;
                     settle();
                     modal.classList.add("hidden");
-                    if (bgmActive) startBgm("city");
                     lowButton.onclick = null;
                     highButton.onclick = null;
                     claimButton.onclick = null;
@@ -1407,7 +1260,6 @@
                     resolve();
                 };
                 modal.classList.remove("hidden");
-                if (bgmActive) startBgm("casino");
                 if (player.isAi) {
                     const runAiCasino = async () => {
                         await new Promise(done => setTimeout(done, 600));
@@ -2166,9 +2018,28 @@
             }
         }
 
+        function requestBankruptcyConfirmation() {
+            const debtor = liquidationState.debtor;
+            if (!debtor || debtor.isBankrupt || document.getElementById("liquidation-modal").classList.contains("hidden")) return;
+            document.getElementById("bankruptcy-confirm-description").textContent = `${debtor.name} は保有物件を失い、このゲームから脱落します。`;
+            document.getElementById("liquidation-modal").inert = true;
+            document.getElementById("bankruptcy-confirm-modal").classList.remove("hidden");
+            document.getElementById("bankruptcy-cancel-btn").focus();
+        }
+
+        function resolveBankruptcyConfirmation(accept) {
+            const modal = document.getElementById("bankruptcy-confirm-modal");
+            if (modal.classList.contains("hidden")) return;
+            modal.classList.add("hidden");
+            document.getElementById("liquidation-modal").inert = false;
+            if (accept) confirmBankruptcy();
+            else document.getElementById("liq-bankruptcy-btn").focus();
+        }
+
         function confirmBankruptcy() {
             const debtor = liquidationState.debtor;
             const creditor = liquidationState.creditor;
+            if (!debtor || debtor.isBankrupt || document.getElementById("liquidation-modal").classList.contains("hidden")) return;
 
             document.getElementById("liquidation-modal").classList.add("hidden");
 

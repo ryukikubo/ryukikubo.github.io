@@ -54,9 +54,14 @@
     <!-- 設定・開始 モーダル -->
     <div id="setup-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50">
         <div id="setup-modal-panel" class="bg-slate-800 border border-slate-700 rounded-2xl p-5 max-w-xs w-full shadow-2xl flex flex-col gap-4 text-center">
-            <div>
-                <h2 class="text-xl font-black text-amber-400 mb-0.5"><i class="fa-solid fa-chess-board me-2"></i>8x8 MONOPOLY</h2>
-                <p class="text-xs text-slate-400">スマホ最適化・28マスモノポリー</p>
+            <div class="flex items-start gap-2">
+                <div class="flex-1 min-w-0">
+                    <h2 class="text-xl font-black text-amber-400 mb-0.5"><i class="fa-solid fa-chess-board me-2"></i>8x8 MONOPOLY</h2>
+                    <p id="app-version" class="text-xs text-slate-400">v1.0.0</p>
+                </div>
+                <button id="setup-bgm" type="button" onclick="toggleBgmMute()" class="w-7 h-7 shrink-0 flex items-center justify-center rounded-lg bg-slate-700 hover:bg-slate-600 border border-slate-600 text-teal-300 text-xs" title="BGMをミュート" aria-label="BGMをミュート" aria-pressed="false">
+                    <i class="fa-solid fa-volume-high" aria-hidden="true"></i>
+                </button>
             </div>
 
             <div class="space-y-3 text-left">
@@ -166,9 +171,21 @@
                 <button id="liq-confirm-btn" onclick="confirmLiquidation()" class="flex-1 bg-emerald-600 disabled:opacity-30 text-white font-black py-2 rounded-xl text-xs shadow transition active:scale-95">
                     売却して支払う
                 </button>
-                <button onclick="confirmBankruptcy()" class="bg-red-700 hover:bg-red-600 text-white font-bold px-3 py-2 rounded-xl text-xs">
+                <button id="liq-bankruptcy-btn" type="button" onclick="requestBankruptcyConfirmation()" class="bg-red-700 hover:bg-red-600 text-white font-bold px-3 py-2 rounded-xl text-xs">
                     破産を確定
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="bankruptcy-confirm-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-[60] hidden" role="dialog" aria-modal="true" aria-labelledby="bankruptcy-confirm-title" aria-describedby="bankruptcy-confirm-description">
+        <div class="bg-slate-800 border border-red-500/50 rounded-lg p-4 max-w-xs w-full shadow-2xl flex flex-col gap-3">
+            <h3 id="bankruptcy-confirm-title" class="text-sm font-black text-red-300 text-center"><i class="fa-solid fa-triangle-exclamation me-1" aria-hidden="true"></i>破産を確定しますか？</h3>
+            <p id="bankruptcy-confirm-description" class="text-xs text-slate-200 break-words"></p>
+            <p class="text-xs text-red-300">この操作は取り消せません。</p>
+            <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-700">
+                <button id="bankruptcy-cancel-btn" type="button" onclick="resolveBankruptcyConfirmation(false)" class="bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold py-2 rounded-lg text-xs">売却に戻る</button>
+                <button id="bankruptcy-confirm-btn" type="button" onclick="resolveBankruptcyConfirmation(true)" class="bg-red-700 hover:bg-red-600 text-white font-black py-2 rounded-lg text-xs">破産を確定</button>
             </div>
         </div>
     </div>
