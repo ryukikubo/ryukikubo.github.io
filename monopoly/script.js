@@ -471,8 +471,27 @@
             renderPlayerOrder();
         }
 
+        function updateStartMoneyMode() {
+            const custom = document.getElementById("start-money").value === "custom";
+            const input = document.getElementById("custom-start-money");
+            document.getElementById("custom-start-money-field").classList.toggle("hidden", !custom);
+            input.disabled = !custom;
+            input.required = custom;
+            input.setCustomValidity("");
+            if (custom) input.focus();
+        }
+
         function startGame() {
-            const startMoney = parseInt(document.getElementById("start-money").value);
+            const moneySelect = document.getElementById("start-money");
+            const moneyInput = moneySelect.value === "custom" ? document.getElementById("custom-start-money") : moneySelect;
+            moneyInput.setCustomValidity("");
+            const startMoney = Number(moneyInput.value);
+            if (!moneyInput.value.trim() || !Number.isSafeInteger(startMoney) || startMoney < 0) {
+                moneyInput.setCustomValidity("所持金は0以上の整数で入力してください。");
+                moneyInput.reportValidity();
+                return;
+            }
+            if (!moneyInput.reportValidity()) return;
             applyMapTheme(document.getElementById("map-theme").value);
 
             const specsByKey = new Map(getSetupPlayerSpecs().map(spec => [spec.key, spec]));
@@ -1190,7 +1209,7 @@
                 let rolling = false;
                 let finished = false;
                 if (player.isAi) {
-                    const affordableStakes = [100, 200, 500].filter(amount => amount <= player.money);
+                    const affordableStakes = [100, 200, 500, 1000].filter(amount => amount <= player.money);
                     stake = affordableStakes[Math.floor(Math.random() * affordableStakes.length)];
                     payout = stake;
                 }
@@ -2254,7 +2273,7 @@
                 bodyHtml = `
                     <div class="text-center py-2 text-slate-300">
                         【${tile.name}】 マス<br>
-                        <span class="text-[10px] text-slate-400">${tile.type === 'exchange' ? '手数料$100で所有物件1つの取引所倍率を上げます (2〜5倍)。別の物件を選ぶと旧倍率は解除され、賃料が徴収されると倍率は消滅します。' : tile.type === 'casino' ? '$100・$200・$500からベット額を選んで強制参加。所持金を超える額は選べません。ロー(1〜3)かハイ(4〜6)に賭け、成功ごとに配当が2倍になります。最大3連勝でベット額の8倍。成功後は受け取りか続行を選択でき、失敗すると配当は$0です。所持金$100未満では参加できません。' : '特殊イベントマスです。'}</span>
+                        <span class="text-[10px] text-slate-400">${tile.type === 'exchange' ? '手数料$100で所有物件1つの取引所倍率を上げます (2〜5倍)。別の物件を選ぶと旧倍率は解除され、賃料が徴収されると倍率は消滅します。' : tile.type === 'casino' ? '$100・$200・$500・$1,000からベット額を選んで強制参加。所持金を超える額は選べません。ロー(1〜3)かハイ(4〜6)に賭け、成功ごとに配当が2倍になります。最大3連勝でベット額の8倍。成功後は受け取りか続行を選択でき、失敗すると配当は$0です。所持金$100未満では参加できません。' : '特殊イベントマスです。'}</span>
                     </div>
                 `;
             }

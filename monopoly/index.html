@@ -57,7 +57,7 @@
             <div class="flex items-start gap-2">
                 <div class="flex-1 min-w-0">
                     <h2 class="text-xl font-black text-amber-400 mb-0.5"><i class="fa-solid fa-chess-board me-2"></i>8x8 MONOPOLY</h2>
-                    <p id="app-version" class="text-xs text-slate-400">v1.0.0</p>
+                    <p id="app-version" class="text-xs text-slate-400">v1.0.1</p>
                 </div>
                 <button id="setup-bgm" type="button" onclick="toggleBgmMute()" class="w-7 h-7 shrink-0 flex items-center justify-center rounded-lg bg-slate-700 hover:bg-slate-600 border border-slate-600 text-teal-300 text-xs" title="BGMをミュート" aria-label="BGMをミュート" aria-pressed="false">
                     <i class="fa-solid fa-volume-high" aria-hidden="true"></i>
@@ -101,12 +101,17 @@
                 </div>
 
                 <div>
-                    <label class="text-xs font-bold text-slate-300 mb-1 block">初期所持金</label>
-                    <select id="start-money" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs font-bold text-emerald-400 focus:outline-none focus:border-amber-400">
+                    <label for="start-money" class="text-xs font-bold text-slate-300 mb-1 block">初期所持金</label>
+                    <select id="start-money" onchange="updateStartMoneyMode()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs font-bold text-emerald-400 focus:outline-none focus:border-amber-400">
                         <option value="1200" selected>$1,200 (標準)</option>
                         <option value="1800">$1,800 (多め)</option>
                         <option value="800">$800 (ショート)</option>
+                        <option value="custom">任意入力</option>
                     </select>
+                    <div id="custom-start-money-field" class="mt-2 hidden">
+                        <label for="custom-start-money" class="text-xs font-bold text-slate-300 mb-1 block">開始所持金 ($)</label>
+                        <input id="custom-start-money" type="number" min="0" max="9007199254740991" step="1" inputmode="numeric" value="1200" disabled oninput="this.setCustomValidity('')" class="w-full min-w-0 bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs font-bold text-emerald-400 focus:outline-none focus:border-amber-400">
+                    </div>
                 </div>
             </div>
 
@@ -250,7 +255,7 @@
             </div>
             <fieldset id="casino-stakes" class="min-w-0">
                 <legend class="text-xs font-bold text-slate-300 mb-1">ベット額</legend>
-                <div class="grid grid-cols-3 gap-2">
+                <div class="grid grid-cols-4 gap-2">
                     <label class="min-w-0 cursor-pointer">
                         <input type="radio" name="casino-stake" value="100" class="peer sr-only" checked>
                         <span class="block text-center text-xs font-bold border border-slate-600 rounded-lg py-2 text-slate-300 bg-slate-900 peer-checked:border-amber-400 peer-checked:bg-amber-500 peer-checked:text-slate-950 peer-disabled:opacity-40 peer-disabled:cursor-not-allowed peer-focus-visible:ring-2 peer-focus-visible:ring-white">$100</span>
@@ -262,6 +267,10 @@
                     <label class="min-w-0 cursor-pointer">
                         <input type="radio" name="casino-stake" value="500" class="peer sr-only">
                         <span class="block text-center text-xs font-bold border border-slate-600 rounded-lg py-2 text-slate-300 bg-slate-900 peer-checked:border-amber-400 peer-checked:bg-amber-500 peer-checked:text-slate-950 peer-disabled:opacity-40 peer-disabled:cursor-not-allowed peer-focus-visible:ring-2 peer-focus-visible:ring-white">$500</span>
+                    </label>
+                    <label class="min-w-0 cursor-pointer">
+                        <input type="radio" name="casino-stake" value="1000" class="peer sr-only">
+                        <span class="block text-center text-xs font-bold border border-slate-600 rounded-lg py-2 text-slate-300 bg-slate-900 peer-checked:border-amber-400 peer-checked:bg-amber-500 peer-checked:text-slate-950 peer-disabled:opacity-40 peer-disabled:cursor-not-allowed peer-focus-visible:ring-2 peer-focus-visible:ring-white">$1,000</span>
                     </label>
                 </div>
             </fieldset>
