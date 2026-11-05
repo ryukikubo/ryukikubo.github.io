@@ -222,7 +222,7 @@
             { weight: 3, text: "スピード違反！$50を支払う", money: -50 },
             { weight: 3, text: "臨時収入！$80を獲得", money: 80 },
             { weight: 1, text: "コンテストの賞金！$100を獲得", money: 100 },
-            { weight: 1, text: "手続きの還付金！$90を獲得", money: 90 },
+            { weight: 1, text: "追徴課税金の支払が発生！$90を支払う", money: -90 },
             { weight: 1, text: "地域活動への協力金！$20を支払う", money: -20 },
             { weight: 2, text: "GOのマスへ直行！サラリー$200を受け取る", moveTo: 0 },
             { weight: 1.55, text: "保釈カードを獲得！収監時に使用できます。", heldCard: "bailPass" },
