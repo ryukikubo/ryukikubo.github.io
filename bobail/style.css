@@ -4,6 +4,19 @@
   box-sizing: border-box;
 }
 
+.ios-blur-fix {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 11px;
+  z-index: 100;
+  pointer-events: none;
+  background-color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
 html,
 body{
   width: 100%;

@@ -1,4 +1,17 @@
 /* ===== 全体 ===== */
+.ios-blur-fix {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 11px;
+  z-index: 100;
+  pointer-events: none;
+  background-color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
 body {
   font-family: 'Segoe UI', sans-serif;
   background: linear-gradient(135deg, #5f9cff, #8ef6e4);
