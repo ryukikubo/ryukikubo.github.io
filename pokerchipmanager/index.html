@@ -15,8 +15,17 @@
 <body>
 
 <div class="container">
-  <h1 class="app-title">Stack Edge</h1>
-  <div class="app-subtitle">Poker Chip Manager</div>
+  <div class="app-heading">
+    <h1 class="app-title">Stack Edge</h1>
+    <button id="soundToggle" class="sound-toggle" type="button" aria-label="効果音をミュート" aria-pressed="true" title="効果音をオン・オフ">
+      <span id="soundToggleIcon" class="sound-toggle-icon" aria-hidden="true">♫</span>
+      <span id="soundToggleLabel">Sound On</span>
+    </button>
+  </div>
+  <div class="app-meta">
+    <div class="app-subtitle">Poker Chip Manager</div>
+    <span id="app-version" class="app-version">v1.0.5</span>
+  </div>
 
   <div class="btn-area">
     <button id="addPlayerBtn">Add Player</button>

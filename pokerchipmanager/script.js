@@ -8,6 +8,73 @@ let pendingRebuyPlayerIndex = null;
 let queuedPlayers = [];
 let lastStreet = null;
 let streetAnimationTimer = null;
+let soundEnabled = true;
+let foldAudioContext = null;
+
+try {
+  soundEnabled = localStorage.getItem("stackEdgeSoundEnabled") !== "false";
+} catch (error) {
+  soundEnabled = true;
+}
+
+const pokerSoundFiles = {
+  check: "check.mp3",
+  call: "betorcall.mp3",
+  raise: "betorcall.mp3",
+  chips: "betorcall.mp3",
+  win: "betorcall.mp3",
+  split: "betorcall.mp3",
+  "all-in": "allin.mp3"
+};
+
+function playPokerSound(kind){
+  if(!soundEnabled) return;
+
+  const file = pokerSoundFiles[kind];
+  if(!file) return;
+
+  const audio = new Audio(file);
+  audio.preload = "auto";
+  audio.volume = 0.7;
+  const playback = audio.play();
+  if(playback && typeof playback.catch === "function") playback.catch(() => {});
+}
+
+function playFoldSound(){
+  if(!soundEnabled) return;
+
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if(!AudioContextClass) return;
+
+  try {
+    if(!foldAudioContext) foldAudioContext = new AudioContextClass();
+    if(foldAudioContext.state === "suspended") foldAudioContext.resume().catch(() => {});
+  } catch (error) {
+    return;
+  }
+
+  const now = foldAudioContext.currentTime;
+  const playTone = (startFrequency, endFrequency, delay, duration, volume) => {
+    const oscillator = foldAudioContext.createOscillator();
+    const gain = foldAudioContext.createGain();
+    const start = now + delay;
+    const end = start + duration;
+
+    oscillator.type = "triangle";
+    oscillator.frequency.setValueAtTime(startFrequency, start);
+    oscillator.frequency.exponentialRampToValueAtTime(endFrequency, end);
+    gain.gain.setValueAtTime(0.0001, start);
+    gain.gain.exponentialRampToValueAtTime(volume, start + 0.008);
+    gain.gain.exponentialRampToValueAtTime(0.0001, end);
+    oscillator.connect(gain);
+    gain.connect(foldAudioContext.destination);
+    oscillator.start(start);
+    oscillator.stop(end + 0.01);
+  };
+
+  playTone(620, 280, 0, 0.14, 0.045);
+  playTone(310, 170, 0.045, 0.16, 0.025);
+}
 
 let gameSetting = {
   sb: 0,
@@ -216,6 +283,7 @@ function settleHand(){
   currentHand.finished = true;
   currentHand.pot = 0;
   currentPlayerIndex = null;
+  playPokerSound("win");
 }
 
 function getActivePlayerIndices(){
@@ -613,6 +681,7 @@ $("#confirmRebuy").on("click", function(){
   pendingRebuyPlayerIndex = null;
   $("#rebuyAmount").val("");
   $("#rebuyModal").hide();
+  playPokerSound("chips");
   render();
 });
 
@@ -875,6 +944,7 @@ $(document).on("click", ".action-btn", function () {
       currentHand.foldedPlayers.push(idx);
     }
     currentHand.actions.push({ player: idx, type, amount: 0, street });
+    playFoldSound();
     updateHandPots();
     settleHand();
     handlePostAction();
@@ -939,11 +1009,13 @@ $(document).on("click", ".action-btn", function () {
 
   if (shouldUpdateAggressor) currentHand.lastAggressor = idx;
 
+  const isCallToAllIn = type === "call" && currentHand.actions.some(action => action.type === "all-in" && action.player !== idx);
   player.stack -= amount;
   currentHand.pot += amount;
 
   currentHand.actions.push({ player: idx, type, amount, street });
 
+  playPokerSound(type === "check" ? "check" : isCallToAllIn ? "all-in" : type === "call" ? "call" : "raise");
   updateHandPots();
   settleHand();
   handlePostAction();
@@ -969,6 +1041,7 @@ $("#confirmAllIn").on("click", function(){
     street: action.street
   });
 
+  playPokerSound("all-in");
   updateHandPots();
   settleHand();
   handlePostAction();
@@ -998,6 +1071,10 @@ $("#applyDistribution").click(()=>{
     alert(`配分合計は pot と一致する必要があります。現在の pot: ${total}, 合計: ${sum}`);
     return;
   }
+
+  const highestPayout = Math.max(0, ...allocations.map(allocation => allocation.amount));
+  const winnerCount = allocations.filter(allocation => allocation.amount === highestPayout).length;
+  playPokerSound(winnerCount > 1 ? "split" : "win");
 
   allocations.forEach(a => {
     players[a.player].stack += a.amount;
@@ -1133,6 +1210,26 @@ $("#nextGameBtn").click(function(){
 $(document).on("click", ".player-header", function(){
   $(this).next().slideToggle();
 });
+
+function updateSoundToggle(){
+  const toggle = document.getElementById("soundToggle");
+  if(!toggle) return;
+  toggle.setAttribute("aria-pressed", String(soundEnabled));
+  toggle.setAttribute("aria-label", soundEnabled ? "効果音をミュート" : "効果音をオン");
+  document.getElementById("soundToggleIcon").textContent = soundEnabled ? "♫" : "×";
+  document.getElementById("soundToggleLabel").textContent = soundEnabled ? "Sound On" : "Sound Off";
+}
+
+$("#soundToggle").on("click", function(){
+  soundEnabled = !soundEnabled;
+  try {
+    localStorage.setItem("stackEdgeSoundEnabled", String(soundEnabled));
+  } catch (error) {
+  }
+  updateSoundToggle();
+});
+
+updateSoundToggle();
 
 $(".close").click(function(){
   $(this).closest(".modal").hide();

@@ -911,6 +911,65 @@ h1,
   opacity: 1;
 }
 
+.app-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.app-heading .app-title {
+  text-align: left;
+}
+
+.app-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 4px 0 24px;
+}
+
+.app-meta .app-subtitle {
+  min-width: 0;
+  margin: 0;
+  letter-spacing: 1.8px;
+}
+
+.app-version {
+  flex: none;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1;
+}
+
+.sound-toggle {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 7px 10px;
+  border: 1px solid rgba(215, 182, 107, 0.34);
+  border-radius: 6px;
+  color: var(--brass-bright);
+  background: rgba(215, 182, 107, 0.1);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.sound-toggle[aria-pressed="false"] {
+  color: var(--muted);
+  border-color: rgba(169, 182, 168, 0.24);
+  background: rgba(169, 182, 168, 0.07);
+}
+
+.sound-toggle-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
 button {
   min-height: 42px;
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -1405,7 +1464,9 @@ select:focus {
   }
 
   .app-title { font-size: 38px; }
-  .app-subtitle { margin-bottom: 18px; }
+  .app-meta { margin-bottom: 18px; }
+  .app-meta .app-subtitle { font-size: 12px; letter-spacing: 1px; }
+  .sound-toggle { min-height: 34px; gap: 4px; padding: 6px 8px; font-size: 10px; }
 
   .btn-area {
     grid-template-columns: repeat(2, minmax(0, 1fr));
