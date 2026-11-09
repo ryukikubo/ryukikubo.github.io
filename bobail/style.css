@@ -12,7 +12,7 @@
   height: 11px;
   z-index: 100;
   pointer-events: none;
-  background-color: #000;
+  background-color: #ff9fce;
   -webkit-background-clip: text;
   background-clip: text;
 }

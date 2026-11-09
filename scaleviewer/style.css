@@ -9,7 +9,7 @@
   height: 11px;
   z-index: 100;
   pointer-events: none;
-  background-color: transparent;
+  background-color: #ff6aa6;
   -webkit-background-clip: text;
   background-clip: text;
 }

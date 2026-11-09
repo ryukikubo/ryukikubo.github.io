@@ -7,7 +7,7 @@
   height: 11px;
   z-index: 100;
   pointer-events: none;
-  background-color: transparent;
+  background-color: #DDEBF7;
   -webkit-background-clip: text;
   background-clip: text;
 }
@@ -67,7 +67,7 @@ body{
 .tbl_txt{
   font-family: "Roboto", serif;
   font-optical-sizing: auto;
-  font-weight: <weight>;
+  font-weight: 700;
   font-style: normal;
   font-variation-settings:
     "wdth" 100;

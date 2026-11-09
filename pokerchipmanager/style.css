@@ -11,7 +11,7 @@
   height: 11px;
   z-index: 100;
   pointer-events: none;
-  background-color: transparent;
+  background-color: rgba(21, 34, 29, 0.97);
   -webkit-background-clip: text;
   background-clip: text;
 }

@@ -11,7 +11,7 @@
     height: 11px;
     z-index: 100;
     pointer-events: none;
-    background-color: transparent;
+    background-color: #0d0d0d;
     -webkit-background-clip: text;
     background-clip: text;
 }

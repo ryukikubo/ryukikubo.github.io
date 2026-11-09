@@ -6,7 +6,7 @@
   height: 11px;
   z-index: 100;
   pointer-events: none;
-  background-color: transparent;
+  background-color: #404040;
   -webkit-background-clip: text;
   background-clip: text;
 }
@@ -294,7 +294,6 @@ body{
 }
 
 .radio-group-switch input[type="radio"]:checked + label {
-  background-color: #FFF; /* 選択時の背景色 */
   color: #404040; /* 選択時の文字色 */
 }
 
