@@ -26,6 +26,7 @@ let settlementType = "win";
 const players = ["north", "east", "south", "west"].map((direction) => {
     const scoreRegion = document.querySelector(`.player-score-${direction}`);
     const adjustment = document.getElementById(`adjust-${direction}`);
+    const settlementEntry = adjustment.closest(".settlement-entry");
     return {
         direction,
         scoreRegion,
@@ -35,7 +36,8 @@ const players = ["north", "east", "south", "west"].map((direction) => {
         nameDisplay: scoreRegion.querySelector(".player-name"),
         settlementName: document.getElementById(`settlement-name-${direction}`),
         adjustment,
-        directionButtons: adjustment.parentElement.querySelectorAll(".settlement-direction button"),
+        directionButtons: settlementEntry.querySelectorAll(".settlement-direction button"),
+        scoreStickButtons: settlementEntry.querySelectorAll(".score-stick"),
         riichiButton: document.querySelector(`.inner-button[data-player="${direction}"]`),
         riichiIndicator: document.getElementById(`settlement-riichi-${direction}`),
         display: document.getElementById(`score-${direction}`),
@@ -135,8 +137,8 @@ function openSettlement(type) {
     settlementDepositCount.textContent = depositCount.toLocaleString("ja-JP");
     settlementDeposit.setAttribute("aria-label", `供託 ${depositCount}本`);
     settlementDescription.textContent = type === "draw"
-        ? "各プレイヤーの受取・支払と点数を入力し、増減の合計を0点にしてください。確定すると供託は維持され、リーチ状態が解除されます。"
-        : "各プレイヤーの受取・支払と点数を入力し、増減の合計を供託点数と同じにしてください。供託の受け取りは手動で入力します。確定すると供託とリーチ状態が解除されます。";
+        ? "受取・支払を選び、合計が0点になるよう入力してください。供託は維持され、リーチは解除されます。"
+        : "受取・支払を選び、供託を含めて入力してください。合計は供託点数と一致させます。確定後、供託とリーチは解除されます。";
     settlementError.textContent = "";
     settlementDialog.showModal();
 }
@@ -149,6 +151,18 @@ function setSettlementDirection(player, isPayment) {
 for (const player of players) {
     player.directionButtons[0].addEventListener("click", () => setSettlementDirection(player, false));
     player.directionButtons[1].addEventListener("click", () => setSettlementDirection(player, true));
+    for (const button of player.scoreStickButtons) {
+        button.addEventListener("click", () => {
+            const amount = player.adjustment.valueAsNumber;
+            const total = amount + Number(button.dataset.points);
+            if (!Number.isSafeInteger(amount) || amount < 0 || !Number.isSafeInteger(total)) {
+                settlementError.textContent = "点数は安全に扱える範囲の0以上の整数で入力してください。";
+                return;
+            }
+            player.adjustment.value = String(total);
+            settlementError.textContent = "";
+        });
+    }
 }
 
 settlementButton.addEventListener("click", () => openSettlement("win"));
