@@ -42,7 +42,7 @@ function render(message, focusIndex = null) {
         button.setAttribute("aria-label", `カップ${index + 1}、容量 ${capacity}、水量 ${amounts[index]}`);
 
         const vessel = button.querySelector(".vessel");
-        vessel.style.height = `${110 + 110 * (capacity / capacities[0])}px`;
+        vessel.style.setProperty("--capacity-ratio", capacity / capacities[0]);
         const water = vessel.querySelector(".water");
         water.style.height = `${100 * (amounts[index] / capacity)}%`;
         button.querySelector(".amount").textContent = `${amounts[index]} / ${capacity}`;

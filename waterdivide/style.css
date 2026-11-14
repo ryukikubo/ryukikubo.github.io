@@ -9,17 +9,61 @@
 
 * { box-sizing: border-box; }
 
+.ios-blur-fix {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 11px;
+  z-index: 100;
+  pointer-events: none;
+  background-color: #72d8dc;
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
 body {
     min-width: 280px;
     margin: 0;
     background: radial-gradient(ellipse at 50% 0%, #174965 0%, #0c2b41 35%, #061827 100%);
 }
 
+.background-waves {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+.background-wave {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: calc(100% + 600px);
+    height: 75%;
+    background-repeat: repeat-x;
+    background-size: 600px 100%;
+    animation: wave-drift 18s linear infinite;
+}
+.background-wave-back {
+    opacity: .35;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 400' preserveAspectRatio='none'%3E%3Cpath fill='%231a8c9f' d='M0 90 C150 10 150 170 300 90 S450 10 600 90 V400 H0 Z'/%3E%3C/svg%3E");
+}
+.background-wave-front {
+    height: 52%;
+    opacity: .32;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 400' preserveAspectRatio='none'%3E%3Cpath fill='%23116b91' d='M0 90 C150 170 150 10 300 90 S450 170 600 90 V400 H0 Z'/%3E%3C/svg%3E");
+    animation-duration: 24s;
+    animation-direction: reverse;
+}
+@keyframes wave-drift {
+    to { transform: translateX(-600px); }
+}
+
 button, input { font: inherit; }
 button { cursor: pointer; }
 button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
 
-.app { width: min(100% - 32px, 720px); margin: 0 auto; padding: 28px 0 36px; }
+.app { position: relative; width: min(100% - 32px, 720px); margin: 0 auto; padding: 28px 0 36px; }
 .header { text-align: center; }
 .back-link { display: block; width: fit-content; color: #a7d7e5; text-decoration: none; font-size: .72rem; font-weight: 700; letter-spacing: .12em; }
 .eyebrow, .section-number { margin: 0; color: #72d8dc; font-size: .66rem; font-weight: 700; letter-spacing: .18em; }
@@ -100,12 +144,13 @@ h2 { margin: 7px 0 0; font-size: 1.1rem; letter-spacing: .06em; }
 }
 .setup-note, .play-note { margin: 13px 0 0; color: #a7c7d1; font-size: .74rem; line-height: 1.7; }
 .instruction { min-height: 2.8em; margin: 18px 0 0; color: #c5eaf0; font-size: .82rem; line-height: 1.4; }
-.cups { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; align-items: end; }
+.cups { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
 .cup-button {
-    display: flex;
+    display: grid;
     min-width: 0;
-    flex-direction: column;
-    align-items: center;
+    grid-template-rows: calc(var(--cup-height-unit, 110px) * 2) auto 1fr;
+    justify-items: center;
+    align-items: start;
     gap: 8px;
     padding: 8px 4px 10px;
     border: 1px solid transparent;
@@ -117,7 +162,9 @@ h2 { margin: 7px 0 0; font-size: 1.1rem; letter-spacing: .06em; }
 .vessel {
     position: relative;
     display: block;
+    align-self: end;
     width: min(100%, 125px);
+    height: calc((var(--cup-height-unit, 110px) * 2 - 5px) * var(--capacity-ratio) + 5px);
     overflow: hidden;
     border: 3px solid #a2d4df;
     border-top: 2px solid #d5faff;
@@ -141,6 +188,21 @@ footer { margin-top: 28px; color: #729baa; text-align: center; font-size: .6rem;
     .capacity-inputs { gap: 7px; }
 }
 
+@media (max-height: 900px) {
+    .app { --cup-height-unit: clamp(25px, calc((100svh - 440px) / 2), 110px); padding: 8px 0; }
+    .eyebrow { margin-top: 4px; }
+    h1 { margin-top: 2px; font-size: 2rem; }
+    h1 span { margin-top: 0; }
+    .intro { margin: 4px 0 8px; }
+    .panel { margin-top: 8px; padding: 12px 14px; }
+    .instruction { margin-top: 8px; }
+    .cup-button { gap: 4px; padding: 4px; }
+    .actions { margin-top: 8px; }
+    .play-note { margin-top: 5px; }
+    footer { margin-top: 6px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
+    .background-wave { animation: none; }
     .water { transition: none; }
 }
