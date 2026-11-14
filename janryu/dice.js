@@ -13,6 +13,9 @@ const rollButtons = document.querySelectorAll(".outer-button");
 const dice = document.querySelectorAll(".die");
 const result = document.getElementById("dice-result");
 const table = document.querySelector(".table");
+const diceOrbitDuration = 650;
+let rollGeneration = 0;
+let rollFrame = null;
 
 function showDie(die, value) {
     const pips = pipPositions[value - 1].map(([row, column]) => {
@@ -26,7 +29,63 @@ function showDie(die, value) {
     die.setAttribute("aria-label", `サイコロ、${value}の目`);
 }
 
+function cancelDiceRoll() {
+    rollGeneration++;
+    if (rollFrame !== null) {
+        cancelAnimationFrame(rollFrame);
+        rollFrame = null;
+    }
+}
+
+function finishDiceRoll(generation, facesAlreadyRolled = false) {
+    if (generation !== rollGeneration) {
+        return;
+    }
+    cancelDiceRoll();
+    const values = Array.from(dice, (die) => {
+        const value = facesAlreadyRolled ? Number(die.dataset.value) : Math.floor(Math.random() * 6) + 1;
+        if (!facesAlreadyRolled) {
+            showDie(die, value);
+        }
+        return value;
+    });
+    result.textContent = `サイコロの出目は${values[0]}と${values[1]}です。`;
+}
+
+function animateDiceFaces(animation, generation) {
+    for (const die of dice) {
+        showDie(die, Math.floor(Math.random() * 6) + 1);
+    }
+    let lastStep = 0;
+    function updateFaces() {
+        if (generation !== rollGeneration) {
+            return;
+        }
+        const time = animation.currentTime || 0;
+        if (time >= diceOrbitDuration) {
+            rollFrame = null;
+            return;
+        }
+        const step = Math.floor(time / 110);
+        if (step !== lastStep) {
+            lastStep = step;
+            for (const die of dice) {
+                const current = Number(die.dataset.value);
+                const next = ((current + Math.floor(Math.random() * 5)) % 6) + 1;
+                showDie(die, next);
+            }
+        }
+        rollFrame = requestAnimationFrame(updateFaces);
+    }
+    rollFrame = requestAnimationFrame(updateFaces);
+    animation.finished.then(
+        () => finishDiceRoll(generation, true),
+        () => finishDiceRoll(generation, true)
+    );
+}
+
 function resetDice() {
+    cancelDiceRoll();
     for (const button of rollButtons) {
         button.setAttribute("aria-pressed", "false");
         button.classList.remove("press-animation");
@@ -40,6 +99,7 @@ function resetDice() {
 
 for (const button of rollButtons) {
     button.addEventListener("click", () => {
+        cancelDiceRoll();
         const previousButton = Array.from(rollButtons).find((rollButton) =>
             rollButton.getAttribute("aria-pressed") === "true"
         );
@@ -60,11 +120,13 @@ for (const button of rollButtons) {
             die.classList.add("roll-animation");
         }
 
-        const values = Array.from(dice, (die) => {
-            const value = Math.floor(Math.random() * 6) + 1;
-            showDie(die, value);
-            return value;
-        });
-        result.textContent = `サイコロの出目は${values[0]}と${values[1]}です。`;
+        const generation = rollGeneration;
+        const animation = dice[0].getAnimations().find((item) => item.animationName === "dice-roll");
+        if (animation) {
+            result.textContent = "サイコロを振っています。";
+            animateDiceFaces(animation, generation);
+        } else {
+            finishDiceRoll(generation);
+        }
     });
 }
