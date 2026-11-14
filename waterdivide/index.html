@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#081c2e">
+    <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+    <link rel="stylesheet" href="./style.css">
+    <script src="./script.js" defer></script>
+    <title>水分け | WATER DIVIDE</title>
+</head>
+<body>
+    <main class="app">
+        <header class="header">
+            <a class="back-link" href="../">← MENU</a>
+            <p class="eyebrow">A LITTLE LOGIC, A LITTLE WATER</p>
+            <h1>水分け<span>WATER DIVIDE</span></h1>
+            <p class="intro">3つのカップで、水を分けてみよう。</p>
+        </header>
+
+        <section class="play panel" aria-labelledby="play-title">
+            <div class="section-heading">
+                <div>
+                    <p class="section-number">POUR</p>
+                    <h2 id="play-title">水を移す</h2>
+                </div>
+                <button id="open-setup" class="setup-button" type="button" aria-haspopup="dialog">容量を設定</button>
+            </div>
+            <p id="instruction" class="instruction" role="status" aria-live="polite"></p>
+            <div id="cups" class="cups" aria-label="カップ一覧"></div>
+            <div class="actions">
+                <button id="undo" class="secondary-button" type="button" disabled>↶ ひとつ戻す</button>
+                <button id="reset" class="secondary-button" type="button">最初に戻す</button>
+            </div>
+            <p class="play-note">移し元、移し先の順にタップ。移し元が空か、移し先が満杯になるまで注ぎます。</p>
+        </section>
+        <footer>TAKE YOUR TIME. ENJOY THE FLOW.</footer>
+    </main>
+    <dialog id="setup-dialog" class="setup-dialog" aria-labelledby="setup-title" aria-describedby="setup-note">
+        <div class="section-heading">
+            <div>
+                <p class="section-number">SETUP</p>
+                <h2 id="setup-title">カップの容量</h2>
+            </div>
+            <span class="unit-note">同じ単位で入力</span>
+        </div>
+        <form id="setup-form" novalidate>
+            <div class="capacity-inputs">
+                <label>カップ 1<input name="capacity" type="number" inputmode="numeric" min="1" step="1" value="8" required></label>
+                <label>カップ 2<input name="capacity" type="number" inputmode="numeric" min="1" step="1" value="5" required></label>
+                <label>カップ 3<input name="capacity" type="number" inputmode="numeric" min="1" step="1" value="3" required></label>
+            </div>
+            <p id="setup-error" class="error" role="alert"></p>
+            <button class="primary-button" type="submit">この容量でスタート <span aria-hidden="true">→</span></button>
+            <button id="cancel-setup" class="cancel-button" type="button">キャンセル</button>
+        </form>
+        <p id="setup-note" class="setup-note">容量の大きい順に並び、最初は一番大きなカップが満水になります。</p>
+    </dialog>
+</body>
+</html>
