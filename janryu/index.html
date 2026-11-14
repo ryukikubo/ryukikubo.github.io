@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
+    <meta name="theme-color" content="#263a35">
+    <title>雀龍 -janryu-</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Yuji+Boku&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./style.css">
+    <script src="./dice.js" defer></script>
+    <script src="./riichi.js" defer></script>
+    <script src="./game.js" defer></script>
+    <script src="./round.js" defer></script>
+    <script src="./indicator.js" defer></script>
+    <script src="./theme.js" defer></script>
+</head>
+<body>
+    <div class="ios-blur-fix" aria-hidden="true"></div>
+    <header class="app-header">
+        <h1><button id="theme-toggle" type="button" aria-label="雀龍 -janryu-。背景色：緑。押すと背景色を変更">雀龍 <span>-janryu-</span></button></h1>
+        <button id="start-game" class="start-button" type="button">ゲーム開始</button>
+    </header>
+    <main class="app">
+        <div class="round-row">
+            <div class="round-info">
+                <div class="round-display round-display-top" role="group" aria-label="上部の局表示">
+                    <button type="button" class="round-control round-wind" aria-label="場風：東。押すと次の場風に変更">東</button>
+                    <button type="button" class="round-control round-number" aria-label="局番号：一。押すと次の局番号に変更">一</button>
+                    <span class="round-suffix">局</span>
+                </div>
+                <div class="deposit-display" role="status" aria-label="供託 0本">
+                    <span class="settlement-riichi" aria-hidden="true"><span></span></span>
+                    <span aria-hidden="true">× <span id="deposit-count">0</span></span>
+                </div>
+            </div>
+            <div class="settlement-actions">
+                <button id="open-settlement" class="settlement-button" type="button">和了</button>
+                <button id="open-draw-settlement" class="settlement-button" type="button">流局</button>
+            </div>
+        </div>
+        <div class="game-board">
+        <section class="player-score player-score-north" aria-label="北側のプレイヤーの所持点数">
+            <div class="player-name">プレイヤー N</div>
+            <div class="score-value"><span class="score-number" id="score-north">0</span> <span>点</span></div>
+        </section>
+        <section class="player-score player-score-east" aria-label="東側のプレイヤーの所持点数">
+            <div class="player-name">プレイヤー E</div>
+            <div class="score-value"><span class="score-number" id="score-east">0</span> <span>点</span></div>
+        </section>
+        <section class="player-score player-score-south" aria-label="南側のプレイヤーの所持点数">
+            <div class="player-name">プレイヤー S</div>
+            <div class="score-value"><span class="score-number" id="score-south">0</span> <span>点</span></div>
+        </section>
+        <section class="player-score player-score-west" aria-label="西側のプレイヤーの所持点数">
+            <div class="player-name">プレイヤー W</div>
+            <div class="score-value"><span class="score-number" id="score-west">0</span> <span>点</span></div>
+        </section>
+        <section class="table" aria-label="麻雀卓">
+            <button class="indicator-button indicator-button-north" type="button" aria-label="本場を進める" aria-describedby="indicator-status"></button>
+            <button class="indicator-button indicator-button-south" type="button" aria-label="本場を進める" aria-describedby="indicator-status"></button>
+            <div class="indicator-bars indicator-bars-north" aria-hidden="true">
+                <span></span><span></span><span></span><span></span>
+            </div>
+            <div class="indicator-bars indicator-bars-south" aria-hidden="true">
+                <span></span><span></span><span></span><span></span>
+            </div>
+            <p id="indicator-status" class="visually-hidden" role="status">0本場</p>
+            <button class="table-button outer-button north" type="button" aria-pressed="false" aria-label="北側：サイコロを振る"></button>
+            <button class="table-button inner-button north" type="button" data-player="north" aria-pressed="false" aria-label="北側のリーチ"><span aria-hidden="true"></span></button>
+
+            <button class="table-button outer-button east" type="button" aria-pressed="false" aria-label="東側：サイコロを振る"></button>
+            <button class="table-button inner-button east" type="button" data-player="east" aria-pressed="false" aria-label="東側のリーチ"><span aria-hidden="true"></span></button>
+
+            <button class="table-button outer-button south" type="button" aria-pressed="false" aria-label="南側：サイコロを振る"></button>
+            <button class="table-button inner-button south" type="button" data-player="south" aria-pressed="false" aria-label="南側のリーチ"><span aria-hidden="true"></span></button>
+
+            <button class="table-button outer-button west" type="button" aria-pressed="false" aria-label="西側：サイコロを振る"></button>
+            <button class="table-button inner-button west" type="button" data-player="west" aria-pressed="false" aria-label="西側のリーチ"><span aria-hidden="true"></span></button>
+
+            <div class="table-center" aria-label="サイコロ">
+                <div class="die die-first" role="img" aria-label="サイコロ、1の目" data-value="1"><span style="grid-area: 2 / 2"></span></div>
+                <div class="die die-second" role="img" aria-label="サイコロ、1の目" data-value="1"><span style="grid-area: 2 / 2"></span></div>
+            </div>
+            <p class="visually-hidden" id="dice-result" aria-live="polite" aria-atomic="true"></p>
+        </section>
+        </div>
+        <div class="round-display round-display-bottom" role="group" aria-label="下部の局表示">
+            <button type="button" class="round-control round-wind" aria-label="場風：東。押すと次の場風に変更">東</button>
+            <button type="button" class="round-control round-number" aria-label="局番号：一。押すと次の局番号に変更">一</button>
+            <span class="round-suffix">局</span>
+        </div>
+        <p id="riichi-error" class="riichi-error" role="alert"></p>
+    </main>
+    <dialog id="start-dialog" aria-labelledby="start-dialog-title" aria-describedby="start-dialog-description">
+        <form id="start-form">
+            <h2 id="start-dialog-title">ゲーム開始</h2>
+            <p id="start-dialog-description">各プレイヤーの名前と共通の開始点数を入力し、起家を選択してください。</p>
+            <div class="score-inputs start-players">
+                <fieldset><legend><label class="dealer-option"><input type="radio" name="starting-dealer" value="north" aria-label="北側を起家にする" required>北側（N）</label></legend>
+                    <label for="name-north">名前 <input id="name-north" type="text" required></label>
+                </fieldset>
+                <fieldset><legend><label class="dealer-option"><input type="radio" name="starting-dealer" value="east" aria-label="東側を起家にする" required>東側（E）</label></legend>
+                    <label for="name-east">名前 <input id="name-east" type="text" required></label>
+                </fieldset>
+                <fieldset><legend><label class="dealer-option"><input type="radio" name="starting-dealer" value="south" aria-label="南側を起家にする" required>南側（S）</label></legend>
+                    <label for="name-south">名前 <input id="name-south" type="text" required></label>
+                </fieldset>
+                <fieldset><legend><label class="dealer-option"><input type="radio" name="starting-dealer" value="west" aria-label="西側を起家にする" required>西側（W）</label></legend>
+                    <label for="name-west">名前 <input id="name-west" type="text" required></label>
+                </fieldset>
+            </div>
+            <div class="score-inputs start-points">
+                <label for="start-points">開始点数<input id="start-points" type="number" step="1" required></label>
+            </div>
+            <p id="score-error" class="score-error" role="alert"></p>
+            <div class="dialog-actions">
+                <button id="cancel-start" class="cancel-button" type="button">キャンセル</button>
+                <button class="confirm-button" type="submit">OK</button>
+            </div>
+        </form>
+    </dialog>
+    <dialog id="settlement-dialog" aria-labelledby="settlement-title" aria-describedby="settlement-round settlement-deposit settlement-description">
+        <form id="settlement-form">
+            <h2 id="settlement-title">和了・点棒精算</h2>
+            <div class="settlement-status">
+                <p id="settlement-round" class="settlement-round">東一局 0本場</p>
+                <p id="settlement-deposit" class="settlement-round settlement-deposit" aria-label="供託 0本">
+                    <span class="settlement-riichi" aria-hidden="true"><span></span></span>
+                    <span aria-hidden="true">× <span id="settlement-deposit-count">0</span></span>
+                </p>
+            </div>
+            <p id="settlement-description">各プレイヤーの受取・支払を選び、点数を入力してください。</p>
+            <div class="score-inputs settlement-players">
+                <div class="settlement-entry">
+                    <label for="adjust-north" class="settlement-player"><span id="settlement-name-north" class="settlement-name">プレイヤー N</span><span id="settlement-riichi-north" class="settlement-riichi" role="img" aria-label="リーチ中" hidden><span></span></span></label>
+                    <div class="settlement-controls"><div class="settlement-direction" role="group" aria-labelledby="settlement-name-north"><button type="button" class="direction-receive" aria-pressed="true">受取</button><button type="button" class="direction-pay" aria-pressed="false">支払</button></div><input id="adjust-north" name="north" type="number" min="0" step="1" value="0" required></div>
+                </div>
+                <div class="settlement-entry">
+                    <label for="adjust-east" class="settlement-player"><span id="settlement-name-east" class="settlement-name">プレイヤー E</span><span id="settlement-riichi-east" class="settlement-riichi" role="img" aria-label="リーチ中" hidden><span></span></span></label>
+                    <div class="settlement-controls"><div class="settlement-direction" role="group" aria-labelledby="settlement-name-east"><button type="button" class="direction-receive" aria-pressed="true">受取</button><button type="button" class="direction-pay" aria-pressed="false">支払</button></div><input id="adjust-east" name="east" type="number" min="0" step="1" value="0" required></div>
+                </div>
+                <div class="settlement-entry">
+                    <label for="adjust-south" class="settlement-player"><span id="settlement-name-south" class="settlement-name">プレイヤー S</span><span id="settlement-riichi-south" class="settlement-riichi" role="img" aria-label="リーチ中" hidden><span></span></span></label>
+                    <div class="settlement-controls"><div class="settlement-direction" role="group" aria-labelledby="settlement-name-south"><button type="button" class="direction-receive" aria-pressed="true">受取</button><button type="button" class="direction-pay" aria-pressed="false">支払</button></div><input id="adjust-south" name="south" type="number" min="0" step="1" value="0" required></div>
+                </div>
+                <div class="settlement-entry">
+                    <label for="adjust-west" class="settlement-player"><span id="settlement-name-west" class="settlement-name">プレイヤー W</span><span id="settlement-riichi-west" class="settlement-riichi" role="img" aria-label="リーチ中" hidden><span></span></span></label>
+                    <div class="settlement-controls"><div class="settlement-direction" role="group" aria-labelledby="settlement-name-west"><button type="button" class="direction-receive" aria-pressed="true">受取</button><button type="button" class="direction-pay" aria-pressed="false">支払</button></div><input id="adjust-west" name="west" type="number" min="0" step="1" value="0" required></div>
+                </div>
+            </div>
+            <p id="settlement-error" class="score-error" role="alert"></p>
+            <div class="dialog-actions">
+                <button id="cancel-settlement" class="cancel-button" type="button">キャンセル</button>
+                <button class="confirm-button" type="submit">OK</button>
+            </div>
+        </form>
+    </dialog>
+</body>
+</html>

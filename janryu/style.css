@@ -1,0 +1,864 @@
+@charset "UTF-8";
+
+.ios-blur-fix {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 11px;
+    z-index: 100;
+    pointer-events: none;
+    background-color: #10251e;
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    min-height: 100%;
+    margin: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-height: 100dvh;
+    color: #fff;
+    background: #263a35;
+    font-family: system-ui, sans-serif;
+}
+
+body[data-theme="blue"] {
+    background: #1d344c;
+}
+
+body[data-theme="black"] {
+    background: #17191c;
+}
+
+.app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 64px;
+    padding: 10px 16px;
+    background: #10251e;
+    border-bottom: 1px solid #53675b;
+}
+
+.app-header h1 {
+    margin: 0;
+}
+
+.app-header h1 button {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #f7e8b3;
+    font-family: "Yuji Boku", "HGP行書体", "HG行書体", "Yu Mincho", serif;
+    font-size: 28px;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    line-height: 1.2;
+    text-shadow: 0 1px 5px rgba(213, 189, 113, 0.35);
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.app-header h1 button:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 3px;
+    border-radius: 3px;
+}
+
+.app-header h1 span {
+    font-family: system-ui, sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+}
+
+.start-button,
+.settlement-button,
+.confirm-button,
+.cancel-button {
+    border: 1px solid #d5bd71;
+    border-radius: 8px;
+    padding: 9px 16px;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.start-button,
+.settlement-button,
+.confirm-button {
+    color: #202014;
+    background: #e9ca67;
+}
+
+.start-button:focus-visible,
+.settlement-button:focus-visible,
+.confirm-button:focus-visible,
+.cancel-button:focus-visible,
+.score-inputs input:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+}
+
+.app {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    place-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+}
+
+.round-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 8px;
+}
+
+.round-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.deposit-display {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-left: 6px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.settlement-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.round-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-family: "Yuji Boku", "HGP行書体", "HG行書体", "Yu Mincho", serif;
+    font-size: 30px;
+    line-height: 1;
+}
+
+.round-display-top {
+    justify-self: start;
+}
+
+.round-display-bottom {
+    justify-self: end;
+    transform: rotate(180deg);
+}
+
+.round-control,
+.round-suffix {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+}
+
+.round-control {
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+.round-control:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: -2px;
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.game-board {
+    position: relative;
+    width: min(100%, 740px, calc(100vh - 184px));
+    width: min(100%, 740px, calc(100dvh - 184px));
+    aspect-ratio: 1;
+    container-type: inline-size;
+}
+
+.player-score {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3cqw;
+    width: 35%;
+    height: 11%;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 2cqw;
+    background: #071d17;
+    color: #fff;
+    white-space: nowrap;
+}
+
+.player-name {
+    color: #d3ded7;
+    font-size: clamp(9px, 2.5cqw, 17px);
+    line-height: 1.1;
+    max-width: 95%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.player-score.starting-dealer {
+    border: 2px solid #bd1f1f;
+    background: #f2a348;
+    color: #28170b;
+}
+
+.starting-dealer .player-name {
+    color: #28170b;
+}
+
+.score-value {
+    font-size: clamp(14px, 4.2cqw, 29px);
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.score-value span {
+    font-size: 0.65em;
+    font-weight: 400;
+}
+
+.score-value .score-number {
+    font-size: 1em;
+    font-weight: inherit;
+}
+
+dialog {
+    width: min(420px, calc(100% - 32px));
+    max-height: calc(100% - 32px);
+    padding: 22px;
+    border: 1px solid #657c6e;
+    border-radius: 16px;
+    color: #fff;
+    background: #183229;
+}
+
+dialog::backdrop {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+dialog h2 {
+    margin: 0 0 8px;
+    font-size: 20px;
+}
+
+dialog p {
+    margin: 0 0 16px;
+    color: #d3ded7;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+dialog .settlement-round {
+    color: #fff;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.settlement-status {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0 16px;
+}
+
+dialog .settlement-deposit {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.score-inputs {
+    display: grid;
+    gap: 10px;
+}
+
+.score-inputs label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.start-players {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.start-players fieldset {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+    margin: 0;
+    padding: 6px 10px 10px;
+    border: 1px solid #657c6e;
+    border-radius: 6px;
+}
+
+.start-players legend {
+    padding: 0 4px;
+}
+
+.score-inputs .dealer-option {
+    display: inline-flex;
+    justify-content: flex-start;
+    gap: 4px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.settlement-players {
+    gap: 8px;
+}
+
+.settlement-entry {
+    min-width: 0;
+}
+
+.score-inputs .settlement-player {
+    justify-content: flex-start;
+    gap: 6px;
+}
+
+.settlement-controls,
+.settlement-direction {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.settlement-controls {
+    margin-top: 3px;
+}
+
+.settlement-direction button {
+    min-width: 46px;
+    padding: 4px 8px;
+    border: 1px solid #68716f;
+    border-radius: 7px;
+    background: linear-gradient(#dedfdd, #bfc2c0);
+    color: #484f4c;
+    font-family: "Yuji Boku", "HGP行書体", "HG行書体", "Yu Mincho", serif;
+    font-size: 17px;
+    line-height: 1.4;
+    box-shadow: inset 0 1px rgba(255, 255, 255, 0.6), 0 2px 3px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+}
+
+.settlement-direction .direction-receive[aria-pressed="true"] {
+    border-color: #9c4a26;
+    background: linear-gradient(#ffd5ae, #eaa276);
+    color: #8e1d10;
+    box-shadow: inset 0 1px rgba(255, 255, 255, 0.7), 0 0 5px rgba(238, 143, 83, 0.4);
+}
+
+.settlement-direction .direction-pay[aria-pressed="true"] {
+    border-color: #496d98;
+    background: linear-gradient(#eff7fc, #bbd5e8);
+    color: #234f87;
+    box-shadow: inset 0 1px rgba(255, 255, 255, 0.8), 0 0 5px rgba(111, 168, 216, 0.4);
+}
+
+.settlement-direction button:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+}
+
+.score-inputs .settlement-controls input {
+    flex: 1;
+    width: 0;
+}
+
+.start-players .dealer-option input {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    padding: 0;
+    accent-color: #e9ca67;
+}
+
+.settlement-player {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    white-space: nowrap;
+}
+
+.settlement-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.settlement-riichi:not([hidden]) {
+    display: inline-grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 30px;
+    height: 10px;
+    border-width: 2px;
+    border-style: solid;
+    border-radius: 999px;
+}
+
+.settlement-riichi span {
+    width: 5px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+}
+
+.score-inputs input {
+    width: min(55%, 190px);
+    min-width: 0;
+    flex-shrink: 0;
+    padding: 8px;
+    border: 1px solid #9aada2;
+    border-radius: 6px;
+    font: inherit;
+    color: #14251e;
+    background: #fff;
+}
+
+.start-players label {
+    display: grid;
+    gap: 3px;
+}
+
+.start-players input {
+    width: 100%;
+}
+
+.start-points {
+    margin-top: 12px;
+}
+
+dialog .score-error {
+    margin: 8px 0 0;
+    color: #ffd1c9;
+}
+
+.score-error:empty {
+    display: none;
+}
+
+.riichi-error {
+    position: fixed;
+    z-index: 1;
+    bottom: 8px;
+    left: 12px;
+    right: 12px;
+    width: fit-content;
+    max-width: calc(100% - 24px);
+    margin: 0 auto;
+    padding: 8px 12px;
+    border-radius: 6px;
+    color: #fff;
+    background: #8b2424;
+}
+
+.riichi-error:empty {
+    display: none;
+}
+
+.dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+@media (max-height: 650px) {
+    #start-dialog {
+        padding: 14px;
+    }
+
+    #settlement-dialog {
+        padding: 14px;
+    }
+
+    #settlement-dialog h2,
+    #settlement-dialog p {
+        margin-bottom: 6px;
+    }
+
+    #settlement-dialog .settlement-players {
+        gap: 4px;
+    }
+
+    #settlement-dialog .settlement-controls input {
+        padding: 5px 8px;
+    }
+
+    #settlement-dialog .dialog-actions {
+        margin-top: 10px;
+    }
+
+    #start-dialog-description {
+        margin-bottom: 8px;
+    }
+
+    .start-players {
+        gap: 6px;
+    }
+
+    .start-players fieldset {
+        gap: 3px;
+        padding: 2px 6px 6px;
+    }
+
+    .start-players label {
+        gap: 1px;
+        font-size: 14px;
+    }
+
+    .start-players input {
+        padding: 5px 6px;
+        font-size: 16px;
+    }
+
+    #start-dialog .dialog-actions {
+        margin-top: 10px;
+    }
+}
+
+.cancel-button {
+    color: #fff;
+    background: transparent;
+}
+
+.player-score-north {
+    top: 7%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(180deg);
+}
+
+.player-score-east {
+    top: 50%;
+    right: 7%;
+    transform: translate(50%, -50%) rotate(270deg);
+}
+
+.player-score-south {
+    bottom: 7%;
+    left: 50%;
+    transform: translate(-50%, 50%);
+}
+
+.player-score-west {
+    top: 50%;
+    left: 7%;
+    transform: translate(-50%, -50%) rotate(90deg);
+}
+
+.table {
+    position: absolute;
+    inset: 14%;
+    background: #b0acad;
+    border: 2px solid #29394e;
+}
+
+.indicator-button {
+    position: absolute;
+    width: 16%;
+    aspect-ratio: 1;
+    padding: 0;
+    border: 2px solid #29394e;
+    border-radius: 50%;
+    background: radial-gradient(circle at 42% 35%, #d2f3ff 0%, #82caff 43%, #368acb 76%, #275e88 100%);
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.45);
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+.indicator-button:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+}
+
+.indicator-button-north {
+    top: 3.5%;
+    left: 2%;
+}
+
+.indicator-button-south {
+    right: 2%;
+    bottom: 3.5%;
+}
+
+.indicator-bars {
+    position: absolute;
+    width: 24%;
+    height: 7%;
+    display: flex;
+    gap: 5%;
+    transform: rotate(-45deg);
+    pointer-events: none;
+}
+
+.indicator-bars-north {
+    top: 9%;
+    right: -1%;
+    flex-direction: row-reverse;
+}
+
+.indicator-bars-south {
+    bottom: 9%;
+    left: -1%;
+}
+
+.indicator-bars span {
+    flex: 1;
+    border: 1px solid #26374e;
+    background: #222b38;
+}
+
+.indicator-bars span[data-state="blue"] {
+    background: #4a83df;
+    box-shadow: 0 0 5px rgba(58, 135, 255, 0.8);
+}
+
+.indicator-bars span[data-state="purple"] {
+    background: #ac55d5;
+    box-shadow: 0 0 5px rgba(183, 89, 226, 0.8);
+}
+
+.table-button {
+    position: absolute;
+    padding: 0;
+    opacity: 1;
+    cursor: not-allowed;
+}
+
+.outer-button {
+    border: 2px solid #29394e;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at 50% 40%, #fff 15%, #e8e8e8 55%, #9a9a9a 90%);
+    box-shadow: inset 0 0 5px #666;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+.outer-button[aria-pressed="true"] {
+    background: radial-gradient(ellipse at 50% 40%, #fffbd4 15%, #ffeb68 55%, #e8ad16 90%);
+    box-shadow: inset 0 0 5px #db9d00, 0 0 14px 5px rgba(255, 222, 39, 0.8);
+}
+
+.outer-button.press-animation,
+.indicator-button.press-animation {
+    animation: button-press 350ms ease-out;
+}
+
+@keyframes button-press {
+    0% { transform: scale(1); }
+    35% { transform: scale(0.94); filter: brightness(1.2); }
+    70% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+.outer-button:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 3px;
+}
+
+.outer-button.north,
+.outer-button.south {
+    left: 23.5%;
+    width: 53%;
+    height: 10%;
+}
+
+.outer-button.north {
+    top: 3.5%;
+}
+
+.outer-button.south {
+    bottom: 3.5%;
+}
+
+.outer-button.east,
+.outer-button.west {
+    top: 23.5%;
+    width: 10%;
+    height: 53%;
+}
+
+.outer-button.east {
+    right: 3.5%;
+}
+
+.outer-button.west {
+    left: 3.5%;
+}
+
+.inner-button {
+    display: grid;
+    place-items: center;
+    border: 2px solid #d5d3d3;
+    border-radius: 999px;
+    background: #f0f0f0;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+.inner-button:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 3px;
+}
+
+.inner-button[aria-pressed="true"],
+.settlement-riichi {
+    border-color: #111;
+    background: #fff;
+}
+
+.inner-button[aria-pressed="true"] span,
+.settlement-riichi span {
+    background: #ed0000;
+}
+
+.inner-button span {
+    width: min(2cqw, 12px);
+    aspect-ratio: 1;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #b0acad;
+}
+
+.inner-button.north,
+.inner-button.south {
+    left: 23.5%;
+    width: 53%;
+    height: 6%;
+}
+
+.inner-button.north {
+    top: 16.5%;
+}
+
+.inner-button.south {
+    bottom: 16.5%;
+}
+
+.inner-button.east,
+.inner-button.west {
+    top: 23.5%;
+    width: 6%;
+    height: 53%;
+}
+
+.inner-button.east {
+    right: 16.5%;
+}
+
+.inner-button.west {
+    left: 16.5%;
+}
+
+.table-center {
+    position: absolute;
+    inset: 25%;
+    border: 2px solid #111;
+    border-radius: 50%;
+    background: #578b39;
+}
+
+.die {
+    position: absolute;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    place-items: center;
+    width: 28%;
+    aspect-ratio: 1;
+    padding: 3%;
+    border: 2px solid #111;
+    border-radius: 18%;
+    background: linear-gradient(135deg, #fff 60%, #d4d4d4);
+    box-shadow: inset -2px -3px 4px #999;
+}
+
+.die-first {
+    top: 19%;
+    left: 20%;
+    --orbit-x: 57.14%;
+    --orbit-y: 60.71%;
+}
+
+.die-second {
+    right: 22%;
+    bottom: 20%;
+    --orbit-x: -50%;
+    --orbit-y: -57.14%;
+    --settle-direction: -1;
+}
+
+.die.roll-animation {
+    animation: dice-roll 1550ms linear;
+}
+
+@keyframes dice-roll {
+    0% { transform: translate(var(--orbit-x), var(--orbit-y)) rotate(0deg) translate(calc(-1 * var(--orbit-x)), calc(-1 * var(--orbit-y))) rotate(0deg); animation-timing-function: linear; }
+    41.9355% { transform: translate(var(--orbit-x), var(--orbit-y)) rotate(1080deg) translate(calc(-1 * var(--orbit-x)), calc(-1 * var(--orbit-y))) rotate(0deg); animation-timing-function: ease-out; }
+    100% { transform: translate(var(--orbit-x), var(--orbit-y)) rotate(1080deg) translate(calc(-1 * var(--orbit-x)), calc(-1 * var(--orbit-y))) rotate(calc(var(--settle-direction, 1) * 720deg)); }
+}
+
+.die span {
+    width: 70%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: #222;
+}
+
+.die[data-value="1"] span {
+    width: 100%;
+    background: #ed0000;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .outer-button.press-animation,
+    .indicator-button.press-animation,
+    .die.roll-animation {
+        animation: none;
+    }
+}
