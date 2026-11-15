@@ -23,6 +23,8 @@ let depositCount = 0;
 let startingPoints = 0;
 let startingDealer = null;
 let settlementType = "win";
+let scoreHold = null;
+let comparisonPlayer = null;
 const players = ["north", "east", "south", "west"].map((direction) => {
     const scoreRegion = document.querySelector(`.player-score-${direction}`);
     const adjustment = document.getElementById(`adjust-${direction}`);
@@ -54,11 +56,99 @@ function updateDeposit(count) {
 function updateScores(scores) {
     players.forEach((player, index) => {
         player.score = scores[index];
-        const text = player.score.toLocaleString("ja-JP");
+    });
+    renderScores();
+}
+
+function renderScores() {
+    for (const player of players) {
+        let text = player.score.toLocaleString("ja-JP");
+        if (comparisonPlayer && player !== comparisonPlayer) {
+            const difference = BigInt(player.score) - BigInt(comparisonPlayer.score);
+            text = `${difference > 0n ? "+" : ""}${difference.toLocaleString("ja-JP")}`;
+        }
         player.display.textContent = text;
         player.display.parentElement.style.fontSize = `min(4.2cqw, ${30 / (text.length + 2)}cqw, 29px)`;
+        const dealer = player.scoreRegion.classList.contains("starting-dealer") ? "、起家" : "";
+        const scoreType = comparisonPlayer && player !== comparisonPlayer ? "点差" : "点数";
+        player.scoreRegion.setAttribute("aria-label", `${player.scoreLabel}、${player.nameDisplay.textContent}${dealer}、${scoreType} ${text}点`);
+    }
+}
+
+function endScoreHold() {
+    if (!scoreHold) {
+        return;
+    }
+    clearTimeout(scoreHold.timer);
+    scoreHold = null;
+    if (comparisonPlayer) {
+        comparisonPlayer = null;
+        renderScores();
+    }
+}
+
+function beginScoreHold(player, input, pointerId = null) {
+    if (scoreHold) {
+        return false;
+    }
+    scoreHold = {
+        player,
+        input,
+        pointerId,
+        timer: setTimeout(() => {
+            comparisonPlayer = player;
+            renderScores();
+        }, 500)
+    };
+    return true;
+}
+
+for (const player of players) {
+    const region = player.scoreRegion;
+    region.addEventListener("pointerdown", (event) => {
+        if (!event.isPrimary || event.button !== 0) {
+            return;
+        }
+        if (beginScoreHold(player, "pointer", event.pointerId)) {
+            region.setPointerCapture(event.pointerId);
+        }
+    });
+    for (const type of ["pointerup", "pointercancel", "lostpointercapture"]) {
+        region.addEventListener(type, (event) => {
+            if (scoreHold && scoreHold.input === "pointer" && scoreHold.pointerId === event.pointerId) {
+                endScoreHold();
+            }
+        });
+    }
+    region.addEventListener("contextmenu", (event) => event.preventDefault());
+    region.addEventListener("keydown", (event) => {
+        if (event.key === " ") {
+            event.preventDefault();
+            if (!event.repeat) {
+                beginScoreHold(player, "keyboard");
+            }
+        }
+    });
+    region.addEventListener("keyup", (event) => {
+        if (event.key === " " && scoreHold && scoreHold.input === "keyboard" && scoreHold.player === player) {
+            event.preventDefault();
+            endScoreHold();
+        }
+    });
+    region.addEventListener("blur", () => {
+        if (scoreHold && scoreHold.input === "keyboard" && scoreHold.player === player) {
+            endScoreHold();
+        }
     });
 }
+
+window.addEventListener("blur", endScoreHold);
+document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+        endScoreHold();
+    }
+});
+renderScores();
 
 function adjustRiichiScore(direction, isRiichi) {
     const player = players.find((item) => item.direction === direction);
@@ -112,7 +202,6 @@ startForm.addEventListener("submit", (event) => {
         player.settlementName.title = names[index];
         const isStartingDealer = player === dealer;
         player.scoreRegion.classList.toggle("starting-dealer", isStartingDealer);
-        player.scoreRegion.setAttribute("aria-label", `${player.scoreLabel}${isStartingDealer ? "（起家）" : ""}`);
     });
     startingPoints = points;
     startingDealer = dealer.direction;

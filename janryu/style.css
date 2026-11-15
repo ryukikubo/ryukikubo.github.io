@@ -227,6 +227,16 @@ body[data-theme="black"] {
     background: #071d17;
     color: #fff;
     white-space: nowrap;
+    cursor: pointer;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+}
+
+.player-score:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 2px;
 }
 
 .player-name {

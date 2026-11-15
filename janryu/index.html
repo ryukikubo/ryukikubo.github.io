@@ -42,19 +42,20 @@
             </div>
         </div>
         <div class="game-board">
-        <section class="player-score player-score-north" aria-label="北側のプレイヤーの所持点数">
+        <p id="score-difference-help" class="visually-hidden">長押し、またはスペースキーを押し続けると、ほかのプレイヤーとの点差を表示します。</p>
+        <section class="player-score player-score-north" role="button" tabindex="0" aria-describedby="score-difference-help" aria-label="北側のプレイヤーの所持点数">
             <div class="player-name">プレイヤー N</div>
             <div class="score-value"><span class="score-number" id="score-north">0</span> <span>点</span></div>
         </section>
-        <section class="player-score player-score-east" aria-label="東側のプレイヤーの所持点数">
+        <section class="player-score player-score-east" role="button" tabindex="0" aria-describedby="score-difference-help" aria-label="東側のプレイヤーの所持点数">
             <div class="player-name">プレイヤー E</div>
             <div class="score-value"><span class="score-number" id="score-east">0</span> <span>点</span></div>
         </section>
-        <section class="player-score player-score-south" aria-label="南側のプレイヤーの所持点数">
+        <section class="player-score player-score-south" role="button" tabindex="0" aria-describedby="score-difference-help" aria-label="南側のプレイヤーの所持点数">
             <div class="player-name">プレイヤー S</div>
             <div class="score-value"><span class="score-number" id="score-south">0</span> <span>点</span></div>
         </section>
-        <section class="player-score player-score-west" aria-label="西側のプレイヤーの所持点数">
+        <section class="player-score player-score-west" role="button" tabindex="0" aria-describedby="score-difference-help" aria-label="西側のプレイヤーの所持点数">
             <div class="player-name">プレイヤー W</div>
             <div class="score-value"><span class="score-number" id="score-west">0</span> <span>点</span></div>
         </section>
