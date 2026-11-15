@@ -1077,14 +1077,14 @@ $(function () {
         if (timerInterval) {
             clearInterval(timerInterval);
             timerInterval = null;
-            $("#paused-label").addClass("is-visible");
+            $("#paused-label").text("Paused").addClass("is-visible");
             $(this).text("Resume");
             $(this).addClass("primary-btn");
         } else {
             const setup = document.getElementById("se-setup");
             setup.play().catch(e => console.log("se-setup play blocked", e));
             startTimer();
-            $("#paused-label").removeClass("is-visible");
+            $("#paused-label").removeClass("is-visible").text("");
             $(this).removeClass("primary-btn");
             $(this).text("Pause");
         }
@@ -1340,7 +1340,7 @@ $(function () {
 
         // タイマー画面を隠す
         $("#timer-screen").hide();
-        $("#paused-label").removeClass("is-visible");
+        $("#paused-label").removeClass("is-visible").text("");
 
         // 設定画面を表示
         $("#setup-screen").show();
