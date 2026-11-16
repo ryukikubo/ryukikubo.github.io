@@ -38,6 +38,7 @@ const players = ["north", "east", "south", "west"].map((direction) => {
         nameDisplay: scoreRegion.querySelector(".player-name"),
         settlementName: document.getElementById(`settlement-name-${direction}`),
         adjustment,
+        adjustmentReset: settlementEntry.querySelector(".adjustment-reset"),
         directionButtons: settlementEntry.querySelectorAll(".settlement-direction button"),
         scoreStickButtons: settlementEntry.querySelectorAll(".score-stick"),
         riichiButton: document.querySelector(`.inner-button[data-player="${direction}"]`),
@@ -240,6 +241,10 @@ function setSettlementDirection(player, isPayment) {
 for (const player of players) {
     player.directionButtons[0].addEventListener("click", () => setSettlementDirection(player, false));
     player.directionButtons[1].addEventListener("click", () => setSettlementDirection(player, true));
+    player.adjustmentReset.addEventListener("click", () => {
+        player.adjustment.value = "0";
+        settlementError.textContent = "";
+    });
     for (const button of player.scoreStickButtons) {
         button.addEventListener("click", () => {
             const amount = player.adjustment.valueAsNumber;

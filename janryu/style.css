@@ -439,6 +439,26 @@ dialog .settlement-deposit {
     width: 0;
 }
 
+.adjustment-reset {
+    flex-shrink: 0;
+    width: 32px;
+    height: 30px;
+    padding: 0;
+    border: 1px solid #9f8952;
+    border-radius: 6px;
+    color: #fff2c7;
+    background: linear-gradient(#52645b, #344a40);
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+.adjustment-reset:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+}
+
 .score-sticks {
     display: flex;
     gap: 4px;
