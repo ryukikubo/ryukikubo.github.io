@@ -21,7 +21,10 @@
     <div class="ios-blur-fix" aria-hidden="true"></div>
     <header class="app-header">
         <h1><button id="theme-toggle" type="button" aria-label="雀龍 -janryu-。背景色：緑。押すと背景色を変更">雀龍 <span>-janryu-</span></button></h1>
-        <button id="start-game" class="start-button" type="button">ゲーム開始</button>
+        <div class="setup-actions">
+            <button id="open-player-settings" class="start-button" type="button">プレイヤー設定</button>
+            <button id="open-game-settings" class="start-button" type="button">ゲーム設定</button>
+        </div>
     </header>
     <main class="app">
         <div class="round-row">
@@ -31,6 +34,7 @@
                     <button type="button" class="round-control round-number" aria-label="局番号：一。押すと次の局番号に変更">一</button>
                     <span class="round-suffix">局</span>
                 </div>
+                <p id="game-length-display" class="game-length-display">半荘戦</p>
                 <div class="deposit-display" role="status" aria-label="供託 0本">
                     <span class="settlement-riichi" aria-hidden="true"><span></span></span>
                     <span aria-hidden="true">× <span id="deposit-count">0</span></span>
@@ -95,31 +99,90 @@
         </div>
         <p id="riichi-error" class="riichi-error" role="alert"></p>
     </main>
-    <dialog id="start-dialog" aria-labelledby="start-dialog-title" aria-describedby="start-dialog-description">
-        <form id="start-form">
-            <h2 id="start-dialog-title">ゲーム開始</h2>
-            <p id="start-dialog-description">各プレイヤーの名前と共通の開始点数を入力し、起家を選択してください。</p>
-            <div class="score-inputs start-players">
-                <fieldset><legend><label class="dealer-option"><input type="radio" name="starting-dealer" value="north" aria-label="北側を起家にする" required>北側（N）</label></legend>
-                    <label for="name-north">名前 <input id="name-north" type="text" required></label>
-                </fieldset>
-                <fieldset><legend><label class="dealer-option"><input type="radio" name="starting-dealer" value="east" aria-label="東側を起家にする" required>東側（E）</label></legend>
-                    <label for="name-east">名前 <input id="name-east" type="text" required></label>
-                </fieldset>
-                <fieldset><legend><label class="dealer-option"><input type="radio" name="starting-dealer" value="south" aria-label="南側を起家にする" required>南側（S）</label></legend>
-                    <label for="name-south">名前 <input id="name-south" type="text" required></label>
-                </fieldset>
-                <fieldset><legend><label class="dealer-option"><input type="radio" name="starting-dealer" value="west" aria-label="西側を起家にする" required>西側（W）</label></legend>
-                    <label for="name-west">名前 <input id="name-west" type="text" required></label>
-                </fieldset>
+    <dialog id="player-settings-dialog" class="setup-dialog" aria-labelledby="player-settings-title" aria-describedby="player-settings-description">
+        <form id="player-settings-form">
+            <h2 id="player-settings-title">プレイヤー設定</h2>
+            <p id="player-settings-description">人数と各プレイヤーの名前を入力してください。</p>
+            <div class="score-inputs">
+                <label for="player-count">人数
+                    <select id="player-count" required>
+                        <option value="3">3人</option>
+                        <option value="4" selected>4人</option>
+                    </select>
+                </label>
             </div>
-            <div class="score-inputs start-points">
-                <label for="start-points">開始点数<input id="start-points" type="number" step="1" required></label>
+            <div class="score-inputs player-name-inputs">
+                <label data-player-index="0" for="setup-name-0">プレイヤー1
+                    <input id="setup-name-0" type="text" value="プレイヤー N" required>
+                </label>
+                <label data-player-index="1" for="setup-name-1">プレイヤー2
+                    <input id="setup-name-1" type="text" value="プレイヤー E" required>
+                </label>
+                <label data-player-index="2" for="setup-name-2">プレイヤー3
+                    <input id="setup-name-2" type="text" value="プレイヤー S" required>
+                </label>
+                <label data-player-index="3" for="setup-name-3">プレイヤー4
+                    <input id="setup-name-3" type="text" value="プレイヤー W" required>
+                </label>
             </div>
-            <p id="score-error" class="score-error" role="alert"></p>
+            <p id="player-settings-error" class="score-error" role="alert"></p>
             <div class="dialog-actions">
-                <button id="cancel-start" class="cancel-button" type="button">キャンセル</button>
-                <button class="confirm-button" type="submit">OK</button>
+                <button id="cancel-player-settings" class="cancel-button" type="button">キャンセル</button>
+                <button class="confirm-button" type="submit">保存</button>
+            </div>
+        </form>
+    </dialog>
+    <dialog id="game-settings-dialog" class="setup-dialog" aria-labelledby="game-settings-title" aria-describedby="game-settings-description">
+        <form id="game-settings-form">
+            <h2 id="game-settings-title" tabindex="-1" autofocus>ゲーム設定</h2>
+            <p id="game-settings-description">プレイヤー名を席にドラッグして配置し、対局形式・起家・開始点数を設定してください。</p>
+            <section class="seat-player-bank" aria-labelledby="seat-player-bank-title">
+                <h3 id="seat-player-bank-title">プレイヤー名</h3>
+                <div id="player-token-list" class="player-token-list"></div>
+            </section>
+            <p id="seat-selection-status" class="seat-selection-status" role="status">名前をドラッグして空席へ配置してください。クリックで選択して席を押しても配置できます。席間の移動は入れ替え、一覧へ戻すと未配置になります。</p>
+            <fieldset id="seat-cross" class="seat-cross" aria-label="席の配置">
+                <legend class="visually-hidden">席の配置</legend>
+                <div class="seat-position seat-north" data-seat="north">
+                    <button id="seat-target-north" class="seat-drop-target" type="button" aria-label="北側の席、空席">
+                        <span class="seat-direction">北側</span><span id="seat-name-north" class="seat-player-name">空席</span>
+                    </button>
+                    <label class="dealer-option"><input id="dealer-north" type="radio" name="starting-dealer" value="north" required>起家</label>
+                </div>
+                <div class="seat-position seat-east" data-seat="east">
+                    <button id="seat-target-east" class="seat-drop-target" type="button" aria-label="東側の席、空席">
+                        <span class="seat-direction">東側</span><span id="seat-name-east" class="seat-player-name">空席</span>
+                    </button>
+                    <label class="dealer-option"><input id="dealer-east" type="radio" name="starting-dealer" value="east" required>起家</label>
+                </div>
+                <div class="seat-position seat-south" data-seat="south">
+                    <button id="seat-target-south" class="seat-drop-target" type="button" aria-label="南側の席、空席">
+                        <span class="seat-direction">南側</span><span id="seat-name-south" class="seat-player-name">空席</span>
+                    </button>
+                    <label class="dealer-option"><input id="dealer-south" type="radio" name="starting-dealer" value="south" required>起家</label>
+                </div>
+                <div class="seat-position seat-west" data-seat="west">
+                    <button id="seat-target-west" class="seat-drop-target" type="button" aria-label="西側の席、空席">
+                        <span class="seat-direction">西側</span><span id="seat-name-west" class="seat-player-name">空席</span>
+                    </button>
+                    <label class="dealer-option"><input id="dealer-west" type="radio" name="starting-dealer" value="west" required>起家</label>
+                </div>
+                <div class="seat-table-center" aria-hidden="true">麻雀卓</div>
+            </fieldset>
+            <fieldset class="game-length-options">
+                <legend>対局形式</legend>
+                <label><input type="radio" name="game-length" value="east">東風戦</label>
+                <label><input type="radio" name="game-length" value="half" checked>半荘戦</label>
+            </fieldset>
+            <div class="score-inputs start-points">
+                <label for="start-points">開始点数
+                    <input id="start-points" type="number" step="1" required>
+                </label>
+            </div>
+            <p id="game-settings-error" class="score-error" role="alert"></p>
+            <div class="dialog-actions">
+                <button id="cancel-game-settings" class="cancel-button" type="button">キャンセル</button>
+                <button class="confirm-button" type="submit">ゲーム開始</button>
             </div>
         </form>
     </dialog>
