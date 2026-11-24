@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Yuji+Boku&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./style.css">
     <script src="./dice.js" defer></script>
+    <script src="./sound.js" defer></script>
     <script src="./riichi.js" defer></script>
     <script src="./game.js" defer></script>
     <script src="./round.js" defer></script>
@@ -24,17 +25,23 @@
         <div class="setup-actions">
             <button id="open-player-settings" class="start-button" type="button">プレイヤー設定</button>
             <button id="open-game-settings" class="start-button" type="button">ゲーム設定</button>
+            <button id="open-sound-settings" class="start-button sound-settings-button" type="button" aria-label="サウンド設定" aria-haspopup="dialog" aria-controls="sound-settings-dialog" title="サウンド設定">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                    <path d="M11 5 6 9H3v6h3l5 4V5Z"></path>
+                    <path d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"></path>
+                </svg>
+            </button>
         </div>
     </header>
     <main class="app">
         <div class="round-row">
             <div class="round-info">
+                <p id="game-length-display" class="game-length-display">4人打・半荘戦</p>
                 <div class="round-display round-display-top" role="group" aria-label="上部の局表示">
-                    <button type="button" class="round-control round-wind" aria-label="場風：東。押すと次の場風に変更">東</button>
-                    <button type="button" class="round-control round-number" aria-label="局番号：一。押すと次の局番号に変更">一</button>
+                    <span class="round-label round-wind">東</span>
+                    <span class="round-label round-number">一</span>
                     <button class="round-suffix" type="button" aria-label="局">局</button>
                 </div>
-                <p id="game-length-display" class="game-length-display">半荘戦</p>
                 <div class="deposit-display" role="status" aria-label="供託 0本">
                     <span class="settlement-riichi" aria-hidden="true"><span></span></span>
                     <span aria-hidden="true">× <span id="deposit-count">0</span></span>
@@ -48,23 +55,27 @@
         <div class="game-board">
         <p id="score-difference-help" class="visually-hidden">長押し、またはスペースキーを押し続けると、ほかのプレイヤーとの点差を表示します。</p>
         <section class="player-score player-score-north" role="button" tabindex="0" aria-describedby="score-difference-help" aria-label="北側のプレイヤーの所持点数">
-            <div class="player-name">プレイヤー N</div>
+            <span class="player-wind" aria-hidden="true"></span>
+            <div class="player-name">P1</div>
             <div class="score-value"><span class="score-number" id="score-north">0</span> <span>点</span></div>
         </section>
         <section class="player-score player-score-east" role="button" tabindex="0" aria-describedby="score-difference-help" aria-label="東側のプレイヤーの所持点数">
-            <div class="player-name">プレイヤー E</div>
+            <span class="player-wind" aria-hidden="true"></span>
+            <div class="player-name">P2</div>
             <div class="score-value"><span class="score-number" id="score-east">0</span> <span>点</span></div>
         </section>
         <section class="player-score player-score-south" role="button" tabindex="0" aria-describedby="score-difference-help" aria-label="南側のプレイヤーの所持点数">
-            <div class="player-name">プレイヤー S</div>
+            <span class="player-wind" aria-hidden="true"></span>
+            <div class="player-name">P3</div>
             <div class="score-value"><span class="score-number" id="score-south">0</span> <span>点</span></div>
         </section>
         <section class="player-score player-score-west" role="button" tabindex="0" aria-describedby="score-difference-help" aria-label="西側のプレイヤーの所持点数">
-            <div class="player-name">プレイヤー W</div>
+            <span class="player-wind" aria-hidden="true"></span>
+            <div class="player-name">P4</div>
             <div class="score-value"><span class="score-number" id="score-west">0</span> <span>点</span></div>
         </section>
         <section class="table" aria-label="麻雀卓">
-            <button class="indicator-button indicator-button-north" type="button" aria-label="本場を進める" aria-describedby="indicator-status"></button>
+            <button class="indicator-button indicator-button-north round-wind" type="button" data-wind="東" aria-label="場風：東。押すと次の場風に変更">東</button>
             <button class="indicator-button indicator-button-south" type="button" aria-label="本場を進める" aria-describedby="indicator-status"></button>
             <div class="indicator-bars indicator-bars-north" aria-hidden="true">
                 <span></span><span></span><span></span><span></span>
@@ -93,12 +104,37 @@
         </section>
         </div>
         <div class="round-display round-display-bottom" role="group" aria-label="下部の局表示">
-            <button type="button" class="round-control round-wind" aria-label="場風：東。押すと次の場風に変更">東</button>
-            <button type="button" class="round-control round-number" aria-label="局番号：一。押すと次の局番号に変更">一</button>
+            <span class="round-label round-wind">東</span>
+            <span class="round-label round-number">一</span>
             <button class="round-suffix" type="button" aria-label="局">局</button>
         </div>
         <p id="riichi-error" class="riichi-error" role="alert"></p>
     </main>
+    <dialog id="sound-settings-dialog" class="setup-dialog" aria-labelledby="sound-settings-title" aria-describedby="sound-settings-description">
+        <form id="sound-settings-form">
+            <h2 id="sound-settings-title">サウンド設定</h2>
+            <p id="sound-settings-description">進行ボイスの再生とキャラクターを選択してください。ゲーム開始時・南入時・オーラス時・リーチ時のボイスに対応しています。</p>
+            <div class="score-inputs">
+                <label for="voice-enabled">進行ボイス
+                    <select id="voice-enabled">
+                        <option value="on" selected>再生する</option>
+                        <option value="off">再生しない</option>
+                    </select>
+                </label>
+                <label for="voice-character">キャラクター
+                    <select id="voice-character">
+                        <option value="zunda" selected>ずんだもん</option>
+                        <option value="metan">四国めたん</option>
+                    </select>
+                </label>
+            </div>
+            <div class="dialog-actions">
+                <button id="cancel-sound-settings" class="cancel-button" type="button">キャンセル</button>
+                <button class="confirm-button" type="submit">保存</button>
+            </div>
+            <p class="sound-credit">当アプリケーションではVOICEVOXを利用した読み上げ機能を利用しております。</p>
+        </form>
+    </dialog>
     <dialog id="player-settings-dialog" class="setup-dialog" aria-labelledby="player-settings-title" aria-describedby="player-settings-description">
         <form id="player-settings-form">
             <h2 id="player-settings-title">プレイヤー設定</h2>
@@ -112,17 +148,17 @@
                 </label>
             </div>
             <div class="score-inputs player-name-inputs">
-                <label data-player-index="0" for="setup-name-0">プレイヤー1
-                    <input id="setup-name-0" type="text" value="プレイヤー N" required>
+                <label data-player-index="0" for="setup-name-0">P1
+                    <input id="setup-name-0" type="text" value="P1" required>
                 </label>
-                <label data-player-index="1" for="setup-name-1">プレイヤー2
-                    <input id="setup-name-1" type="text" value="プレイヤー E" required>
+                <label data-player-index="1" for="setup-name-1">P2
+                    <input id="setup-name-1" type="text" value="P2" required>
                 </label>
-                <label data-player-index="2" for="setup-name-2">プレイヤー3
-                    <input id="setup-name-2" type="text" value="プレイヤー S" required>
+                <label data-player-index="2" for="setup-name-2">P3
+                    <input id="setup-name-2" type="text" value="P3" required>
                 </label>
-                <label data-player-index="3" for="setup-name-3">プレイヤー4
-                    <input id="setup-name-3" type="text" value="プレイヤー W" required>
+                <label data-player-index="3" for="setup-name-3">P4
+                    <input id="setup-name-3" type="text" value="P4" required>
                 </label>
             </div>
             <p id="player-settings-error" class="score-error" role="alert"></p>
@@ -135,37 +171,33 @@
     <dialog id="game-settings-dialog" class="setup-dialog" aria-labelledby="game-settings-title" aria-describedby="game-settings-description">
         <form id="game-settings-form">
             <h2 id="game-settings-title" tabindex="-1" autofocus>ゲーム設定</h2>
-            <p id="game-settings-description">プレイヤー名を席にドラッグして配置し、対局形式・起家・開始点数を設定してください。</p>
+            <p id="game-settings-description">プレイヤー名を席にドラッグして配置し、配置済みの席をクリックして起家を選択してください。赤枠が起家です。対局形式・開始点数も設定できます。</p>
             <section class="seat-player-bank" aria-labelledby="seat-player-bank-title">
                 <h3 id="seat-player-bank-title">プレイヤー名</h3>
                 <div id="player-token-list" class="player-token-list"></div>
             </section>
-            <p id="seat-selection-status" class="seat-selection-status" role="status">名前をドラッグして空席へ配置してください。クリックで選択して席を押しても配置できます。席間の移動は入れ替え、一覧へ戻すと未配置になります。</p>
+            <p id="seat-selection-status" class="seat-selection-status" role="status"></p>
             <fieldset id="seat-cross" class="seat-cross" aria-label="席の配置">
                 <legend class="visually-hidden">席の配置</legend>
                 <div class="seat-position seat-north" data-seat="north">
                     <button id="seat-target-north" class="seat-drop-target" type="button" aria-label="北側の席、空席">
                         <span class="seat-direction">北側</span><span id="seat-name-north" class="seat-player-name">空席</span>
                     </button>
-                    <label class="dealer-option"><input id="dealer-north" type="radio" name="starting-dealer" value="north" required>起家</label>
                 </div>
                 <div class="seat-position seat-east" data-seat="east">
                     <button id="seat-target-east" class="seat-drop-target" type="button" aria-label="東側の席、空席">
                         <span class="seat-direction">東側</span><span id="seat-name-east" class="seat-player-name">空席</span>
                     </button>
-                    <label class="dealer-option"><input id="dealer-east" type="radio" name="starting-dealer" value="east" required>起家</label>
                 </div>
                 <div class="seat-position seat-south" data-seat="south">
                     <button id="seat-target-south" class="seat-drop-target" type="button" aria-label="南側の席、空席">
                         <span class="seat-direction">南側</span><span id="seat-name-south" class="seat-player-name">空席</span>
                     </button>
-                    <label class="dealer-option"><input id="dealer-south" type="radio" name="starting-dealer" value="south" required>起家</label>
                 </div>
                 <div class="seat-position seat-west" data-seat="west">
                     <button id="seat-target-west" class="seat-drop-target" type="button" aria-label="西側の席、空席">
                         <span class="seat-direction">西側</span><span id="seat-name-west" class="seat-player-name">空席</span>
                     </button>
-                    <label class="dealer-option"><input id="dealer-west" type="radio" name="starting-dealer" value="west" required>起家</label>
                 </div>
                 <div class="seat-table-center" aria-hidden="true">麻雀卓</div>
             </fieldset>
@@ -187,7 +219,7 @@
         </form>
     </dialog>
     <dialog id="settlement-dialog" aria-labelledby="settlement-title" aria-describedby="settlement-round settlement-deposit settlement-description">
-        <form id="settlement-form">
+        <form id="settlement-form" novalidate>
             <h2 id="settlement-title">和了・点棒精算</h2>
             <div class="settlement-status">
                 <p id="settlement-round" class="settlement-round">東一局 0本場</p>
@@ -196,29 +228,32 @@
                     <span aria-hidden="true">× <span id="settlement-deposit-count">0</span></span>
                 </p>
             </div>
-            <p id="settlement-description">各プレイヤーの受取・支払を選び、点数を入力してください。</p>
+            <p id="settlement-description">受取・支払を選び、授受する点数を入力してください。</p>
             <div class="score-inputs settlement-players">
                 <div class="settlement-entry">
-                    <div class="settlement-heading"><label for="adjust-north" class="settlement-player"><span id="settlement-name-north" class="settlement-name">プレイヤー N</span><span id="settlement-riichi-north" class="settlement-riichi" role="img" aria-label="リーチ中" hidden><span></span></span></label><div class="settlement-direction" role="group" aria-labelledby="settlement-name-north"><button type="button" class="direction-receive" aria-pressed="true">受取</button><button type="button" class="direction-pay" aria-pressed="false">支払</button></div></div>
+                    <div class="settlement-heading"><label for="adjust-north" class="settlement-player"><span id="settlement-name-north" class="settlement-name">P1</span><span id="settlement-riichi-north" class="settlement-riichi" role="img" aria-label="リーチ中" hidden><span></span></span></label><div class="settlement-direction" role="group" aria-labelledby="settlement-name-north"><button type="button" class="direction-receive" aria-pressed="true">受取</button><button type="button" class="direction-pay" aria-pressed="false">支払</button></div></div>
                     <div class="settlement-controls"><button type="button" class="adjustment-reset" aria-label="北側の入力点数をリセット">↺</button><input id="adjust-north" name="north" type="number" min="0" step="1" value="0" required><div class="score-sticks" role="group" aria-labelledby="settlement-name-north"><button type="button" class="score-stick stick-5000" data-points="5000" aria-label="5000点を加算"></button><button type="button" class="score-stick stick-1000" data-points="1000" aria-label="1000点を加算"></button><button type="button" class="score-stick stick-100" data-points="100" aria-label="100点を加算"></button></div></div>
                 </div>
                 <div class="settlement-entry">
-                    <div class="settlement-heading"><label for="adjust-east" class="settlement-player"><span id="settlement-name-east" class="settlement-name">プレイヤー E</span><span id="settlement-riichi-east" class="settlement-riichi" role="img" aria-label="リーチ中" hidden><span></span></span></label><div class="settlement-direction" role="group" aria-labelledby="settlement-name-east"><button type="button" class="direction-receive" aria-pressed="true">受取</button><button type="button" class="direction-pay" aria-pressed="false">支払</button></div></div>
+                    <div class="settlement-heading"><label for="adjust-east" class="settlement-player"><span id="settlement-name-east" class="settlement-name">P2</span><span id="settlement-riichi-east" class="settlement-riichi" role="img" aria-label="リーチ中" hidden><span></span></span></label><div class="settlement-direction" role="group" aria-labelledby="settlement-name-east"><button type="button" class="direction-receive" aria-pressed="true">受取</button><button type="button" class="direction-pay" aria-pressed="false">支払</button></div></div>
                     <div class="settlement-controls"><button type="button" class="adjustment-reset" aria-label="東側の入力点数をリセット">↺</button><input id="adjust-east" name="east" type="number" min="0" step="1" value="0" required><div class="score-sticks" role="group" aria-labelledby="settlement-name-east"><button type="button" class="score-stick stick-5000" data-points="5000" aria-label="5000点を加算"></button><button type="button" class="score-stick stick-1000" data-points="1000" aria-label="1000点を加算"></button><button type="button" class="score-stick stick-100" data-points="100" aria-label="100点を加算"></button></div></div>
                 </div>
                 <div class="settlement-entry">
-                    <div class="settlement-heading"><label for="adjust-south" class="settlement-player"><span id="settlement-name-south" class="settlement-name">プレイヤー S</span><span id="settlement-riichi-south" class="settlement-riichi" role="img" aria-label="リーチ中" hidden><span></span></span></label><div class="settlement-direction" role="group" aria-labelledby="settlement-name-south"><button type="button" class="direction-receive" aria-pressed="true">受取</button><button type="button" class="direction-pay" aria-pressed="false">支払</button></div></div>
+                    <div class="settlement-heading"><label for="adjust-south" class="settlement-player"><span id="settlement-name-south" class="settlement-name">P3</span><span id="settlement-riichi-south" class="settlement-riichi" role="img" aria-label="リーチ中" hidden><span></span></span></label><div class="settlement-direction" role="group" aria-labelledby="settlement-name-south"><button type="button" class="direction-receive" aria-pressed="true">受取</button><button type="button" class="direction-pay" aria-pressed="false">支払</button></div></div>
                     <div class="settlement-controls"><button type="button" class="adjustment-reset" aria-label="南側の入力点数をリセット">↺</button><input id="adjust-south" name="south" type="number" min="0" step="1" value="0" required><div class="score-sticks" role="group" aria-labelledby="settlement-name-south"><button type="button" class="score-stick stick-5000" data-points="5000" aria-label="5000点を加算"></button><button type="button" class="score-stick stick-1000" data-points="1000" aria-label="1000点を加算"></button><button type="button" class="score-stick stick-100" data-points="100" aria-label="100点を加算"></button></div></div>
                 </div>
                 <div class="settlement-entry">
-                    <div class="settlement-heading"><label for="adjust-west" class="settlement-player"><span id="settlement-name-west" class="settlement-name">プレイヤー W</span><span id="settlement-riichi-west" class="settlement-riichi" role="img" aria-label="リーチ中" hidden><span></span></span></label><div class="settlement-direction" role="group" aria-labelledby="settlement-name-west"><button type="button" class="direction-receive" aria-pressed="true">受取</button><button type="button" class="direction-pay" aria-pressed="false">支払</button></div></div>
+                    <div class="settlement-heading"><label for="adjust-west" class="settlement-player"><span id="settlement-name-west" class="settlement-name">P4</span><span id="settlement-riichi-west" class="settlement-riichi" role="img" aria-label="リーチ中" hidden><span></span></span></label><div class="settlement-direction" role="group" aria-labelledby="settlement-name-west"><button type="button" class="direction-receive" aria-pressed="true">受取</button><button type="button" class="direction-pay" aria-pressed="false">支払</button></div></div>
                     <div class="settlement-controls"><button type="button" class="adjustment-reset" aria-label="西側の入力点数をリセット">↺</button><input id="adjust-west" name="west" type="number" min="0" step="1" value="0" required><div class="score-sticks" role="group" aria-labelledby="settlement-name-west"><button type="button" class="score-stick stick-5000" data-points="5000" aria-label="5000点を加算"></button><button type="button" class="score-stick stick-1000" data-points="1000" aria-label="1000点を加算"></button><button type="button" class="score-stick stick-100" data-points="100" aria-label="100点を加算"></button></div></div>
                 </div>
             </div>
-            <p id="settlement-error" class="score-error" role="alert"></p>
             <div class="dialog-actions">
+                <div class="settlement-balance-status">
+                    <span class="settlement-balance-label">入力誤差：</span>
+                    <output id="settlement-balance" class="settlement-balance" data-balanced="true" aria-live="polite" aria-atomic="true">OK</output>
+                </div>
                 <button id="cancel-settlement" class="cancel-button" type="button">キャンセル</button>
-                <button class="confirm-button" type="submit">OK</button>
+                <button id="confirm-settlement" class="confirm-button" type="submit" disabled>OK</button>
             </div>
         </form>
     </dialog>

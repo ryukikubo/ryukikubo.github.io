@@ -48,6 +48,7 @@ body[data-theme="black"] {
 
 .app-header {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
@@ -63,6 +64,7 @@ body[data-theme="black"] {
 
 .setup-actions {
     display: flex;
+    flex-wrap: wrap;
     gap: 8px;
 }
 
@@ -113,6 +115,16 @@ body[data-theme="black"] {
     background: #e9ca67;
 }
 
+.sound-settings-button {
+    display: grid;
+    place-items: center;
+    flex: 0 0 44px;
+    align-self: center;
+    width: 44px;
+    height: 44px;
+    padding: 8px;
+}
+
 .start-button:focus-visible,
 .settlement-button:focus-visible,
 .confirm-button:focus-visible,
@@ -149,7 +161,7 @@ body[data-theme="black"] {
 }
 
 .game-length-display {
-    margin: -4px 0 0 6px;
+    margin: 0 0 0 6px;
     color: #d3ded7;
     font-size: 12px;
     font-weight: 700;
@@ -188,7 +200,7 @@ body[data-theme="black"] {
     transform: rotate(180deg);
 }
 
-.round-control,
+.round-label,
 .round-suffix {
     display: grid;
     place-items: center;
@@ -209,27 +221,6 @@ body[data-theme="black"] {
     outline: 2px solid #fff;
     outline-offset: -2px;
     border-radius: 6px;
-}
-
-.round-control {
-    padding: 0;
-    border: 0;
-    border-radius: 6px;
-    background: transparent;
-    color: inherit;
-    font: inherit;
-    cursor: pointer;
-    touch-action: manipulation;
-}
-
-.round-control:focus-visible {
-    outline: 2px solid #fff;
-    outline-offset: -2px;
-}
-
-.round-control:disabled {
-    cursor: default;
-    opacity: 0.65;
 }
 
 .visually-hidden {
@@ -268,9 +259,21 @@ body[data-theme="black"] {
     white-space: nowrap;
     cursor: pointer;
     touch-action: none;
-    user-select: none;
+}
+
+.player-score,
+.player-score *,
+#game-settings-dialog,
+#game-settings-dialog * {
     -webkit-user-select: none;
+    user-select: none;
     -webkit-touch-callout: none;
+}
+
+#start-points {
+    -webkit-user-select: text;
+    user-select: text;
+    -webkit-touch-callout: default;
 }
 
 .player-score:focus-visible {
@@ -285,6 +288,22 @@ body[data-theme="black"] {
     max-width: 95%;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.player-wind {
+    position: absolute;
+    left: calc(100% + 1cqw);
+    display: grid;
+    place-items: center;
+    width: 7cqw;
+    height: 7cqw;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 1cqw;
+    background: #071d17;
+    color: #fff;
+    font-family: "Yuji Boku", "Yu Mincho", serif;
+    font-size: clamp(14px, 4cqw, 28px);
+    line-height: 1;
 }
 
 .player-score.starting-dealer {
@@ -344,6 +363,11 @@ dialog p {
     line-height: 1.5;
 }
 
+dialog .sound-credit {
+    margin: 12px 0 0;
+    font-size: 12px;
+}
+
 dialog .settlement-round {
     color: #fff;
     font-size: 18px;
@@ -399,8 +423,9 @@ dialog .settlement-deposit {
 }
 
 .player-token-list {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: 1fr;
     gap: 8px;
     min-height: 38px;
 }
@@ -410,7 +435,6 @@ dialog .settlement-deposit {
     align-items: center;
     justify-content: space-between;
     gap: 8px;
-    flex: 1 1 calc(50% - 8px);
     min-width: 0;
     padding: 8px 10px;
     border: 1px solid #d5bd71;
@@ -458,6 +482,10 @@ dialog .settlement-deposit {
     margin: 8px 0 !important;
 }
 
+.seat-selection-status:empty {
+    display: none;
+}
+
 .seat-cross {
     display: grid;
     grid-template: repeat(3, minmax(0, 1fr)) / repeat(3, minmax(0, 1fr));
@@ -501,7 +529,7 @@ dialog .settlement-deposit {
     min-width: 0;
     min-height: 68px;
     padding: 6px;
-    border: 2px dashed #9aada2;
+    border: 2px solid #9aada2;
     border-radius: 10px;
     color: #fff;
     background: rgba(8, 31, 23, 0.65);
@@ -511,6 +539,7 @@ dialog .settlement-deposit {
 }
 
 .seat-drop-target.is-vacant {
+    border-style: dashed;
     color: #c8d6cc;
     background: rgba(0, 0, 0, 0.18);
 }
@@ -521,6 +550,10 @@ dialog .settlement-deposit {
     outline: 3px solid #fff;
     outline-offset: 2px;
     background: rgba(74, 106, 77, 0.9);
+}
+
+.seat-drop-target.is-starting-dealer {
+    border-color: #ed0000;
 }
 
 .seat-direction {
@@ -534,10 +567,6 @@ dialog .settlement-deposit {
     font-weight: 700;
     text-overflow: ellipsis;
     white-space: nowrap;
-}
-
-.seat-position .dealer-option {
-    justify-self: center;
 }
 
 .seat-table-center {
@@ -592,14 +621,6 @@ body.seat-dragging {
 
 .game-length-options input {
     accent-color: #e9ca67;
-}
-
-.score-inputs .dealer-option {
-    display: inline-flex;
-    justify-content: flex-start;
-    gap: 4px;
-    cursor: pointer;
-    white-space: nowrap;
 }
 
 .settlement-players {
@@ -757,14 +778,6 @@ body.seat-dragging {
     outline-offset: 2px;
 }
 
-.seat-cross .dealer-option input {
-    width: 16px;
-    height: 16px;
-    margin: 0;
-    padding: 0;
-    accent-color: #e9ca67;
-}
-
 .settlement-player {
     display: inline-flex;
     align-items: center;
@@ -874,6 +887,42 @@ dialog .score-error {
     margin-top: 20px;
 }
 
+#settlement-dialog .dialog-actions {
+    align-items: center;
+}
+
+.settlement-balance-status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0 4px;
+    flex: 1;
+    min-width: 0;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.settlement-balance-label {
+    color: #fff;
+    white-space: nowrap;
+}
+
+.settlement-balance {
+    min-width: 0;
+    color: #ff7878;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+}
+
+.settlement-balance[data-balanced="true"] {
+    color: #81d995;
+}
+
+#confirm-settlement:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
 @media (max-height: 650px) {
     .setup-dialog {
         padding: 14px;
@@ -923,8 +972,7 @@ dialog .score-error {
         gap: 6px;
     }
 
-    .player-name-inputs label,
-    .seat-position .dealer-option {
+    .player-name-inputs label {
         gap: 1px;
         font-size: 14px;
     }
@@ -1001,6 +1049,22 @@ dialog .score-error {
 .indicator-button:focus-visible {
     outline: 3px solid #fff;
     outline-offset: 2px;
+}
+
+.indicator-button.round-wind {
+    display: grid;
+    place-items: center;
+    border-color: #c8a44e;
+    border-radius: 20%;
+    background: #a31c22;
+    color: #e9ca67;
+    font-family: "Yuji Boku", "Yu Mincho", serif;
+    font-size: clamp(16px, 4.8cqw, 36px);
+    line-height: 1;
+}
+
+.indicator-button.round-wind[data-wind="南"] {
+    background: #121212;
 }
 
 .indicator-button-north {
@@ -1311,12 +1375,27 @@ body[data-dice-style="sakura"] .die[data-value="1"] span {
     }
 
     .setup-actions {
+        width: 100%;
         gap: 4px;
     }
 
-    .setup-actions .start-button {
-        padding: 7px 8px;
+    .setup-actions .start-button:not(.sound-settings-button) {
+        flex: 1;
+        padding: 7px 4px;
+        font-size: 12px;
+    }
+
+    #settlement-dialog .dialog-actions {
+        gap: 6px;
+    }
+
+    #settlement-dialog .dialog-actions button {
+        padding: 9px 8px;
         font-size: 13px;
+    }
+
+    .settlement-balance-status {
+        font-size: 12px;
     }
 }
 

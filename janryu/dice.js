@@ -112,8 +112,21 @@ for (const button of rollButtons) {
         const previousButton = Array.from(rollButtons).find((rollButton) =>
             rollButton.getAttribute("aria-pressed") === "true"
         );
+        if (button.classList.contains(startingDealer)) {
+            if (getRoundLabel() === "東一局" && honbaCount === 0) {
+                playProgressVoice("gameStart");
+            }
+            if (southVoicePending) {
+                southVoicePending = false;
+                playProgressVoice("intoSouth");
+            }
+        }
+        selectRoundDealer(button);
         if (previousButton && previousButton !== button) {
             resetIndicator();
+        }
+        if (isFinalRound() && honbaCount === 0) {
+            playProgressVoice("ohrasu");
         }
         for (const rollButton of rollButtons) {
             rollButton.setAttribute("aria-pressed", String(rollButton === button));

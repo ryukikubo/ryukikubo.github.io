@@ -2,10 +2,6 @@
 
 const riichiButtons = document.querySelectorAll(".inner-button");
 const riichiError = document.getElementById("riichi-error");
-const reachSounds = [
-    new Audio("./sounds/reach_01.mp3"),
-    new Audio("./sounds/reach_02.mp3")
-];
 
 function resetRiichi() {
     for (const button of riichiButtons) {
@@ -24,9 +20,7 @@ for (const button of riichiButtons) {
         riichiError.textContent = "";
         button.setAttribute("aria-pressed", String(!isRiichi));
         if (!isRiichi) {
-            const sound = reachSounds[Math.floor(Math.random() * reachSounds.length)];
-            sound.currentTime = 0;
-            sound.play().catch((error) => console.error("リーチ音声を再生できませんでした。", error));
+            playProgressVoice("reach");
         }
     });
 }

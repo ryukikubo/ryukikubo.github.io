@@ -35,8 +35,10 @@ for (const button of indicatorButtons) {
         button.classList.remove("press-animation");
         void button.offsetWidth;
         button.classList.add("press-animation");
-        honbaCount = (honbaCount + 1) % 9;
-        updateIndicator();
+        if (!button.classList.contains("round-wind")) {
+            honbaCount = (honbaCount + 1) % 9;
+            updateIndicator();
+        }
     });
 }
 

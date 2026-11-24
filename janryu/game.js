@@ -22,10 +22,10 @@ const settlementTitle = document.getElementById("settlement-title");
 const settlementRound = document.getElementById("settlement-round");
 const settlementDeposit = document.getElementById("settlement-deposit");
 const settlementDepositCount = document.getElementById("settlement-deposit-count");
-const settlementDescription = document.getElementById("settlement-description");
 const settlementForm = document.getElementById("settlement-form");
 const cancelSettlement = document.getElementById("cancel-settlement");
-const settlementError = document.getElementById("settlement-error");
+const confirmSettlement = document.getElementById("confirm-settlement");
+const settlementBalance = document.getElementById("settlement-balance");
 const depositCountDisplay = document.getElementById("deposit-count");
 const depositDisplay = depositCountDisplay.parentElement.parentElement;
 let depositCount = 0;
@@ -37,6 +37,7 @@ let setupNames = playerNameInputs.map((input) => input.value);
 const seatDirections = ["north", "east", "south", "west"];
 let seatAssignments = Object.fromEntries(seatDirections.map((direction) => [direction, null]));
 let draftSeatAssignments = Object.assign({}, seatAssignments);
+let draftDealerIndex = null;
 let selectedPlayerIndex = null;
 let activeSeatDrag = null;
 let suppressNextClick = false;
@@ -55,8 +56,8 @@ const players = seatDirections.map((direction) => {
         scoreLabel: scoreRegion.getAttribute("aria-label"),
         seatTarget: document.getElementById(`seat-target-${direction}`),
         seatName: document.getElementById(`seat-name-${direction}`),
-        dealerInput: document.getElementById(`dealer-${direction}`),
         nameDisplay: scoreRegion.querySelector(".player-name"),
+        windDisplay: scoreRegion.querySelector(".player-wind"),
         settlementName: document.getElementById(`settlement-name-${direction}`),
         settlementEntry,
         rollButton: document.querySelector(`.outer-button.${direction}`),
@@ -91,31 +92,27 @@ function getPlayerSeat(playerIndex) {
 }
 
 function updateDealerOptions() {
-    const selectedDealer = players.find((player) =>
-        player.dealerInput.checked && Number.isInteger(draftSeatAssignments[player.direction])
+    const occupiedPlayers = players.filter((player) =>
+        Number.isInteger(draftSeatAssignments[player.direction])
     );
+    const preferredDealer = occupiedPlayers.find((player) =>
+        draftSeatAssignments[player.direction] === draftDealerIndex
+    ) || occupiedPlayers.find((player) => player.direction === startingDealer) || occupiedPlayers[0];
+    draftDealerIndex = preferredDealer ? draftSeatAssignments[preferredDealer.direction] : null;
+
     for (const player of players) {
         const playerIndex = draftSeatAssignments[player.direction];
         const isOccupied = Number.isInteger(playerIndex);
-        player.dealerInput.disabled = !isOccupied;
+        const isDealer = isOccupied && playerIndex === draftDealerIndex;
         player.seatTarget.classList.toggle("is-vacant", !isOccupied);
+        player.seatTarget.classList.toggle("is-starting-dealer", isDealer);
+        player.seatTarget.setAttribute("aria-pressed", String(isDealer));
         if (isOccupied) {
             const name = setupNames[playerIndex];
-            player.dealerInput.setAttribute("aria-label", `${seatLabels[player.direction]}側の${name}を起家にする`);
-            player.seatTarget.setAttribute("aria-label", `${seatLabels[player.direction]}側の席、${name}`);
+            player.seatTarget.setAttribute("aria-label", `${seatLabels[player.direction]}側の席、${name}${isDealer ? "、起家として選択中" : "。押すと起家に設定"}`);
         } else {
-            player.dealerInput.checked = false;
-            player.dealerInput.setAttribute("aria-label", `${seatLabels[player.direction]}側は空席のため起家にできません`);
             player.seatTarget.setAttribute("aria-label", `${seatLabels[player.direction]}側の席、空席`);
         }
-    }
-
-    const preferredDealer = selectedDealer && !selectedDealer.dealerInput.disabled
-        ? selectedDealer
-        : players.find((player) => player.direction === startingDealer && !player.dealerInput.disabled)
-            || players.find((player) => !player.dealerInput.disabled);
-    if (preferredDealer) {
-        preferredDealer.dealerInput.checked = true;
     }
 }
 
@@ -145,9 +142,7 @@ function renderSeatAssignments() {
                 return;
             }
             selectedPlayerIndex = selectedPlayerIndex === index ? null : index;
-            seatSelectionStatus.textContent = selectedPlayerIndex === null
-                ? "名前をドラッグして席に配置してください。クリックで選択してから席を押しても配置できます。"
-                : `${name}を選択中です。席を押すか、名前をドラッグして配置してください。`;
+            seatSelectionStatus.textContent = "";
             renderSeatAssignments();
         });
         token.addEventListener("pointerdown", (event) => beginSeatDrag(event, index, token));
@@ -180,7 +175,7 @@ function assignPlayerToSeat(playerIndex, direction) {
     }
     selectedPlayerIndex = null;
     renderSeatAssignments();
-    seatSelectionStatus.textContent = `${setupNames[playerIndex]}を${seatLabels[direction]}側に配置しました。`;
+    seatSelectionStatus.textContent = "";
 }
 
 function unassignPlayer(playerIndex) {
@@ -190,7 +185,7 @@ function unassignPlayer(playerIndex) {
     }
     selectedPlayerIndex = null;
     renderSeatAssignments();
-    seatSelectionStatus.textContent = `${setupNames[playerIndex]}を未配置にしました。`;
+    seatSelectionStatus.textContent = "";
 }
 
 function beginSeatDrag(event, playerIndex, token) {
@@ -282,12 +277,18 @@ for (const player of players) {
             return;
         }
         if (selectedPlayerIndex === null) {
+            const playerIndex = draftSeatAssignments[player.direction];
+            if (Number.isInteger(playerIndex)) {
+                draftDealerIndex = playerIndex;
+                updateDealerOptions();
+                seatSelectionStatus.textContent = "";
+                return;
+            }
             seatSelectionStatus.textContent = "先にプレイヤー名を選択してください。";
             return;
         }
         assignPlayerToSeat(selectedPlayerIndex, player.direction);
     });
-    player.dealerInput.addEventListener("change", updateDealerOptions);
 }
 
 function updateDeposit(count) {
@@ -303,6 +304,21 @@ function updateScores(scores) {
     renderScores();
 }
 
+function getPlayersInTurnOrder() {
+    return [...players].reverse().filter((player) => player.active);
+}
+
+function updatePlayerWinds(roundIndex) {
+    const activePlayers = getPlayersInTurnOrder();
+    const startingIndex = activePlayers.findIndex((player) => player.direction === startingDealer);
+    const dealerIndex = (startingIndex + roundIndex) % activePlayers.length;
+    const winds = ["東", "南", "西", "北"];
+    activePlayers.forEach((player, index) => {
+        player.windDisplay.textContent = winds[(index - dealerIndex + activePlayers.length) % activePlayers.length];
+    });
+    renderScores();
+}
+
 function renderScores() {
     for (const player of players) {
         let text = player.score.toLocaleString("ja-JP");
@@ -314,7 +330,7 @@ function renderScores() {
         player.display.parentElement.style.fontSize = `min(4.2cqw, ${30 / (text.length + 2)}cqw, 29px)`;
         const dealer = player.scoreRegion.classList.contains("starting-dealer") ? "、起家" : "";
         const scoreType = comparisonPlayer && player !== comparisonPlayer ? "点差" : "点数";
-        player.scoreRegion.setAttribute("aria-label", `${player.scoreLabel}、${player.nameDisplay.textContent}${dealer}、${scoreType} ${text}点`);
+        player.scoreRegion.setAttribute("aria-label", `${player.scoreLabel}、${player.nameDisplay.textContent}、自風 ${player.windDisplay.textContent}${dealer}、${scoreType} ${text}点`);
     }
 }
 
@@ -451,9 +467,8 @@ playerSettingsForm.addEventListener("submit", (event) => {
 
 gameSettingsButton.addEventListener("click", () => {
     draftSeatAssignments = normalizeSeatAssignments(seatAssignments);
-    players.forEach((player) => {
-        player.dealerInput.checked = player.direction === startingDealer;
-    });
+    draftDealerIndex = draftSeatAssignments[startingDealer];
+    selectedPlayerIndex = null;
     renderSeatAssignments();
     startPointsInput.value = String(startingPoints);
     gameSettingsForm.querySelector(`input[name="game-length"][value="${gameLength}"]`).checked = true;
@@ -478,7 +493,8 @@ gameSettingsForm.addEventListener("submit", (event) => {
         return;
     }
     const dealer = players.find((player) =>
-        player.dealerInput.checked && Number.isInteger(draftSeatAssignments[player.direction])
+        Number.isInteger(draftSeatAssignments[player.direction]) &&
+        draftSeatAssignments[player.direction] === draftDealerIndex
     );
     if (!dealer) {
         gameSettingsError.textContent = "起家を選択してください。";
@@ -505,17 +521,57 @@ gameSettingsForm.addEventListener("submit", (event) => {
     startingPoints = points;
     startingDealer = dealer.direction;
     gameLength = gameSettingsForm.querySelector('input[name="game-length"]:checked').value;
-    gameLengthDisplay.textContent = gameLength === "east" ? "東風戦" : "半荘戦";
+    gameLengthDisplay.textContent = `${setupPlayerCount}人打・${gameLength === "east" ? "東風戦" : "半荘戦"}`;
     seatAssignments = Object.assign({}, draftSeatAssignments);
     updateScores(players.map(() => points));
     resetDice();
     resetRiichi();
-    configureRoundSettings(gameLength, setupPlayerCount);
+    configureRoundSettings(setupPlayerCount);
     resetRound();
     resetIndicator();
     updateDeposit(0);
     gameSettingsDialog.close();
 });
+
+function getSettlementSummary() {
+    const activePlayers = players.filter((player) => player.active);
+    const amounts = activePlayers.map((player) => player.adjustment.valueAsNumber);
+    if (amounts.some((amount) => !Number.isSafeInteger(amount) || amount < 0)) {
+        return null;
+    }
+    const adjustments = activePlayers.map((player, index) =>
+        player.directionButtons[1].getAttribute("aria-pressed") === "true" ? -amounts[index] : amounts[index]
+    );
+    const scores = players.map((player) => {
+        const index = activePlayers.indexOf(player);
+        return index === -1 ? player.score : player.score + adjustments[index];
+    });
+    if (scores.some((score) => !Number.isSafeInteger(score))) {
+        return null;
+    }
+    const total = adjustments.reduce((sum, value) => sum + BigInt(value), 0n);
+    const requiredTotal = settlementType === "win" ? BigInt(depositCount) * 1000n : 0n;
+    return { scores, difference: requiredTotal - total };
+}
+
+function updateSettlementBalance() {
+    const summary = getSettlementSummary();
+    const balanced = summary !== null && summary.difference === 0n;
+    settlementBalance.dataset.balanced = String(balanced);
+    confirmSettlement.disabled = !balanced;
+    if (!summary) {
+        settlementBalance.textContent = "-";
+        settlementBalance.setAttribute("aria-label", "入力点数と精算後の点数が計算可能な範囲であることを確認してください。");
+        return;
+    }
+    const difference = summary.difference;
+    settlementBalance.textContent = difference === 0n
+        ? "OK"
+        : `${difference > 0n ? "+" : ""}${difference.toLocaleString("ja-JP")}点`;
+    settlementBalance.setAttribute("aria-label", difference === 0n
+        ? "精算誤差なし"
+        : `${difference > 0n ? "受取" : "支払"}が${(difference > 0n ? difference : -difference).toLocaleString("ja-JP")}点不足しています。`);
+}
 
 function openSettlement(type) {
     settlementType = type;
@@ -531,10 +587,7 @@ function openSettlement(type) {
     settlementRound.textContent = `${getRoundLabel()} ${honbaCount}本場`;
     settlementDepositCount.textContent = depositCount.toLocaleString("ja-JP");
     settlementDeposit.setAttribute("aria-label", `供託 ${depositCount}本`);
-    settlementDescription.textContent = type === "draw"
-        ? "受取・支払を選び、合計が0点になるよう入力してください。供託は維持され、リーチは解除されます。"
-        : "受取・支払を選び、供託を含めて入力してください。合計は供託点数と一致させます。確定後、供託とリーチは解除されます。";
-    settlementError.textContent = "";
+    updateSettlementBalance();
     settlementDialog.showModal();
 }
 
@@ -544,22 +597,27 @@ function setSettlementDirection(player, isPayment) {
 }
 
 for (const player of players) {
-    player.directionButtons[0].addEventListener("click", () => setSettlementDirection(player, false));
-    player.directionButtons[1].addEventListener("click", () => setSettlementDirection(player, true));
+    for (const [index, button] of player.directionButtons.entries()) {
+        button.addEventListener("click", () => {
+            setSettlementDirection(player, index === 1);
+            updateSettlementBalance();
+        });
+    }
+    player.adjustment.addEventListener("input", updateSettlementBalance);
     player.adjustmentReset.addEventListener("click", () => {
         player.adjustment.value = "0";
-        settlementError.textContent = "";
+        updateSettlementBalance();
     });
     for (const button of player.scoreStickButtons) {
         button.addEventListener("click", () => {
             const amount = player.adjustment.valueAsNumber;
             const total = amount + Number(button.dataset.points);
             if (!Number.isSafeInteger(amount) || amount < 0 || !Number.isSafeInteger(total)) {
-                settlementError.textContent = "点数は安全に扱える範囲の0以上の整数で入力してください。";
+                console.error("点数は安全に扱える範囲の0以上の整数で入力してください。");
                 return;
             }
             player.adjustment.value = String(total);
-            settlementError.textContent = "";
+            updateSettlementBalance();
         });
     }
 }
@@ -571,32 +629,13 @@ cancelSettlement.addEventListener("click", () => settlementDialog.close());
 
 settlementForm.addEventListener("submit", (event) => {
     event.preventDefault();
-    const activePlayers = players.filter((player) => player.active);
-    const amounts = activePlayers.map((player) => player.adjustment.valueAsNumber);
-    if (amounts.some((amount) => !Number.isSafeInteger(amount) || amount < 0)) {
-        settlementError.textContent = "点数は安全に扱える範囲の0以上の整数で入力してください。";
+    const summary = getSettlementSummary();
+    if (!summary || summary.difference !== 0n) {
+        updateSettlementBalance();
+        console.error("精算を確定できません。入力点数と収支を確認してください。");
         return;
     }
-    const adjustments = activePlayers.map((player, index) =>
-        player.directionButtons[1].getAttribute("aria-pressed") === "true" ? -amounts[index] : amounts[index]
-    );
-    const scores = players.map((player) => {
-        const index = activePlayers.indexOf(player);
-        return index === -1 ? player.score : player.score + adjustments[index];
-    });
-    if (scores.some((score) => !Number.isSafeInteger(score))) {
-        settlementError.textContent = "精算後の点数は安全に扱える範囲の整数で入力してください。";
-        return;
-    }
-    const total = adjustments.reduce((sum, value) => sum + BigInt(value), 0n);
-    const requiredTotal = settlementType === "win" ? BigInt(depositCount) * 1000n : 0n;
-    if (total !== requiredTotal) {
-        settlementError.textContent = settlementType === "win"
-            ? "入力した増減点の合計を供託点数と同じにしてください。"
-            : "入力した増減点の合計を0点にしてください。";
-        return;
-    }
-    updateScores(scores);
+    updateScores(summary.scores);
     if (settlementType === "win") {
         updateDeposit(0);
     }
