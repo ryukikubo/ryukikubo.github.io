@@ -13,9 +13,18 @@ const rollButtons = document.querySelectorAll(".outer-button");
 const dice = document.querySelectorAll(".die");
 const result = document.getElementById("dice-result");
 const table = document.querySelector(".table");
+const diceStyles = ["classic", "red", "black", "jade", "sakura"];
 const diceOrbitDuration = 650;
 let rollGeneration = 0;
 let rollFrame = null;
+let diceStyleIndex = 0;
+
+for (const label of document.querySelectorAll(".round-suffix")) {
+    label.addEventListener("click", () => {
+        diceStyleIndex = (diceStyleIndex + 1) % diceStyles.length;
+        document.body.dataset.diceStyle = diceStyles[diceStyleIndex];
+    });
+}
 
 function showDie(die, value) {
     const pips = pipPositions[value - 1].map(([row, column]) => {

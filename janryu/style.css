@@ -33,16 +33,17 @@ body {
     min-height: 100vh;
     min-height: 100dvh;
     color: #fff;
-    background: #263a35;
+    --page-background: #263a35;
+    background: var(--page-background);
     font-family: system-ui, sans-serif;
 }
 
 body[data-theme="blue"] {
-    background: #1d344c;
+    --page-background: #1d344c;
 }
 
 body[data-theme="black"] {
-    background: #17191c;
+    --page-background: #17191c;
 }
 
 .app-header {
@@ -193,6 +194,21 @@ body[data-theme="black"] {
     place-items: center;
     width: 44px;
     height: 44px;
+}
+
+.round-suffix {
+    padding: 0;
+    border: 0;
+    color: inherit;
+    background: transparent;
+    font: inherit;
+    cursor: default;
+}
+
+.round-suffix:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: -2px;
+    border-radius: 6px;
 }
 
 .round-control {
@@ -1171,7 +1187,21 @@ dialog .score-error {
     inset: 25%;
     border: 2px solid #111;
     border-radius: 50%;
-    background: #578b39;
+    background: var(--page-background);
+}
+
+.table-center::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border: 1px solid rgba(255, 255, 255, 0.38);
+    border-radius: inherit;
+    background:
+        radial-gradient(ellipse at 30% 16%, rgba(255, 255, 255, 0.24), transparent 48%),
+        linear-gradient(145deg, rgba(255, 255, 255, 0.16), transparent 45%, rgba(0, 0, 0, 0.12));
+    box-shadow: inset 0 2px 6px rgba(255, 255, 255, 0.2), inset 0 -4px 8px rgba(0, 0, 0, 0.22);
+    pointer-events: none;
 }
 
 .die {
@@ -1224,6 +1254,55 @@ dialog .score-error {
 .die[data-value="1"] span {
     width: 100%;
     background: #ed0000;
+}
+
+body[data-dice-style="red"] .die {
+    border-color: #650a12;
+    background: linear-gradient(135deg, #ed7777 0%, #c91d2b 58%, #8a111c 100%);
+    box-shadow: inset -2px -3px 4px rgba(58, 0, 0, 0.72);
+}
+
+body[data-dice-style="red"] .die span,
+body[data-dice-style="red"] .die[data-value="1"] span {
+    background: #fff;
+}
+
+body[data-dice-style="black"] .die {
+    border-color: #999;
+    background: linear-gradient(135deg, #4a4a4a 0%, #171717 58%, #050505 100%);
+    box-shadow: inset -2px -3px 4px #000;
+}
+
+body[data-dice-style="black"] .die span {
+    background: #fff;
+}
+
+body[data-dice-style="black"] .die[data-value="1"] span,
+body[data-dice-style="black"] .die[data-value="3"] span,
+body[data-dice-style="black"] .die[data-value="5"] span {
+    background: #ed0000;
+}
+
+body[data-dice-style="jade"] .die {
+    border-color: #b7e5d0;
+    background: linear-gradient(135deg, #a4e3c7 0%, #279875 58%, #0c5844 100%);
+    box-shadow: inset -2px -3px 4px rgba(0, 48, 34, 0.72);
+}
+
+body[data-dice-style="jade"] .die span,
+body[data-dice-style="jade"] .die[data-value="1"] span {
+    background: #f5fff7;
+}
+
+body[data-dice-style="sakura"] .die {
+    border-color: #c9a6d9;
+    background: linear-gradient(135deg, #64517c 0%, #302744 58%, #171426 100%);
+    box-shadow: inset -2px -3px 4px rgba(8, 5, 18, 0.8);
+}
+
+body[data-dice-style="sakura"] .die span,
+body[data-dice-style="sakura"] .die[data-value="1"] span {
+    background: #ff9fca;
 }
 
 @media (max-width: 420px) {
