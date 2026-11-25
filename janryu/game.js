@@ -26,8 +26,7 @@ const settlementForm = document.getElementById("settlement-form");
 const cancelSettlement = document.getElementById("cancel-settlement");
 const confirmSettlement = document.getElementById("confirm-settlement");
 const settlementBalance = document.getElementById("settlement-balance");
-const depositCountDisplay = document.getElementById("deposit-count");
-const depositDisplay = depositCountDisplay.parentElement.parentElement;
+const depositDisplays = document.querySelectorAll(".deposit-display");
 let depositCount = 0;
 let startingPoints = 0;
 let startingDealer = "east";
@@ -59,6 +58,7 @@ const players = seatDirections.map((direction) => {
         nameDisplay: scoreRegion.querySelector(".player-name"),
         windDisplay: scoreRegion.querySelector(".player-wind"),
         settlementName: document.getElementById(`settlement-name-${direction}`),
+        settlementScore: settlementEntry.querySelector(".settlement-score"),
         settlementEntry,
         rollButton: document.querySelector(`.outer-button.${direction}`),
         riichiButton: document.querySelector(`.inner-button[data-player="${direction}"]`),
@@ -293,8 +293,12 @@ for (const player of players) {
 
 function updateDeposit(count) {
     depositCount = count;
-    depositCountDisplay.textContent = count.toLocaleString("ja-JP");
-    depositDisplay.setAttribute("aria-label", `供託 ${count}本`);
+    for (const display of depositDisplays) {
+        display.querySelector(".deposit-count").textContent = count.toLocaleString("ja-JP");
+        if (display.getAttribute("role") === "status") {
+            display.setAttribute("aria-label", `供託 ${count}本`);
+        }
+    }
 }
 
 function updateScores(scores) {
@@ -581,6 +585,7 @@ function openSettlement(type) {
         }
         player.adjustment.value = "0";
         setSettlementDirection(player, false);
+        player.settlementScore.textContent = `(${player.score.toLocaleString("ja-JP")})`;
         player.riichiIndicator.hidden = player.riichiButton.getAttribute("aria-pressed") !== "true";
     }
     settlementTitle.textContent = `${type === "draw" ? "流局" : "和了"}・点棒精算`;

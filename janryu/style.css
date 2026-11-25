@@ -181,6 +181,20 @@ body[data-theme="black"] {
     gap: 8px;
 }
 
+.settlement-button {
+    font-family: "HGP行書体", "HG行書体", "Yuji Boku", "Yu Mincho", serif;
+}
+
+#open-settlement {
+    background: #a64500;
+    color: #ffe287;
+}
+
+#open-draw-settlement {
+    background: #62aee2;
+    color: #000;
+}
+
 .round-display {
     display: flex;
     align-items: center;
@@ -195,7 +209,7 @@ body[data-theme="black"] {
     justify-self: start;
 }
 
-.round-display-bottom {
+.round-info-bottom {
     justify-self: end;
     transform: rotate(180deg);
 }
@@ -644,6 +658,7 @@ body.seat-dragging {
 
 .settlement-heading {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: 6px;
@@ -783,12 +798,17 @@ body.seat-dragging {
     align-items: center;
     gap: 6px;
     min-width: 0;
+    max-width: 100%;
     white-space: nowrap;
 }
 
 .settlement-name {
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.settlement-score {
+    flex-shrink: 0;
 }
 
 .settlement-riichi:not([hidden]) {
